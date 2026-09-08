@@ -4,9 +4,9 @@ Desacoplado del back .NET. Se despliega solo esta carpeta `free-rock-band-websit
 
 ## Configurar API
 
-Editar `js/config.js`:
+Editar `js/config.js` (producción, sin slash final):
 ```js
-window.__CONFIG__ = { API_URL: "https://tu-api.onrender.com" }
+window.__CONFIG__ = { API_URL: "https://reydeltrenfantasma.runasp.net" }
 ```
 Para dev local:
 ```js
@@ -41,9 +41,8 @@ Dominio custom: Settings → Pages → Custom domain `tunoereselreydeltrenfantas
 
 ## CORS
 
-El back `.NET` en `appsettings.json:Cors:AllowedOrigins` debe incluir tu dominio Pages:
+El back `.NET` en `.env:Cors__AllowedOrigins` debe incluir tu dominio del front:
 ```
-https://TU_USUARIO.github.io
-https://tunoereselreydeltrenfantasma.com
+https://elrey-del-trenfantasma.vellumdigitall.online
 ```
 
