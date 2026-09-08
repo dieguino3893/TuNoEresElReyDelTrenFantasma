@@ -34,6 +34,10 @@
           // fallback: solo reemplazar si h1 existe
         }
         if(s.slogan) setText('.slogan', s.slogan);
+        if(s.heroImageUrl){
+          const hero = document.getElementById('hero');
+          if(hero) hero.style.setProperty('--hero-img', `url('${s.heroImageUrl}')`);
+        }
         if(s.contactEmail){
           const insertMail = $('#insertMail');
           if(insertMail) insertMail.innerHTML = `<a href="mailto:${esc(s.contactEmail)}">${esc(s.contactEmail)}</a>`;

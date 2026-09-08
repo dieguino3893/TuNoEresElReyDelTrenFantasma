@@ -383,7 +383,10 @@ footer .social-icon:hover { background: var(--accent); border-color: var(--accen
   content: '';
   position: absolute;
   inset: 0;
-  background: url('../img/IMG_1782.webp') center 53% / cover no-repeat;
+  background-image: var(--hero-img, url('../img/IMG_1782.webp'));
+  background-position: center 53%;
+  background-size: cover;
+  background-repeat: no-repeat;
   /* elevada ~40% hacia arriba (de 35% a 18%) + calidez */
   filter: saturate(1.05) contrast(1.02) brightness(.92);
   transform: scale(1.02);
