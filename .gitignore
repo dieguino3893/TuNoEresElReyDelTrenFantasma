@@ -1,0 +1,33 @@
+# Build
+bin/
+obj/
+out/
+publish/
+
+# Visual Studio / Rider
+.vs/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.dbmdl
+*.jfm
+
+# Secrets / Env
+.env
+.env.local
+.env.*.local
+*.env
+secrets.json
+appsettings.Production.json
+appsettings.*.Production.json
+
+# User Secrets (local)
+secrets.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node (template)
+node_modules/

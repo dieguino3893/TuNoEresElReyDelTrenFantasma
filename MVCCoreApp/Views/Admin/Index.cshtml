@@ -1,0 +1,73 @@
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Panel";
+    dynamic s = ViewBag.Stats;
+    var ok = TempData["ok"] as string;
+    var es = new System.Globalization.CultureInfo("es-ES");
+    var next = ViewBag.NextShow as MVCCoreApp.Models.Show;
+    var latest = ViewBag.LatestNews as MVCCoreApp.Models.News;
+    var siteUrl = ViewBag.SiteUrl as string;
+}
+
+@if(!string.IsNullOrEmpty(ok)){<div class="alert alert-ok"><i class="fa-solid fa-check"></i> @ok</div>}
+@if(ViewBag.Warning!=null){<div class="alert alert-err"><i class="fa-solid fa-triangle-exclamation"></i> @ViewBag.Warning</div>}
+
+<div class="card">
+  <div class="welcome">
+    <div>
+      <h2>Hola, <em>@User.Identity?.Name</em></h2>
+      <p>Bienvenido al backstage de <strong style="color:var(--text)">El Rey del Tren Fantasma</strong>. Aquí está todo lo que tu público ve en tu sitio.</p>
+    </div>
+    <div class="actions-row">
+      <a class="btn btn-primary" href="@siteUrl" target="_blank" rel="noopener"><i class="fa-solid fa-arrow-up-right-from-square"></i> Ver tu sitio</a>
+      <form method="post" action="/admin/seed"><button class="btn btn-secondary" type="submit"><i class="fa-solid fa-rotate-left"></i> Inicializar estructura</button></form>
+    </div>
+  </div>
+  <div class="grid">
+    <div class="stat"><div class="i"><i class="fa-solid fa-users"></i></div><div class="k">Miembros</div><div class="v">@s.members</div><div class="mono">Integrantes de la banda</div></div>
+    <div class="stat"><div class="i"><i class="fa-solid fa-calendar-days"></i></div><div class="k">Shows</div><div class="v">@s.shows</div><div class="mono">Conciertos publicados</div></div>
+    <div class="stat"><div class="i"><i class="fa-solid fa-newspaper"></i></div><div class="k">Noticias</div><div class="v">@s.news</div><div class="mono">Entradas del blog</div></div>
+    <div class="stat"><div class="i"><i class="fa-solid fa-music"></i></div><div class="k">Canciones</div><div class="v">@s.tracks</div><div class="mono">Temas con enlace de escucha</div></div>
+    <div class="stat"><div class="i"><i class="fa-solid fa-shield-halved"></i></div><div class="k">Usuarios</div><div class="v">@s.users</div><div class="mono">Personas con acceso</div></div>
+  </div>
+</div>
+
+<div class="actions">
+  <a class="act" href="/admin/settings"><div class="ic"><i class="fa-solid fa-sliders"></i></div><div><h4>Ajustes del sitio</h4><p>Textos de portada, redes sociales y buscadores</p></div></a>
+  <a class="act" href="/admin/members"><div class="ic"><i class="fa-solid fa-user-group"></i></div><div><h4>Miembros</h4><p>Integrantes de la banda, sus fotos y orden</p></div></a>
+  <a class="act" href="/admin/shows"><div class="ic"><i class="fa-solid fa-location-dot"></i></div><div><h4>Shows</h4><p>Fechas, lugares y el mapa de cada concierto</p></div></a>
+  <a class="act" href="/admin/setlists"><div class="ic"><i class="fa-solid fa-list-music"></i></div><div><h4>Setlists</h4><p>Las listas de canciones que pueden repetirse</p></div></a>
+  <a class="act" href="/admin/rehearsals"><div class="ic"><i class="fa-solid fa-drum"></i></div><div><h4>Ensayos</h4><p>Agenda las sesiones del grupo</p></div></a>
+  <a class="act" href="/admin/news"><div class="ic"><i class="fa-solid fa-pen-nib"></i></div><div><h4>Noticias</h4><p>Entradas para mantener a tus fans al día</p></div></a>
+  <a class="act" href="/admin/tracks"><div class="ic"><i class="fa-brands fa-spotify"></i></div><div><h4>Música</h4><p>Canciones y sus enlaces de escucha</p></div></a>
+  <a class="act" href="/admin/users"><div class="ic"><i class="fa-solid fa-user-shield"></i></div><div><h4>Usuarios</h4><p>Quién puede entrar a este panel</p></div></a>
+</div>
+
+<div class="snapshots">
+  <div class="snap">
+    <div class="top"><i class="fa-solid fa-location-dot"></i><h4>Próximo show</h4></div>
+    <div class="body">
+      @if(next != null){
+        <strong style="font-size:1.05rem">@next.Venue</strong>
+        @if(!string.IsNullOrEmpty(next.CityState)){<div class="sub">@next.CityState</div>}
+        <div class="sub"><i class="fa-regular fa-calendar" style="margin-right:5px"></i>@next.Date.ToString("d MMMM yyyy", es) · @next.Time h</div>
+      } else {
+        <span class="empty">Todavía no hay shows publicados. Añade el primero — ¡ya era hora de tocar!</span>
+      }
+    </div>
+    <div class="foot"><a href="/admin/shows" class="btn btn-secondary btn-sm">Ver shows</a><a href="/admin/shows/create" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> Añadir</a></div>
+  </div>
+  <div class="snap">
+    <div class="top"><i class="fa-solid fa-newspaper"></i><h4>Última noticia</h4></div>
+    <div class="body">
+      @if(latest != null){
+        <strong style="font-size:1.05rem">@latest.Title</strong>
+        @if(!string.IsNullOrEmpty(latest.Tag)){<span class="pill" style="align-self:flex-start">@latest.Tag</span>}
+        <div class="sub"><i class="fa-regular fa-calendar" style="margin-right:5px"></i>@latest.PublishedAt.ToString("d MMMM yyyy", es)</div>
+      } else {
+        <span class="empty">Aún no hay noticias. Cuéntales a tus fans qué está pasando.</span>
+      }
+    </div>
+    <div class="foot"><a href="/admin/news" class="btn btn-secondary btn-sm">Ver noticias</a><a href="/admin/news/create" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> Escribir</a></div>
+  </div>
+</div>

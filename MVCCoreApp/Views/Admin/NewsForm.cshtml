@@ -1,0 +1,30 @@
+@model MVCCoreApp.Models.News
+@{ Layout="_AdminLayout"; var isEdit = ViewBag.IsEdit == true; ViewData["Title"]= isEdit ? "Editar noticia" : "Nueva noticia"; }
+<div class="welcome"><div><h2>@ViewData["Title"]</h2><p>Cuéntales a tus fans lo que está pasando con la banda.</p></div><a href="/admin/news" class="btn btn-secondary btn-sm">← Volver a noticias</a></div>
+<form method="post" enctype="multipart/form-data" action="@(isEdit ? $"/admin/news/edit/{Model.Id}" : "/admin/news/create")" class="card">
+  <div class="form-group"><label class="form-label">Título</label><input name="Title" class="form-control" value="@Model.Title" placeholder="Nuevo disco en camino" required/></div>
+  <div class="grid2">
+    <div class="form-group"><label class="form-label">Enlace corto</label><input name="Slug" class="form-control" value="@Model.Slug" placeholder="nuevo-disco-en-camino" required/><div class="form-hint">El final del enlace de la noticia, con guiones y sin espacios.</div></div>
+    <div class="form-group"><label class="form-label">Categoría</label><input name="Tag" class="form-control" value="@Model.Tag" placeholder="Música"/></div>
+  </div>
+  <div class="form-group"><label class="form-label">Imagen</label>
+    <div style="display:flex;gap:8px;align-items:center">
+      <input id="imgUrl" name="ImageUrl" class="form-control" value="@Model.ImageUrl" placeholder="https://..."/>
+      <button type="button" onclick="openImagePicker('imgUrl')" class="btn btn-secondary"><i class="fa-solid fa-images"></i> Elegir</button>
+    </div>
+    <div id="preview" style="margin-top:8px">@if(!string.IsNullOrEmpty(Model.ImageUrl)){<img src="@Model.ImageUrl" style="max-width:220px;border-radius:12px;border:1px solid var(--line)"/>}</div>
+  </div>
+  <div class="grid2">
+    <div class="form-group"><label class="form-label">Texto alternativo de la imagen</label><input name="ImageAlt" class="form-control" value="@Model.ImageAlt"/></div>
+    <div class="form-group"><label class="form-label">Fecha de publicación</label><input type="datetime-local" class="form-control" name="PublishedAt" value="@Model.PublishedAt.ToString("yyyy-MM-ddTHH:mm")"/></div>
+  </div>
+  <div class="form-group"><label class="form-label">Resumen</label><textarea name="Excerpt" class="form-control" placeholder="Un par de frases que se ven en la lista de noticias.">@Model.Excerpt</textarea></div>
+  <div class="form-group"><label class="form-label">Contenido</label><textarea name="ContentHtml" class="form-control" placeholder="Escribe aquí el cuerpo de la noticia. Puedes usar párrafos y negritas.">@Model.ContentHtml</textarea></div>
+  <div class="form-group"><label class="form-label">Mostrar en el sitio</label><select name="IsPublished" class="form-control"><option value="true" selected="@(Model.IsPublished)">Sí, publicada</option><option value="false" selected="@(!Model.IsPublished)">No, en borrador</option></select></div>
+  <input type="hidden" name="Order" value="@Model.Order"/>
+  <div style="margin-top:24px;display:flex;gap:12px"><button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Guardar noticia</button><a href="/admin/news" class="btn btn-secondary">Cancelar</a></div>
+</form>
+@await Html.PartialAsync("_ImagePicker")
+<script>
+document.getElementById('imgUrl').addEventListener('input', e=>{ const v=e.target.value; const p=document.getElementById('preview'); if(v) p.innerHTML=`<img src="${v}" style="max-width:220px;border-radius:12px;border:1px solid var(--line)"/>`; else p.innerHTML=''; });
+</script>

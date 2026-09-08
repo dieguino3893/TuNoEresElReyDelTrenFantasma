@@ -1,0 +1,24 @@
+@model List<MVCCoreApp.Models.User>
+@{
+  Layout="_AdminLayout"; ViewData["Title"]="Usuarios";
+  var es = new System.Globalization.CultureInfo("es-ES");
+}
+<div class="welcome">
+  <div><h2>Usuarios</h2><p>Quién puede entrar a este panel y qué puede hacer.</p></div>
+  <div class="actions-row"><a href="/admin/users/create" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> Nuevo usuario</a><a href="/admin" class="btn btn-secondary btn-sm">← Volver al panel</a></div>
+</div>
+@if(TempData["ok"]!=null){<div class="alert alert-ok"><i class="fa-solid fa-check"></i> @TempData["ok"]</div>}
+@if(TempData["err"]!=null){<div class="alert alert-err"><i class="fa-solid fa-triangle-exclamation"></i> @TempData["err"]</div>}
+<div style="margin:14px 0"><input id="q" class="search" placeholder="Buscar usuario..." oninput="filterTable()"/></div>
+<div style="overflow:auto"><table class="tbl" id="tbl"><thead><tr><th>Usuario</th><th>Rol</th><th>Estado</th><th>Creado</th><th>Acciones</th></tr></thead><tbody>
+@foreach(var u in Model){
+<tr>
+  <td data-label="Usuario"><strong>@u.Username</strong></td>
+  <td data-label="Rol"><span class="pill">@u.Role</span></td>
+  <td data-label="Estado"><span class="pill @(u.IsActive?"ok":"off")">@(u.IsActive ? "Activo" : "Inactivo")</span></td>
+  <td data-label="Creado"><small style="color:var(--muted)">@u.CreatedAt.ToString("d MMM yyyy", es)</small></td>
+  <td data-label="Acciones"><form method="post" action="/admin/users/delete/@u.Id" onsubmit="return confirm('¿Eliminar a @u.Username?')"><button type="submit" class="btn btn-danger btn-sm">Eliminar</button></form></td>
+</tr>
+}
+</tbody></table></div>
+<script>function filterTable(){ const q=document.getElementById("q").value.toLowerCase(); document.querySelectorAll("#tbl tbody tr").forEach(tr=> tr.style.display = tr.textContent.toLowerCase().includes(q) ? "" : "none"); }</script>

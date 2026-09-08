@@ -1,0 +1,90 @@
+@model MVCCoreApp.Models.Setlist
+@{
+  Layout="_AdminLayout";
+  var isEdit = ViewBag.IsEdit == true;
+  var tracks = (List<MVCCoreApp.Models.Track>)ViewBag.Tracks;
+  ViewData["Title"] = isEdit ? "Editar setlist" : "Nuevo setlist";
+}
+<div class="welcome">
+  <div><h2>@ViewData["Title"]</h2><p>Elige las canciones, en el orden en que las tocarán. Puedes usar una del catálogo o escribir una libre.</p></div>
+  <a href="/admin/setlists" class="btn btn-secondary btn-sm">← Volver a setlists</a>
+</div>
+@if(TempData["err"]!=null){<div class="alert alert-err"><i class="fa-solid fa-triangle-exclamation"></i> @TempData["err"]</div>}
+<form method="post" action="@(isEdit ? $"/admin/setlists/edit/{Model.Id}" : "/admin/setlists/create")" class="card">
+  <div class="grid2">
+    <div class="form-group"><label class="form-label">Nombre del setlist</label><input class="form-control" name="Name" value="@Model.Name" placeholder="Set de gira 2026" required/></div>
+    <div class="form-group"><label class="form-label">Descripción opcional</label><input class="form-control" name="Description" value="@Model.Description" placeholder="Para shows o para ensayar"/></div>
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">Canciones, en orden</label>
+    <div id="items">
+      @for(var i=0;i<Model.Items.Count;i++){
+        <div class="si-row" style="display:grid;grid-template-columns:auto auto 1fr 1fr auto;gap:8px;align-items:center;margin-top:8px">
+          <button type="button" title="Subir" class="btn btn-secondary btn-sm btn-icon" onclick="moveRow(this,-1)"><i class="fa-solid fa-arrow-up"></i></button>
+          <button type="button" title="Bajar" class="btn btn-secondary btn-sm btn-icon" onclick="moveRow(this,1)"><i class="fa-solid fa-arrow-down"></i></button>
+          <select class="form-control si-track" onchange="pickTrack(this)">
+            <option value="">— Canción libre —</option>
+            @foreach(var t in tracks){<option value="@t.Id" selected="@(Model.Items[i].TrackId==t.Id)">@t.Title</option>}
+          </select>
+          <input class="form-control si-title" value="@Model.Items[i].Title" placeholder="Título de la canción"/>
+          <button type="button" title="Quitar" class="btn btn-danger btn-sm btn-icon" onclick="removeRow(this)"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+      }
+    </div>
+    <div style="margin-top:10px"><button type="button" class="btn btn-secondary btn-sm" onclick="addRow()"><i class="fa-solid fa-plus"></i> Añadir canción</button></div>
+  </div>
+
+  <div style="margin-top:24px;display:flex;gap:12px"><button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Guardar setlist</button><a href="/admin/setlists" class="btn btn-secondary">Cancelar</a></div>
+</form>
+
+<script>
+var catalog = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(tracks.Select(t=>new{t.Id, t.Title})));
+var items = document.getElementById('items');
+
+function rowHtml(trackId, title){
+  return `<div class="si-row" style="display:grid;grid-template-columns:auto auto 1fr 1fr auto;gap:8px;align-items:center;margin-top:8px">
+    <button type="button" title="Subir" class="btn btn-secondary btn-sm btn-icon" onclick="moveRow(this,-1)"><i class="fa-solid fa-arrow-up"></i></button>
+    <button type="button" title="Bajar" class="btn btn-secondary btn-sm btn-icon" onclick="moveRow(this,1)"><i class="fa-solid fa-arrow-down"></i></button>
+    <select class="form-control si-track" onchange="pickTrack(this)">
+      <option value="">— Canción libre —</option>
+      ${catalog.map(c=>`<option value="${c.Id}" ${c.Id===trackId?'selected':''}>${c.Title}</option>`).join('')}
+    </select>
+    <input class="form-control si-title" value="${title||''}" placeholder="Título de la canción"/>
+    <button type="button" title="Quitar" class="btn btn-danger btn-sm btn-icon" onclick="removeRow(this)"><i class="fa-solid fa-xmark"></i></button>
+  </div>`;
+}
+
+function renumber(){
+  var rows = items.querySelectorAll('.si-row');
+  rows.forEach(function(row, i){
+    row.querySelector('.si-track').name = 'Items['+i+'].TrackId';
+    row.querySelector('.si-title').name = 'Items['+i+'].Title';
+  });
+}
+function pickTrack(sel){
+  var row = sel.closest('.si-row');
+  var opt = sel.selectedOptions[0];
+  row.querySelector('.si-title').value = (opt && opt.value) ? opt.text : '';
+}
+function addRow(){
+  items.insertAdjacentHTML('beforeend', rowHtml('',''));
+  renumber();
+}
+function removeRow(btn){
+  if(items.querySelectorAll('.si-row').length <= 1){ alert('Un setlist necesita al menos una canción.'); return; }
+  btn.closest('.si-row').remove();
+  renumber();
+}
+function moveRow(btn, dir){
+  var row = btn.closest('.si-row');
+  var rows = Array.prototype.slice.call(items.querySelectorAll('.si-row'));
+  var i = rows.indexOf(row), j = i + dir;
+  if(j < 0 || j >= rows.length) return;
+  items.insertBefore(row, dir>0 ? rows[j].nextSibling : rows[j]);
+  renumber();
+}
+
+renumber();
+if(items.querySelectorAll('.si-row').length === 0) addRow();
+</script>

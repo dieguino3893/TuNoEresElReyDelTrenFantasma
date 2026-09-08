@@ -1,0 +1,47 @@
+@using System.Globalization
+@model List<MVCCoreApp.Models.Rehearsal>
+@{
+  Layout="_AdminLayout"; ViewData["Title"]="Ensayos";
+  CultureInfo es = new CultureInfo("es-ES");
+  var setl = ViewBag.Setlists as Dictionary<string,string> ?? new Dictionary<string,string>();
+  var shows = ViewBag.Shows as Dictionary<string,MVCCoreApp.Models.Show> ?? new Dictionary<string,MVCCoreApp.Models.Show>();
+}
+<div class="welcome">
+  <div><h2>Ensayos</h2><p>Los ensayos sueltos son para el local o el estudio; los del día de show se programan con horario para el trabajo del concierto.</p></div>
+  <div class="actions-row"><a href="/admin/rehearsals/create" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> Agendar ensayo</a><a href="/admin/setlists" class="btn btn-secondary btn-sm"><i class="fa-solid fa-list-music"></i> Setlists</a></div>
+</div>
+@if(TempData["ok"]!=null){<div class="alert alert-ok"><i class="fa-solid fa-check"></i> @TempData["ok"]</div>}
+@if(TempData["err"]!=null){<div class="alert alert-err"><i class="fa-solid fa-triangle-exclamation"></i> @TempData["err"]</div>}
+<div style="margin:14px 0"><input id="q" class="search" placeholder="Buscar ensayo..." oninput="filterTable()"/></div>
+<div style="overflow:auto"><table class="tbl" id="tbl"><thead><tr><th>Fecha</th><th>Día</th><th>Horario</th><th>Setlist a ensayar</th><th>Qué se va a hacer / Notas</th><th>Editado</th><th>Acciones</th></tr></thead><tbody>
+@foreach(var r in Model.OrderByDescending(x=>x.Date).ThenByDescending(x=>x.StartTime)){
+  var isShowDay = r.ShowId != null && shows.ContainsKey(r.ShowId);
+  var show = isShowDay ? shows[r.ShowId!] : null;
+  <tr>
+    <td data-label="Fecha"><strong>@r.Date.ToString("dd MMM yyyy", es)</strong><br/><small style="color:var(--muted)">@((r.Date - DateTime.UtcNow).TotalDays > 0 ? "por venir" : "pasado")</small></td>
+    <td data-label="Día">
+      @if(isShowDay){
+        <span class="pill ok">Día de show</span><br/>
+        <a href="/admin/shows/edit/@show!.Id" style="color:var(--accent2)"><i class="fa-solid fa-location-dot"></i> @show.Venue</a><br/>
+        <small style="color:var(--muted)">@show.CityState</small>
+      } else {
+        <span class="pill">Ensayo suelto</span><br/><small style="color:var(--muted)">@r.Place</small>
+      }
+    </td>
+    <td data-label="Horario">
+      @if(isShowDay){
+        <strong>@(r.StartTime ?? "—") → @(r.EndTime ?? "—")</strong>
+      } else {
+        <text>@(r.Date.ToString("HH:mm", es)) h</text>
+      }
+    </td>
+    <td data-label="Setlist a ensayar">@(r.SetlistId != null && setl.ContainsKey(r.SetlistId) ? setl[r.SetlistId] : "—")</td>
+    <td data-label="Notas"><small style="color:var(--muted)">@r.Notes</small></td>
+    <td data-label="Editado"><small style="color:var(--muted)">por @r.UpdatedBy</small></td>
+    <td data-label="Acciones" style="display:flex;gap:6px"><a href="/admin/rehearsals/edit/@r.Id" class="btn btn-secondary btn-sm">Editar</a><form method="post" action="/admin/rehearsals/delete/@r.Id" onsubmit="return confirm('¿Eliminar este ensayo?')"><button type="submit" class="btn btn-danger btn-sm">Eliminar</button></form></td>
+  </tr>
+}
+</tbody></table></div>
+@if(!Model.Any()){<p class="mono" style="margin-top:10px">No hay ensayos con este filtro.</p>}
+@if(!string.IsNullOrWhiteSpace(Context.Request.Query["show"])){<p class="mono" style="margin-top:10px">Mostrando solo los ensayos de un show. <a href="/admin/rehearsals">Ver todos</a></p>}
+<script>function filterTable(){ const q=document.getElementById("q").value.toLowerCase(); document.querySelectorAll("#tbl tbody tr").forEach(tr=> tr.style.display = tr.textContent.toLowerCase().includes(q) ? "" : "none"); }</script>

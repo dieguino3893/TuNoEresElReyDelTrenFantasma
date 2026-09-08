@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>@ViewData["Title"] · El Rey del Tren Fantasma</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400;1,9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
+<link rel="stylesheet" href="/css/admin.css?v=7"/>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">El Rey <em>del Tren Fantasma</em></div>
+  <button class="hamburger" id="hamburger" aria-label="Abrir menú" onclick="document.getElementById('adminNav').classList.toggle('open'); this.classList.toggle('active')"><span></span></button>
+  <nav class="nav" id="adminNav">
+    <a href="/admin" class="@(ViewContext.RouteData.Values["action"]?.ToString()=="Index"?"active":"")"><i class="fa-solid fa-table-columns"></i> Panel</a>
+    <a href="/admin/settings"><i class="fa-solid fa-sliders"></i> Ajustes</a>
+    <a href="/admin/members"><i class="fa-solid fa-user-group"></i> Miembros</a>
+    <a href="/admin/shows"><i class="fa-solid fa-location-dot"></i> Shows</a>
+    <a href="/admin/setlists"><i class="fa-solid fa-list-music"></i> Setlists</a>
+    <a href="/admin/rehearsals"><i class="fa-solid fa-drum"></i> Ensayos</a>
+    <a href="/admin/news"><i class="fa-solid fa-newspaper"></i> Noticias</a>
+    <a href="/admin/tracks"><i class="fa-solid fa-music"></i> Música</a>
+    <a href="/admin/users"><i class="fa-solid fa-user-shield"></i> Usuarios</a>
+    <a href="/admin/files"><i class="fa-solid fa-cloud-arrow-up"></i> Archivos</a>
+  </nav>
+  <div class="user">
+    <span class="avatar"><i class="fa-solid fa-user"></i></span>
+    <span>@User.Identity?.Name</span>
+    <form method="post" action="/auth/logout" style="display:inline"><button class="btn btn-secondary btn-sm" type="submit"><i class="fa-solid fa-right-from-bracket"></i> Salir</button></form>
+  </div>
+</header>
+<div class="wrap">
+  @RenderBody()
+</div>
+</body>
+</html>

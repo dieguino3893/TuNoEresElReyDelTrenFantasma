@@ -1,0 +1,85 @@
+@model MVCCoreApp.Models.SiteSettings
+@{ Layout="_AdminLayout"; ViewData["Title"]="Ajustes"; }
+@if(Model==null){<div class="alert alert-err"><i class="fa-solid fa-triangle-exclamation"></i> Aún no hay ajustes guardados. Ejecuta "Restablecer demo" desde el panel.</div>} else {
+
+<div class="welcome">
+  <div>
+    <h2>Parte de arriba de tu sitio</h2>
+    <p>Estos textos aparecen en la portada que ve tu público.</p>
+  </div>
+  <div class="actions-row"><a href="/admin" class="btn btn-secondary btn-sm">← Volver al panel</a></div>
+</div>
+
+@if(TempData["ok"]!=null){<div class="alert alert-ok"><i class="fa-solid fa-check"></i> @TempData["ok"]</div>}
+@if(TempData["err"]!=null){<div class="alert alert-err"><i class="fa-solid fa-triangle-exclamation"></i> @TempData["err"]</div>}
+
+<form method="post" action="/admin/settings">
+  <div class="card">
+    <h3 style="font-family:'Fraunces';margin-bottom:4px"><i class="fa-solid fa-wand-magic-sparkles" style="color:var(--accent)"></i> Portada</h3>
+    <div class="grid2">
+      <div class="form-group"><label class="form-label">Título del sitio</label><input class="form-control" name="SiteTitle" value="@Model.SiteTitle" required/></div>
+      <div class="form-group"><label class="form-label">Frase corta</label><input class="form-control" name="Slogan" value="@Model.Slogan"/><div class="form-hint">La frase que acompaña al nombre de la banda.</div></div>
+    </div>
+    <div class="grid2">
+      <div class="form-group"><label class="form-label">Etiqueta de portada</label><input class="form-control" name="HeroEyebrow" value="@Model.HeroEyebrow"/><div class="form-hint">Un texto pequeño sobre el título, por ejemplo "Nuevo disco fuera".</div></div>
+      <div class="form-group"><label class="form-label">Ubicación que se muestra</label><input class="form-control" name="HeroLocation" value="@Model.HeroLocation"/><div class="form-hint">Por ejemplo "Ciudad de México".</div></div>
+    </div>
+    <div class="form-group"><label class="form-label">Imagen de fondo de la portada</label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input id="HeroImageUrl" name="HeroImageUrl" class="form-control" value="@Model.HeroImageUrl" placeholder="img/IMG_1782.webp o https://..."/>
+        <button type="button" onclick="openImagePicker('HeroImageUrl')" class="btn btn-secondary"><i class="fa-solid fa-images"></i> Elegir</button>
+      </div>
+      <div class="form-hint">Elige una imagen de Archivos o pega un enlace.</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h3 style="font-family:'Fraunces';margin-bottom:4px"><i class="fa-solid fa-compact-disc" style="color:var(--accent)"></i> Banda</h3>
+    <div class="grid2">
+      <div class="form-group"><label class="form-label">Nombre de la banda</label><input class="form-control" name="BandTitle" value="@Model.BandTitle"/></div>
+      <div class="form-group"><label class="form-label">Palabra destacada</label><input class="form-control" name="BandHighlight" value="@Model.BandHighlight"/><div class="form-hint">Parte del nombre que quieres resaltar en color.</div></div>
+    </div>
+    <div class="form-group"><label class="form-label">Frase bajo el nombre</label><input class="form-control" name="BandHighlightSub" value="@Model.BandHighlightSub"/></div>
+    <div class="form-group"><label class="form-label">Descripción de la banda</label><textarea class="form-control" name="BandDescription">@Model.BandDescription</textarea><div class="form-hint">Puedes usar negritas e itálicas para darle vida al texto.</div></div>
+    <div class="form-group"><label class="form-label">Correo de contacto</label><input class="form-control" name="ContactEmail" value="@Model.ContactEmail"/><div class="form-hint">Se muestra en la sección de contacto de tu sitio.</div></div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h3 style="font-family:'Fraunces';margin-bottom:4px"><i class="fa-solid fa-magnifying-glass" style="color:var(--accent)"></i> Para buscadores</h3>
+    <div class="form-group"><label class="form-label">Título de la página</label><input class="form-control" name="SeoTitle" value="@Model.SeoTitle"/><div class="form-hint">El título que aparece en Google.</div></div>
+    <div class="form-group"><label class="form-label">Descripción</label><textarea class="form-control" name="SeoDescription">@Model.SeoDescription</textarea><div class="form-hint">El resumen que se ve debajo del título en Google.</div></div>
+    <p class="mono">Última actualización: @Model.UpdatedAt.ToString("g") por @Model.UpdatedBy</p>
+    <details style="margin-top:12px"><summary style="cursor:pointer;font-size:.78rem;font-weight:600;color:var(--muted)">Opciones avanzadas — Spotify y YouTube (opcional)</summary>
+      <div class="form-group"><label class="form-label">ID de artista en Spotify</label><input class="form-control" name="SpotifyArtistId" value="@Model.SpotifyArtistId"/><div class="form-hint">Se usa solo si conectas tu perfil automáticamente.</div></div>
+      <div class="form-group"><label class="form-label">ID de canal de YouTube</label><input class="form-control" name="YouTubeChannelId" value="@Model.YouTubeChannelId"/></div>
+      <input type="hidden" name="SpotifyArtistUrl" value="@Model.SpotifyArtistUrl"/>
+      <input type="hidden" name="YouTubeChannelUrl" value="@Model.YouTubeChannelUrl"/>
+    </details>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h3 style="font-family:'Fraunces';margin-bottom:4px"><i class="fa-brands fa-share-nodes" style="color:var(--accent)"></i> Redes sociales</h3>
+    <p style="color:var(--muted);font-size:.82rem;margin:6px 0 8px">Pega el enlace de cada red. Si dejas la dirección vacía, esa red no se mostrará. Marca dónde quieres que aparezca: en la portada (arriba) o al final de la página.</p>
+    @for(var i=0;i<Model.SocialLinks.Count;i++){
+      <div style="margin-top:12px;padding:14px;background:var(--bg2);border:1px solid var(--line);border-radius:14px">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+          <strong><i class="@Model.SocialLinks[i].IconClass" style="margin-right:6px;color:var(--accent2)"></i> @Model.SocialLinks[i].Platform</strong>
+          <span class="mono">Posición @(Model.SocialLinks[i].Order + 1)</span>
+        </div>
+        <input type="hidden" name="SocialLinks[@i].Platform" value="@Model.SocialLinks[i].Platform"/>
+        <input type="hidden" name="SocialLinks[@i].IconClass" value="@Model.SocialLinks[i].IconClass"/>
+        <input type="hidden" name="SocialLinks[@i].Order" value="@Model.SocialLinks[i].Order"/>
+        <div class="form-group"><label class="form-label">Dirección</label><input class="form-control" name="SocialLinks[@i].Url" value="@Model.SocialLinks[i].Url" placeholder="https://..."/></div>
+        <div style="display:flex;gap:14px;flex-wrap:wrap">
+          <label style="display:flex;gap:6px;align-items:center;font-size:.82rem"><input type="hidden" name="SocialLinks[@i].ShowInHero" value="false"/><input type="checkbox" name="SocialLinks[@i].ShowInHero" value="true" @(Model.SocialLinks[i].ShowInHero?"checked":"")/> En la portada</label>
+          <label style="display:flex;gap:6px;align-items:center;font-size:.82rem"><input type="hidden" name="SocialLinks[@i].ShowInFooter" value="false"/><input type="checkbox" name="SocialLinks[@i].ShowInFooter" value="true" @(Model.SocialLinks[i].ShowInFooter?"checked":"")/> Al final de la página</label>
+          <label style="display:flex;gap:6px;align-items:center;font-size:.82rem"><input type="hidden" name="SocialLinks[@i].IsActive" value="false"/><input type="checkbox" name="SocialLinks[@i].IsActive" value="true" @(Model.SocialLinks[i].IsActive?"checked":"")/> Activa</label>
+        </div>
+      </div>
+    }
+  </div>
+
+  <div style="margin-top:20px;display:flex;gap:10px"><button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Guardar cambios</button><a href="/admin" class="btn btn-secondary">Cancelar</a></div>
+</form>
+@await Html.PartialAsync("_ImagePicker")
+}

@@ -1,0 +1,79 @@
+@model MVCCoreApp.Models.Rehearsal
+@{
+  Layout="_AdminLayout";
+  var isEdit = ViewBag.IsEdit == true;
+  var isShowDay = Model.ShowId != null;
+  ViewData["Title"] = isEdit ? "Editar ensayo" : "Agendar ensayo";
+  var showOptions = ViewBag.ShowOptions as List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem> ?? new List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>();
+  var showDataJson = ViewBag.ShowDataJson?.ToString() ?? "[]";
+}
+<div class="welcome">
+  <div><h2>@ViewData["Title"]</h2><p>¿Es del día de un show (con horario) o un ensayo suelto en el local?</p></div>
+  <a href="/admin/rehearsals" class="btn btn-secondary btn-sm">← Volver a ensayos</a>
+</div>
+@if(TempData["err"]!=null){<div class="alert alert-err"><i class="fa-solid fa-triangle-exclamation"></i> @TempData["err"]</div>}
+<form method="post" action="@(isEdit ? $"/admin/rehearsals/edit/{Model.Id}" : "/admin/rehearsals/create")" class="card">
+  <div class="form-group">
+    <label class="form-label">Tipo de ensayo</label>
+    <div class="segmented">
+      <label class="seg @(isShowDay ? "on" : "")"><input type="radio" name="kind" value="show" @(isShowDay ? "checked" : "") onchange="applyKind()"><i class="fa-solid fa-location-dot"></i> Día de show</label>
+      <label class="seg @(isShowDay ? "" : "on")"><input type="radio" name="kind" value="standalone" @(isShowDay ? "" : "checked") onchange="applyKind()"><i class="fa-solid fa-drum"></i> Ensayo suelto</label>
+    </div>
+  </div>
+
+  <div id="showSec" @(isShowDay ? "" : "style=display:none")>
+    <div class="grid2">
+      <div class="form-group">
+        <label class="form-label">Show</label>
+        <select class="form-control" name="showId" onchange="showChosen(this)">
+          <option value="">— Elige un show —</option>
+          @foreach(var o in showOptions){<option value="@o.Value" selected="@(o.Selected)">@o.Text</option>}
+        </select>
+        <div class="form-hint">La fecha será la del show: <span id="showDate" style="font-weight:600;color:var(--gold)">…</span></div>
+      </div>
+      <div class="grid2">
+        <div class="form-group"><label class="form-label">De</label><input class="form-control" type="time" name="StartTime" value="@Model.StartTime"/></div>
+        <div class="form-group"><label class="form-label">A</label><input class="form-control" type="time" name="EndTime" value="@Model.EndTime"/></div>
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">Qué se va a hacer en ese tiempo</label><textarea class="form-control" name="showNotes" rows="2" placeholder="Prueba de sonido, carga de equipo, repaso de transiciones...">@(isShowDay ? Model.Notes : "")</textarea></div>
+  </div>
+
+  <div id="standSec" @(isShowDay ? "style=display:none" : "")>
+    <div class="grid2">
+      <div class="form-group"><label class="form-label">Fecha y hora</label><input class="form-control" type="datetime-local" name="Date" value="@(isShowDay ? "" : Model.Date.ToString("yyyy-MM-ddTHH:mm"))"/></div>
+      <div class="form-group"><label class="form-label">Lugar</label><input class="form-control" name="Place" value="@(isShowDay ? "" : Model.Place)" placeholder="Local de ensayo del barrio"/></div>
+    </div>
+    <div class="form-group"><label class="form-label">Notas del ensayo</label><textarea class="form-control" name="standNotes" rows="2" placeholder="Afinar las guitarras abajo, repasar la intro de la canción 3...">@(isShowDay ? "" : Model.Notes)</textarea></div>
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">Setlist a repasar</label>
+    <select class="form-control" name="setlistId">
+      <option value="">— Ninguno por ahora —</option>
+      @foreach(var opt in ViewBag.SetlistOptions as Microsoft.AspNetCore.Mvc.Rendering.SelectList ?? new Microsoft.AspNetCore.Mvc.Rendering.SelectList(new List<MVCCoreApp.Models.Setlist>(),"Id","Name")){
+        <option value="@opt.Value" selected="@(opt.Selected)">@opt.Text</option>
+      }
+    </select>
+    <small style="color:var(--muted)">Si quieres repasar un setlist, puedes <a href="/admin/setlists/create">crear uno nuevo</a>.</small>
+  </div>
+
+  <div style="margin-top:24px;display:flex;gap:12px"><button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Guardar ensayo</button><a href="/admin/rehearsals" class="btn btn-secondary">Cancelar</a></div>
+</form>
+
+<script>
+var showData = @Html.Raw(showDataJson);
+var dateSpan = document.getElementById('showDate');
+function applyKind(){
+  document.querySelectorAll('.seg').forEach(function(s){ s.classList.toggle('on', s.querySelector('input').checked); });
+  var k = document.querySelector('input[name=kind]:checked').value;
+  document.getElementById('showSec').style.display = k === 'show' ? '' : 'none';
+  document.getElementById('standSec').style.display = k === 'standalone' ? '' : 'none';
+  if(k === 'show'){ var sel = document.querySelector('select[name=showId]'); showChosen(sel); }
+}
+function showChosen(sel){
+  var s = showData.find(function(x){ return x.id === sel.value; });
+  dateSpan.textContent = s ? (s.venue + ' — ' + s.date) : '…';
+}
+applyKind();
+</script>

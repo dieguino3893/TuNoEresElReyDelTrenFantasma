@@ -1,0 +1,26 @@
+@model List<MVCCoreApp.Models.Member>
+@{
+  Layout="_AdminLayout"; ViewData["Title"]="Miembros";
+}
+<div class="welcome">
+  <div><h2>Miembros</h2><p>El orden de la lista es el que aparece en tu sitio, de arriba hacia abajo.</p></div>
+  <div class="actions-row"><a href="/admin/members/create" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> Nuevo miembro</a><a href="/admin" class="btn btn-secondary btn-sm">← Volver al panel</a></div>
+</div>
+@if(TempData["ok"]!=null){<div class="alert alert-ok"><i class="fa-solid fa-check"></i> @TempData["ok"]</div>}
+@if(TempData["err"]!=null){<div class="alert alert-err"><i class="fa-solid fa-triangle-exclamation"></i> @TempData["err"]</div>}
+<div style="margin:14px 0"><input id="q" class="search" placeholder="Buscar por nombre o rol..." oninput="filterTable()"/></div>
+<div style="overflow:auto"><table class="tbl" id="tbl"><thead><tr><th>#</th><th>Miembro</th><th>Rol</th><th>Foto</th><th>Estado</th><th>Editado</th><th>Acciones</th></tr></thead><tbody>
+@foreach(var m in Model.OrderBy(x=>x.Order)){
+<tr>
+  <td data-label="Orden">@m.Order</td>
+  <td data-label="Nombre"><strong>@m.Name</strong></td>
+  <td data-label="Rol">@m.Role</td>
+  <td data-label="Foto">@if(!string.IsNullOrEmpty(m.ImageUrl)){<img src="@m.ImageUrl" alt="@m.ImageAlt" loading="lazy" onerror="this.style.display='none'" style="width:52px;height:52px;object-fit:cover;border-radius:12px;border:1px solid var(--line)"/>}</td>
+  <td data-label="Estado"><span class="pill @(m.IsActive?"ok":"off")">@(m.IsActive ? "Visible" : "Oculto")</span></td>
+  <td data-label="Editado"><small style="color:var(--muted)">por @m.UpdatedBy</small></td>
+  <td data-label="Acciones" style="display:flex;gap:6px"><a href="/admin/members/edit/@m.Id" class="btn btn-secondary btn-sm">Editar</a><form method="post" action="/admin/members/delete/@m.Id" onsubmit="return confirm('¿Eliminar a @m.Name?')"><button type="submit" class="btn btn-danger btn-sm">Eliminar</button></form></td>
+</tr>
+}
+</tbody></table></div>
+@if(!Model.Any()){<p class="mono" style="margin-top:10px">Aún no hay miembros. Añade a la banda.</p>}
+<script>function filterTable(){ const q=document.getElementById('q').value.toLowerCase(); document.querySelectorAll('#tbl tbody tr').forEach(tr=> tr.style.display = tr.textContent.toLowerCase().includes(q) ? '' : 'none'); }</script>

@@ -1,0 +1,29 @@
+@model List<MVCCoreApp.Models.Track>
+@{
+  Layout="_AdminLayout"; ViewData["Title"]="Música";
+}
+<div class="welcome">
+  <div><h2>Música</h2><p>Añade los enlaces de escucha de cada canción. Solo se mostrarán los que rellenes.</p></div>
+  <div class="actions-row"><a href="/admin/tracks/create" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> Nueva canción</a><a href="/admin" class="btn btn-secondary btn-sm">← Volver al panel</a></div>
+</div>
+@if(TempData["ok"]!=null){<div class="alert alert-ok"><i class="fa-solid fa-check"></i> @TempData["ok"]</div>}
+@if(TempData["err"]!=null){<div class="alert alert-err"><i class="fa-solid fa-triangle-exclamation"></i> @TempData["err"]</div>}
+<div style="margin:14px 0"><input id="q" class="search" placeholder="Buscar canción..." oninput="filterTable()"/></div>
+<div style="overflow:auto"><table class="tbl" id="tbl"><thead><tr><th>#</th><th>Título</th><th>Escuchar</th><th>Estado</th><th>Editado</th><th>Acciones</th></tr></thead><tbody>
+@foreach(var t in Model.OrderBy(x=>x.Order)){
+<tr>
+  <td data-label="#">@t.TrackNumber</td>
+  <td data-label="Título"><strong>@t.Title</strong></td>
+  <td data-label="Escuchar">
+    @if(!string.IsNullOrEmpty(t.Links.SpotifyUrl)){<a href="@t.Links.SpotifyUrl" target="_blank" rel="noopener" title="Spotify" class="chip" style="color:#1DB954"><i class="fa-brands fa-spotify"></i></a>}
+    @if(!string.IsNullOrEmpty(t.Links.AppleMusicUrl)){<a href="@t.Links.AppleMusicUrl" target="_blank" rel="noopener" title="Apple Music" class="chip" style="color:#F5A9B8"><i class="fa-brands fa-apple"></i></a>}
+    @if(!string.IsNullOrEmpty(t.Links.YouTubeUrl)){<a href="@t.Links.YouTubeUrl" target="_blank" rel="noopener" title="YouTube" class="chip" style="color:#FF6B6B"><i class="fa-brands fa-youtube"></i></a>}
+  </td>
+  <td data-label="Estado"><span class="pill @(t.IsVisible?"ok":"off")">@(t.IsVisible ? "Visible" : "Oculto")</span></td>
+  <td data-label="Editado"><small style="color:var(--muted)">por @t.UpdatedBy</small></td>
+  <td data-label="Acciones" style="display:flex;gap:6px"><a href="/admin/tracks/edit/@t.Id" class="btn btn-secondary btn-sm">Editar</a><form method="post" action="/admin/tracks/delete/@t.Id" onsubmit="return confirm('¿Eliminar @t.Title?')"><button type="submit" class="btn btn-danger btn-sm">Eliminar</button></form></td>
+</tr>
+}
+</tbody></table></div>
+@if(!Model.Any()){<p class="mono" style="margin-top:10px">Todavía no hay canciones. Sube las primeras.</p>}
+<script>function filterTable(){ const q=document.getElementById("q").value.toLowerCase(); document.querySelectorAll("#tbl tbody tr").forEach(tr=> tr.style.display = tr.textContent.toLowerCase().includes(q) ? "" : "none"); }</script>

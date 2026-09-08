@@ -1,0 +1,22 @@
+@model MVCCoreApp.Models.Track
+@{ Layout="_AdminLayout"; var isEdit = ViewBag.IsEdit == true; ViewData["Title"]= isEdit ? "Editar canción" : "Nueva canción"; }
+<div class="welcome"><div><h2>@ViewData["Title"]</h2><p>Añade los enlaces de la canción. Solo se mostrarán los que rellenes.</p></div><a href="/admin/tracks" class="btn btn-secondary btn-sm">← Volver a música</a></div>
+<form method="post" action="@(isEdit ? $"/admin/tracks/edit/{Model.Id}" : "/admin/tracks/create")" class="card">
+  <div class="form-group"><label class="form-label">Título</label><input class="form-control" name="Title" value="@Model.Title" placeholder="El último tren a la medianoche" required/></div>
+  <div class="grid2">
+    <div class="form-group"><label class="form-label">Número de canción</label><input type="number" class="form-control" name="TrackNumber" value="@Model.TrackNumber" placeholder="1"/><div class="form-hint">Su lugar en el disco.</div></div>
+    <div class="form-group"><label class="form-label">Posición en la lista</label><input type="number" class="form-control" name="Order" value="@Model.Order"/><div class="form-hint">Para ordenar canciones a mano si lo necesitas.</div></div>
+  </div>
+  <div class="grid2">
+    <div class="form-group"><label class="form-label">Tipo</label><input class="form-control" name="Type" value="@Model.Type" placeholder="Single / Álbum"/></div>
+    <div class="form-group"><label class="form-label">Mostrar en el sitio</label><select name="IsVisible" class="form-control"><option value="true" selected="@(Model.IsVisible)">Sí, mostrar</option><option value="false" selected="@(!Model.IsVisible)">No, ocultar</option></select></div>
+  </div>
+  <div class="form-group"><label class="form-label">Enlace de Spotify</label><input class="form-control" name="Links.SpotifyUrl" value="@Model.Links.SpotifyUrl" placeholder="https://open.spotify.com/..."/></div>
+  <div class="form-group"><label class="form-label">ID de la canción en Spotify</label><input class="form-control" name="Links.SpotifyTrackId" value="@Model.Links.SpotifyTrackId" placeholder="7i4JDI..."/><div class="form-hint">Si lo pegas, la canción se podrá reproducir directamente en tu sitio.</div></div>
+  <div class="grid2">
+    <div class="form-group"><label class="form-label">Enlace de Apple Music</label><input class="form-control" name="Links.AppleMusicUrl" value="@Model.Links.AppleMusicUrl" placeholder="https://music.apple.com/..."/></div>
+    <div class="form-group"><label class="form-label">Enlace de YouTube</label><input class="form-control" name="Links.YouTubeUrl" value="@Model.Links.YouTubeUrl" placeholder="https://youtube.com/..."/></div>
+  </div>
+  <div class="form-group"><label class="form-label">ID externo (avanzado)</label><input class="form-control" name="ExternalId" value="@Model.ExternalId"/><div class="form-hint">Sueles dejar esto vacío a menos que sepas para qué sirve.</div></div>
+  <div style="margin-top:24px;display:flex;gap:12px"><button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Guardar canción</button><a href="/admin/tracks" class="btn btn-secondary">Cancelar</a></div>
+</form>

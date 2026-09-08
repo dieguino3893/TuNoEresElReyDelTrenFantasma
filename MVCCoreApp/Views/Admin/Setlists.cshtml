@@ -1,0 +1,24 @@
+@model List<MVCCoreApp.Models.Setlist>
+@{
+  Layout="_AdminLayout"; ViewData["Title"]="Setlists";
+}
+<div class="welcome">
+  <div><h2>Setlists</h2><p>Las listas de canciones que repasas en ensayo o tocas en un show. Puedes reutilizarlas todas las veces que quieras.</p></div>
+  <div class="actions-row"><a href="/admin/setlists/create" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> Nuevo setlist</a><a href="/admin/shows" class="btn btn-secondary btn-sm"><i class="fa-solid fa-location-dot"></i> Shows</a></div>
+</div>
+@if(TempData["ok"]!=null){<div class="alert alert-ok"><i class="fa-solid fa-check"></i> @TempData["ok"]</div>}
+@if(TempData["err"]!=null){<div class="alert alert-err"><i class="fa-solid fa-triangle-exclamation"></i> @TempData["err"]</div>}
+<div style="margin:14px 0"><input id="q" class="search" placeholder="Buscar setlist..." oninput="filterTable()"/></div>
+<div style="overflow:auto"><table class="tbl" id="tbl"><thead><tr><th>Nombre</th><th>Descripción</th><th>Canciones</th><th>Editado</th><th>Acciones</th></tr></thead><tbody>
+@foreach(var s in Model.OrderBy(x=>x.Name)){
+<tr>
+  <td data-label="Nombre"><strong>@s.Name</strong></td>
+  <td data-label="Descripción"><small style="color:var(--muted)">@s.Description</small></td>
+  <td data-label="Canciones"><span class="pill">@s.Items.Count</span> <small style="color:var(--muted)">@(s.Items.Count>0 ? string.Join(" · ", s.Items.Select(i=>i.Title)) : "sin canciones")</small></td>
+  <td data-label="Editado"><small style="color:var(--muted)">por @s.UpdatedBy</small></td>
+  <td data-label="Acciones" style="display:flex;gap:6px"><a href="/admin/setlists/edit/@s.Id" class="btn btn-secondary btn-sm">Editar</a><form method="post" action="/admin/setlists/delete/@s.Id" onsubmit="return confirm('¿Eliminar el setlist @s.Name?')"><button type="submit" class="btn btn-danger btn-sm">Eliminar</button></form></td>
+</tr>
+}
+</tbody></table></div>
+@if(!Model.Any()){<p class="mono" style="margin-top:10px">Aún no hay setlists. Crea el primero y asígnalo a un ensayo.</p>}
+<script>function filterTable(){ const q=document.getElementById("q").value.toLowerCase(); document.querySelectorAll("#tbl tbody tr").forEach(tr=> tr.style.display = tr.textContent.toLowerCase().includes(q) ? "" : "none"); }</script>

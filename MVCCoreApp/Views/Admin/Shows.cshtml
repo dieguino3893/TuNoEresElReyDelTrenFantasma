@@ -1,0 +1,32 @@
+@model List<MVCCoreApp.Models.Show>
+@{
+  Layout="_AdminLayout"; ViewData["Title"]="Shows";
+  var es = new System.Globalization.CultureInfo("es-ES");
+  var rehCounts = ViewBag.RehCounts as Dictionary<string,int> ?? new Dictionary<string,int>();
+}
+<div class="welcome">
+  <div><h2>Shows</h2><p>El show más próximo se muestra primero en tu sitio. Los conciertos pasados aparecen atenuados.</p></div>
+  <div class="actions-row"><a href="/admin/shows/create" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> Nuevo show</a><a href="/admin" class="btn btn-secondary btn-sm">← Volver al panel</a></div>
+</div>
+@if(TempData["ok"]!=null){<div class="alert alert-ok"><i class="fa-solid fa-check"></i> @TempData["ok"]</div>}
+@if(TempData["err"]!=null){<div class="alert alert-err"><i class="fa-solid fa-triangle-exclamation"></i> @TempData["err"]</div>}
+<div style="margin:14px 0"><input id="q" class="search" placeholder="Buscar show..." oninput="filterTable()"/></div>
+<div style="overflow:auto"><table class="tbl" id="tbl"><thead><tr><th>Fecha</th><th>Hora</th><th>Lugar</th><th>Ciudad</th><th>Mapa</th><th>Visible</th><th>Ensayos</th><th>Editado</th><th>Acciones</th></tr></thead><tbody>
+@foreach(var s in Model.OrderBy(x=>x.Date)){
+  var isFuture = s.Date >= DateTime.UtcNow;
+  var cnt = rehCounts.TryGetValue(s.Id, out var c) ? c : 0;
+<tr class="@(isFuture?"future":"")" style="@(isFuture?"":"opacity:.55")">
+  <td data-label="Fecha">@s.Date.ToString("d MMMM yyyy", es)</td>
+  <td data-label="Hora">@s.Time</td>
+  <td data-label="Lugar"><strong>@s.Venue</strong></td>
+  <td data-label="Ciudad">@s.CityState</td>
+  <td data-label="Mapa">@if(!string.IsNullOrEmpty(s.GoogleMapsUrl)){<a href="@s.GoogleMapsUrl" target="_blank" rel="noopener" title="Abrir mapa" style="color:var(--accent2)"><i class="fa-solid fa-map-location-dot"></i></a>}</td>
+  <td data-label="Visible"><span class="pill @(isFuture?"ok":"off")">@(s.IsVisible ? "Visible" : "Oculto")</span></td>
+  <td data-label="Ensayos"><a href="/admin/rehearsals?show=@s.Id" title="Ver ensayos de este show" style="color:var(--accent2)"><span class="pill">@cnt</span> <i class="fa-solid fa-drum"></i></a></td>
+  <td data-label="Editado"><small style="color:var(--muted)">por @s.UpdatedBy</small></td>
+  <td data-label="Acciones" style="display:flex;gap:6px"><a href="/admin/shows/edit/@s.Id" class="btn btn-secondary btn-sm">Editar</a><form method="post" action="/admin/shows/delete/@s.Id" onsubmit="return confirm('¿Eliminar @s.Venue?')"><button type="submit" class="btn btn-danger btn-sm">Eliminar</button></form></td>
+</tr>
+}
+</tbody></table></div>
+@if(!Model.Any()){<p class="mono" style="margin-top:10px">Aún no hay shows. Crea el primero y aparecerá en tu sitio.</p>}
+<script>function filterTable(){ const q=document.getElementById("q").value.toLowerCase(); document.querySelectorAll("#tbl tbody tr").forEach(tr=> tr.style.display = tr.textContent.toLowerCase().includes(q) ? "" : "none"); }</script>

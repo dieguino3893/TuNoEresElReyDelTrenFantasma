@@ -1,0 +1,27 @@
+@model MVCCoreApp.Models.Member
+@{ Layout="_AdminLayout"; var isEdit = ViewBag.IsEdit == true; ViewData["Title"]= isEdit ? "Editar miembro" : "Nuevo miembro"; }
+<div class="welcome"><div><h2>@ViewData["Title"]</h2><p>El orden de los integrantes es el que ves en tu sitio, de arriba hacia abajo.</p></div><a href="/admin/members" class="btn btn-secondary btn-sm">← Volver a miembros</a></div>
+<form method="post" enctype="multipart/form-data" action="@(isEdit ? $"/admin/members/edit/{Model.Id}" : "/admin/members/create")" class="card">
+  <div class="grid2">
+    <div class="form-group"><label class="form-label">Nombre</label><input class="form-control" name="Name" value="@Model.Name" required/></div>
+    <div class="form-group"><label class="form-label">Instrumento o rol</label><input class="form-control" name="Role" value="@Model.Role" placeholder="Guitarra" required/></div>
+  </div>
+  <div class="form-group"><label class="form-label">Foto</label>
+    <div style="display:flex;gap:8px;align-items:center">
+      <input id="imgUrl" name="ImageUrl" class="form-control" value="@Model.ImageUrl" placeholder="https://..."/>
+      <button type="button" onclick="openImagePicker('imgUrl')" class="btn btn-secondary"><i class="fa-solid fa-images"></i> Elegir</button>
+    </div>
+    <div id="preview" style="margin-top:8px">@if(!string.IsNullOrEmpty(Model.ImageUrl)){<img src="@Model.ImageUrl" style="max-width:180px;border-radius:12px;border:1px solid var(--line)"/>}</div>
+    <div class="form-hint">Elige una foto ya subida o súbela nueva.</div>
+  </div>
+  <div class="grid2">
+    <div class="form-group"><label class="form-label">Texto alternativo de la foto</label><input class="form-control" name="ImageAlt" value="@Model.ImageAlt"/><div class="form-hint">Una descripción breve de la foto, útil si no se carga.</div></div>
+    <div class="form-group"><label class="form-label">Enlace a perfil (Instagram)</label><input class="form-control" name="ProfileUrl" value="@Model.ProfileUrl" placeholder="https://instagram.com/..."/></div>
+  </div>
+  <div class="form-group"><label class="form-label">Mostrar en el sitio</label><select name="IsActive" class="form-control"><option value="true" selected="@(Model.IsActive)">Sí, mostrar</option><option value="false" selected="@(!Model.IsActive)">No, ocultar</option></select></div>
+  <div style="margin-top:24px;display:flex;gap:12px"><button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Guardar miembro</button><a href="/admin/members" class="btn btn-secondary">Cancelar</a></div>
+</form>
+@await Html.PartialAsync("_ImagePicker")
+<script>
+document.getElementById('imgUrl').addEventListener('input', e=>{ const v=e.target.value; const p=document.getElementById('preview'); if(v) p.innerHTML=`<img src="${v}" style="max-width:180px;border-radius:12px;border:1px solid var(--line)"/>`; else p.innerHTML=''; });
+</script>

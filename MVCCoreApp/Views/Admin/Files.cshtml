@@ -1,0 +1,99 @@
+@{ Layout="_AdminLayout"; ViewData["Title"]="Archivos"; }
+<div class="welcome">
+  <div><h2>Imágenes de tu sitio</h2><p>Arrastra una foto aquí y se guardará lista para usarla en Miembros, Noticias o en la portada. También puedes descargar cualquiera que ya esté guardada.</p></div>
+  <a href="/admin" class="btn btn-secondary btn-sm">← Volver al panel</a>
+</div>
+
+<div id="drop" class="drop" style="padding:36px">
+  <i class="fa-solid fa-upload" style="font-size:30px;color:var(--accent2);margin-bottom:10px"></i>
+  <p style="font-family:'Fraunces';font-weight:600;font-size:1.05rem">Arrastra tus fotos aquí o haz clic</p>
+  <p class="mono">JPG, PNG, WebP o GIF · hasta 10 MB</p>
+  <input id="fileInput" type="file" accept="image/*" multiple hidden />
+</div>
+
+<div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+  <input id="urlInput" class="search" style="flex:1;min-width:260px" placeholder="Pega un enlace de imagen para descargarla..."/>
+  <button id="downloadBtn" class="btn btn-secondary btn-sm"><i class="fa-solid fa-download"></i> Descargar</button>
+</div>
+
+<div style="margin-top:18px;display:flex;justify-content:space-between;align-items:center"><h3 style="font-family:'Fraunces'">Imágenes guardadas</h3><button id="refreshBtn" class="btn btn-secondary btn-sm"><i class="fa-solid fa-arrows-rotate"></i> Actualizar</button></div>
+<div id="cloudList" class="list" style="margin-top:10px"></div>
+
+<div style="margin-top:18px"><h3 style="font-family:'Fraunces'">Subidas en esta sesión</h3></div>
+<div id="list" class="list"></div>
+
+<script>
+const drop = document.getElementById('drop');
+const input = document.getElementById('fileInput');
+const list = document.getElementById('list');
+const cloudList = document.getElementById('cloudList');
+const urlInput = document.getElementById('urlInput');
+const dlBtn = document.getElementById('downloadBtn');
+const refreshBtn = document.getElementById('refreshBtn');
+
+drop.addEventListener('click', ()=> input.click());
+drop.addEventListener('dragover', e=>{ e.preventDefault(); drop.classList.add('drag'); });
+drop.addEventListener('dragleave', ()=> drop.classList.remove('drag'));
+drop.addEventListener('drop', e=>{ e.preventDefault(); drop.classList.remove('drag'); handleFiles(e.dataTransfer.files); });
+input.addEventListener('change', ()=> handleFiles(input.files));
+refreshBtn.addEventListener('click', loadAll);
+
+async function handleFiles(files){
+  for(const f of files){
+    await upload(f);
+  }
+  loadAll();
+}
+async function upload(file){
+  const fd = new FormData(); fd.append('file', file);
+  const el = document.createElement('div'); el.className='item'; el.innerHTML=`<i class="fa-solid fa-spinner fa-spin"></i><span class="mono">Subiendo ${file.name}...</span>`; list.prepend(el);
+  try{
+    const res = await fetch('/api/v1/files/upload?folder=elrey', { method:'POST', body: fd, credentials:'include' });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.detail||'Error');
+    el.innerHTML = `<img src="${data.url}" alt=""/><div style="flex:1"><div style="font-weight:600">${file.name}</div><div class="mono" style="word-break:break-all">${data.url}</div><div class="mono">ID del archivo: ${data.publicId}</div></div><a href="/api/v1/files/download?url=${encodeURIComponent(data.url)}" class="btn btn-secondary btn-sm"><i class="fa-solid fa-download"></i> Descargar</a><button onclick="navigator.clipboard.writeText('${data.url}')" class="btn btn-primary btn-sm">Copiar enlace</button><button onclick="preview('${data.url}')" class="btn btn-secondary btn-sm">Ver</button>`;
+  }catch(err){
+    el.innerHTML = `<span style="color:#FB7185">Error ${file.name}: ${err.message}</span>`;
+  }
+}
+function preview(url){
+  window.open(url, '_blank');
+}
+dlBtn.addEventListener('click', ()=>{
+  const url = urlInput.value.trim();
+  if(!url) return alert('Pega un enlace de imagen para descargarla.');
+  window.location.href = '/api/v1/files/download?url=' + encodeURIComponent(url);
+});
+async function loadAll(){
+  cloudList.innerHTML = '<div class="mono">Cargando...</div>';
+  try{
+    const res = await fetch('/api/v1/files?prefix=elrey&max=100', { credentials:'include' });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.detail||'Error');
+    if(!data.length){ cloudList.innerHTML='<div class="mono">Todavía no hay imágenes. Sube la primera.</div>'; return; }
+    cloudList.innerHTML = data.map(f=>`
+      <div class="item">
+        <img src="${f.url}" alt="${f.publicId}" loading="lazy" style="cursor:pointer" onclick="preview('${f.url}')"/>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${f.publicId}</div>
+          <div class="mono">${f.width}x${f.height} · ${(f.bytes/1024).toFixed(1)}KB · ${new Date(f.createdAt).toLocaleDateString()}</div>
+          <div class="mono" style="word-break:break-all">${f.url}</div>
+        </div>
+        <a href="/api/v1/files/download?url=${encodeURIComponent(f.url)}" title="Descargar" class="btn btn-secondary btn-sm btn-icon"><i class="fa-solid fa-download"></i></a>
+        <button onclick="preview('${f.url}')" title="Ver" class="btn btn-secondary btn-sm btn-icon"><i class="fa-solid fa-eye"></i></button>
+        <button onclick="copyUrl('${f.url}')" title="Copiar enlace" class="btn btn-primary btn-sm btn-icon"><i class="fa-solid fa-link"></i></button>
+        <button onclick="delFile('${f.publicId}')" title="Eliminar" class="btn btn-danger btn-sm btn-icon"><i class="fa-solid fa-trash"></i></button>
+      </div>
+    `).join('');
+  }catch(err){
+    cloudList.innerHTML = `<span style="color:#FB7185">Error cargando: ${err.message}</span>`;
+  }
+}
+function copyUrl(url){ navigator.clipboard.writeText(url); alert('Enlace copiado'); }
+async function delFile(publicId){
+  if(!confirm('¿Eliminar '+publicId+'?')) return;
+  const res = await fetch('/api/v1/files/'+encodeURIComponent(publicId), { method:'DELETE', credentials:'include' });
+  if(res.ok) loadAll(); else alert('Error al eliminar');
+}
+loadAll();
+</script>

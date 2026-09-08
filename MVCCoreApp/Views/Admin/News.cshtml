@@ -1,0 +1,27 @@
+@model List<MVCCoreApp.Models.News>
+@{
+  Layout="_AdminLayout"; ViewData["Title"]="Noticias";
+  var es = new System.Globalization.CultureInfo("es-ES");
+}
+<div class="welcome">
+  <div><h2>Noticias</h2><p>Tus publicaciones aparecen en la portada de tu sitio, de la más reciente a la más antigua.</p></div>
+  <div class="actions-row"><a href="/admin/news/create" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> Nueva noticia</a><a href="/admin" class="btn btn-secondary btn-sm">← Volver al panel</a></div>
+</div>
+@if(TempData["ok"]!=null){<div class="alert alert-ok"><i class="fa-solid fa-check"></i> @TempData["ok"]</div>}
+@if(TempData["err"]!=null){<div class="alert alert-err"><i class="fa-solid fa-triangle-exclamation"></i> @TempData["err"]</div>}
+<div style="margin:14px 0"><input id="q" class="search" placeholder="Buscar noticia..." oninput="filterTable()"/></div>
+<div style="overflow:auto"><table class="tbl" id="tbl"><thead><tr><th>#</th><th>Título</th><th>Categoría</th><th>Publicación</th><th>Estado</th><th>Editado</th><th>Acciones</th></tr></thead><tbody>
+@foreach(var n in Model.OrderBy(x=>x.Order)){
+<tr>
+  <td data-label="Orden">@n.Order</td>
+  <td data-label="Título"><strong>@n.Title</strong></td>
+  <td data-label="Categoría"><span class="pill">@n.Tag</span></td>
+  <td data-label="Publicación">@n.PublishedAt.ToString("d MMMM yyyy", es)</td>
+  <td data-label="Estado"><span class="pill @(n.IsPublished?"ok":"off")">@(n.IsPublished ? "Publicada" : "Borrador")</span></td>
+  <td data-label="Editado"><small style="color:var(--muted)">por @n.UpdatedBy</small></td>
+  <td data-label="Acciones" style="display:flex;gap:6px"><a href="/admin/news/edit/@n.Id" class="btn btn-secondary btn-sm">Editar</a><form method="post" action="/admin/news/delete/@n.Id" onsubmit="return confirm('¿Eliminar @n.Title?')"><button type="submit" class="btn btn-danger btn-sm">Eliminar</button></form></td>
+</tr>
+}
+</tbody></table></div>
+@if(!Model.Any()){<p class="mono" style="margin-top:10px">Aún no hay noticias. Escribe la primera.</p>}
+<script>function filterTable(){ const q=document.getElementById("q").value.toLowerCase(); document.querySelectorAll("#tbl tbody tr").forEach(tr=> tr.style.display = tr.textContent.toLowerCase().includes(q) ? "" : "none"); }</script>

@@ -1,0 +1,57 @@
+@{
+    Layout = null;
+    var returnUrl = ViewData["ReturnUrl"] as string ?? "/admin";
+    var err = ViewData["Error"] as string;
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Acceso · El Rey del Tren Fantasma</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400;1,9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
+<style>
+:root{ --bg:#0C0B11; --surface:#17131D; --surface2:#1F1A26; --line:rgba(246,239,227,.08); --line2:rgba(246,239,227,.16); --text:#F6EFE3; --muted:#A79C91; --accent:#FF5C33; --accent2:#FF8A4C; --gold:#E7C46A; }
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',system-ui;background:var(--bg);color:var(--text);min-height:100vh;display:grid;place-items:center;padding:24px;position:relative;overflow:hidden}
+body::before{content:'';position:fixed;inset:0;background: radial-gradient(1000px 520px at 85% -8%, rgba(255,92,51,.12), transparent 60%), radial-gradient(800px 420px at -5% 108%, rgba(231,196,106,.05), transparent 55%);pointer-events:none}
+.card{width:100%;max-width:420px;background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));border:1px solid var(--line);border-radius:22px;padding:34px 30px;backdrop-filter:blur(12px);box-shadow:0 24px 60px rgba(0,0,0,.5);position:relative;z-index:1}
+.brand{font-family:'Fraunces',serif;font-size:1.5rem;font-weight:600;text-align:center;margin-bottom:4px}
+.brand em{font-style:italic;font-weight:400;color:var(--accent2)}
+.sub{font-size:.7rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);text-align:center;margin-bottom:26px}
+h1{font-family:'Fraunces',serif;font-size:1.25rem;font-weight:600;text-align:center;margin-bottom:18px}
+label{font-size:.72rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);display:block;margin:14px 0 7px}
+input{width:100%;padding:13px 14px;background:var(--surface2);border:1px solid var(--line2);border-radius:12px;color:var(--text);outline:none;font-family:inherit;transition:border .2s, box-shadow .2s}
+input:focus{border-color:var(--accent);box-shadow:0 0 0 4px rgba(255,92,51,.14)}
+.btn{width:100%;margin-top:22px;padding:14px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:12px;font-family:'Inter',sans-serif;font-weight:600;font-size:.95rem;cursor:pointer;transition:transform .15s, filter .2s, box-shadow .2s;box-shadow:0 10px 26px -10px rgba(255,92,51,.7)}
+.btn:hover{filter:brightness(1.04);transform:translateY(-1px)}
+.btn:active{transform:none}
+.alert{margin:12px 0;padding:11px 13px;background:rgba(255,143,143,.1);border:1px solid rgba(255,143,143,.35);border-radius:12px;color:#F6CFCF;font-size:.85rem;text-align:center}
+.meta{margin-top:18px;text-align:center;font-size:.78rem;color:var(--muted)}
+.meta code{font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--text);background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:8px;padding:2px 7px}
+.meta a{color:var(--text);text-decoration:none;border-bottom:1px dashed rgba(255,255,255,.2)}
+.foot{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.3);z-index:1}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="brand">El Rey <em>del Tren Fantasma</em></div>
+  <p class="sub">Panel de la banda · acceso privado</p>
+  <h1><i class="fa-solid fa-ghost" style="margin-right:8px;color:var(--accent2)"></i> Iniciar sesión</h1>
+  @if(!string.IsNullOrEmpty(err)){
+    <div class="alert"><i class="fa-solid fa-triangle-exclamation" style="margin-right:6px"></i> @err</div>
+  }
+  <form method="post" action="/auth/login">
+    <input type="hidden" name="returnUrl" value="@returnUrl"/>
+    <label for="username"><i class="fa-solid fa-user" style="margin-right:6px"></i> Usuario</label>
+    <input id="username" name="username" placeholder="Tu usuario" required autocomplete="username"/>
+    <label for="password"><i class="fa-solid fa-key" style="margin-right:6px"></i> Contraseña</label>
+    <input id="password" name="password" type="password" placeholder="••••••••" required autocomplete="current-password"/>
+    <button class="btn" type="submit"><i class="fa-solid fa-right-to-bracket" style="margin-right:8px"></i> Entrar</button>
+  </form>
+  <p class="meta">Acceso restringido al equipo de la banda.</p>
+</div>
+<p class="foot">León, Guanajuato — México · 2026</p>
+</body>
+</html>
