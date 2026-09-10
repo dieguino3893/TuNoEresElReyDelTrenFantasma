@@ -72,9 +72,52 @@
         }
       }
 
+      // HERO CHIPS (sellos bajo el slogan, colección heroChips)
+      if(Array.isArray(data.heroChips)){
+        const vis = data.heroChips.filter(c=>c.isVisible).sort((a,b)=>a.order-b.order);
+        const meta = $('.hero-meta');
+        if(meta) meta.innerHTML = vis.map(c=>`<span><i class="${esc(c.icon)}" style="color:var(--text);margin-right:6px;opacity:.9;"></i> ${esc(c.text)}</span>`).join('');
+      }
+
+      // TEXTOS DEL SITIO (clave-valor por grupos, colección siteTexts)
+      if(data.texts && typeof data.texts === 'object'){
+        const T = data.texts;
+        window.__SITE_TEXTS__ = T;
+        const val = (k)=> (T[k]!==undefined && T[k]!==null && String(T[k]).trim()!=='') ? String(T[k]) : null;
+        const setT = (id, k)=>{ const v=val(k); if(v===null) return; const el=document.getElementById(id); if(el) el.textContent=v; };
+        const setPh = (id, k)=>{ const v=val(k); if(v===null) return; const el=document.getElementById(id); if(el) el.placeholder=v; };
+        setT('scrollHint','hero.scrollHint');
+        setT('showKicker','show.kicker'); setT('showTitle','show.title');
+        setT('bandKicker','band.kicker');
+        setT('showsKicker','shows.kicker'); setT('showsTitle','shows.title'); setT('showsNote','shows.note');
+        setT('blogKicker','blog.kicker'); setT('blogTitle','blog.title');
+        setT('nlKicker','nl.kicker'); setT('nlTitle','nl.title'); setT('nlSub','nl.sub');
+        setT('musicKicker','music.kicker'); setT('musicTitle','music.title');
+        setT('spotifyProfileName','music.profileName');
+        setT('contactKicker','contact.kicker'); setT('contactTitle','contact.title');
+        setT('contactHl','contact.hl'); setT('contactCity','contact.city');
+        setT('footBand','foot.band'); setT('footCity','foot.city'); setT('footLegal','foot.legal');
+        // textos con icono
+        const live = val('show.liveLabel');
+        if(live){ const el=$('.next-show-kicker'); if(el) el.innerHTML=`<i class="fa-solid fa-circle" style="font-size:6px; color:var(--accent);"></i> ${esc(live)}`; }
+        const cta = val('show.cta');
+        if(cta){ const el=$('.cta-link'); if(el) el.innerHTML=`${esc(cta)} <i class="fa-solid fa-arrow-right"></i>`; }
+        const also = val('music.alsoIn');
+        if(also){ const el=document.getElementById('musicAlsoIn'); if(el) el.innerHTML=`<i class="fa-solid fa-list"></i> ${esc(also)}`; }
+        const nlBtn = val('nl.button');
+        if(nlBtn){ const b=document.getElementById('subBtn'); if(b){ b.innerHTML=`<i class="fa-solid fa-paper-plane" style="margin-right:6px;"></i> ${esc(nlBtn)}`; b.dataset.label=nlBtn; } }
+        const cBtn = val('contact.submit');
+        if(cBtn){ const b=document.getElementById('contactSubmit'); if(b) b.innerHTML=`<i class="fa-solid fa-paper-plane" style="margin-right:8px;"></i> ${esc(cBtn)}`; }
+        // placeholders + anti-robot
+        setPh('emailNews','nl.placeholder');
+        setPh('nom','contact.namePh'); setPh('mail','contact.mailPh');
+        setPh('telephone','contact.telPh'); setPh('message','contact.msgPh');
+        const robot = document.getElementById('checkRobot');
+        if(robot){ const rq=val('contact.robotQ'), ra=val('contact.robotA'); if(rq) robot.placeholder=rq; if(ra) robot.dataset.answer=ra; }
+      }
+
       // NEXT SHOW (próximo por fecha más cercana)
-      if(data.nextShow){
-        const n = data.nextShow;
+      if(data.nextShow){        const n = data.nextShow;
         const d = new Date(n.date);
         const day = d.getUTCDate().toString().padStart(2,'0');
         const month = (d.getUTCMonth()+1).toString().padStart(2,'0');
@@ -160,9 +203,12 @@
           `).join('');
           if(track.length===0) streamGrid.innerHTML='<li style="opacity:.6">No hay tracks aún</li>';
         }
-        // actualizar texto "5 singles"
-        const singlesText = document.querySelector('#music p.anim-y');
-        if(singlesText && track.length) singlesText.textContent = `${track.length} singles — dale play sin salir de aquí. Desliza o usa las flechas.`;
+        // actualizar texto "N singles" (usa music.introSuffix si la API lo trae)
+        const singlesText = document.getElementById('musicIntro');
+        if(singlesText && track.length){
+          const suffix = (window.__SITE_TEXTS__ && window.__SITE_TEXTS__['music.introSuffix']) || 'singles — dale play sin salir de aquí. Desliza o usa las flechas.';
+          singlesText.textContent = `${track.length} ${suffix}`;
+        }
       }
 
     } catch(e){

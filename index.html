@@ -51,14 +51,14 @@
       <span><i class="fa-solid fa-route" style="color:var(--text);margin-right:6px;opacity:.9;"></i> Gira 2026</span>
     </div>
   </div>
-  <div id="scroll-down"><span>Descubre</span><i class="fa-solid fa-chevron-down"></i></div>
+  <div id="scroll-down"><span id="scrollHint">Descubre</span><i class="fa-solid fa-chevron-down"></i></div>
 </section>
 
 <!-- NEXT SHOW -->
 <section id="next-show">
   <div class="container">
-    <p class="kicker anim-y" style="justify-content:center;">Próximamente</p>
-    <h2 class="anim-x" style="text-align:center;">Próximo Show</h2>
+    <p class="kicker anim-y" id="showKicker" style="justify-content:center;">Próximamente</p>
+    <h2 class="anim-x" id="showTitle" style="text-align:center;">Próximo Show</h2>
     <div class="separator center anim-fade"></div>
     <div class="next-show-card anim-y">
       <p class="next-show-kicker"><i class="fa-solid fa-circle" style="font-size:6px; color:var(--accent);"></i> En vivo — No te lo pierdas</p>
@@ -73,7 +73,7 @@
 <section id="band">
   <div class="container">
     <div class="intro">
-      <p class="kicker anim-y" style="justify-content:center;">La banda</p>
+      <p class="kicker anim-y" id="bandKicker" style="justify-content:center;">La banda</p>
       <h2 class="anim-x" style="text-align:center;">&lt; Somos Fantasmas &gt;</h2>
       <div class="separator center anim-fade"></div>
       <p class="highlight anim-y">Indie Rock & Rock Alternativo <span>— desde el corazón de León</span></p>
@@ -92,8 +92,8 @@
 <!-- SHOWS -->
 <section id="dates" class="alt">
   <div class="container">
-    <p class="kicker anim-y" style="justify-content:center;">En vivo</p>
-    <h2 class="anim-x" style="text-align:center;">Shows</h2>
+    <p class="kicker anim-y" id="showsKicker" style="justify-content:center;">En vivo</p>
+    <h2 class="anim-x" id="showsTitle" style="text-align:center;">Shows</h2>
     <div class="separator center anim-fade"></div>
     <table class="shows-table anim-y"><tbody>
       <tr class="anim-y"><td>29 / 11 / 2024</td><td><span class="venue">Madison Square Garden <small>Manhattan — NY</small></span></td><td>21:00</td></tr>
@@ -102,7 +102,7 @@
       <tr class="anim-y"><td>20 / 07 / 2024</td><td><span class="venue">Apollo Theater <small>Manhattan — NY</small></span></td><td>21:00</td></tr>
       <tr class="anim-y"><td>10 / 05 / 2024</td><td><span class="venue">924 Gilman Street <small>Berkeley — CA</small></span></td><td>21:00</td></tr>
     </tbody></table>
-    <p class="anim-y" style="font-family:var(--font-mono);font-size:.74rem;color:var(--faint);margin-top:1.6rem;">* Próximamente las fechas se cargarán automáticamente desde el sistema de administración.</p>
+    <p class="anim-y" id="showsNote" style="font-family:var(--font-mono);font-size:.74rem;color:var(--faint);margin-top:1.6rem;">* Próximamente las fechas se cargarán automáticamente desde el sistema de administración.</p>
   </div>
 </section>
 
@@ -110,8 +110,8 @@
 <section id="blog">
   <div class="container">
     <div class="section-head" style="text-align:center;">
-      <p class="kicker anim-y" style="justify-content:center;">Actualidad</p>
-      <h2 class="anim-x">Noticias</h2>
+      <p class="kicker anim-y" id="blogKicker" style="justify-content:center;">Actualidad</p>
+      <h2 class="anim-x" id="blogTitle">Noticias</h2>
       <div class="separator center anim-fade"></div>
     </div>
     <div class="blog-grid">
@@ -125,9 +125,9 @@
 <!-- NEWSLETTER -->
 <section id="newsletter">
   <div class="container">
-    <p class="kicker anim-y" style="justify-content:center;">Newsletter</p>
-    <h2 class="anim-y">Mantente al día</h2>
-    <p class="sub anim-y">No te pierdas los próximos shows ni novedades. Únete a la lista fantasma.</p>
+    <p class="kicker anim-y" id="nlKicker" style="justify-content:center;">Newsletter</p>
+    <h2 class="anim-y" id="nlTitle">Mantente al día</h2>
+    <p class="sub anim-y" id="nlSub">No te pierdas los próximos shows ni novedades. Únete a la lista fantasma.</p>
     <form class="newsletter-form anim-y" id="newsletterForm" novalidate>
       <input type="email" id="emailNews" placeholder="tu@email.com" required aria-label="Email">
       <button type="submit" id="subBtn"><i class="fa-solid fa-paper-plane" style="margin-right:6px;"></i> Suscribirse</button>
@@ -139,14 +139,14 @@
 <!-- MÚSICA — CARRUSEL SPOTIFY -->
 <section id="music" class="alt">
   <div class="container">
-    <p class="kicker anim-y" style="justify-content:center;"><i class="fa-brands fa-spotify" style="margin-right:6px;"></i> Escucha</p>
-    <h2 class="anim-x">&lt; Nuestra Música &gt;</h2>
+    <p class="kicker anim-y" id="musicKicker" style="justify-content:center;"><i class="fa-brands fa-spotify" style="margin-right:6px;"></i> Escucha</p>
+    <h2 class="anim-x" id="musicTitle">&lt; Nuestra Música &gt;</h2>
     <div class="separator center anim-fade"></div>
-    <p class="anim-y" style="max-width:560px;margin:0 auto 1.2rem;text-align:center;color:var(--muted);font-size:.98rem;">5 singles — dale play sin salir de aquí. Desliza o usa las flechas.</p>
+    <p class="anim-y" id="musicIntro" style="max-width:560px;margin:0 auto 1.2rem;text-align:center;color:var(--muted);font-size:.98rem;">5 singles — dale play sin salir de aquí. Desliza o usa las flechas.</p>
 
     <a href="https://open.spotify.com/intl-es/artist/472rQo5kQXgqW24rT09uQv" target="_blank" rel="noopener" class="spotify-profile-link anim-y">
       <i class="fa-brands fa-spotify"></i> Perfil oficial en Spotify
-      <span>Tú no eres el rey del tren fantasma</span>
+      <span id="spotifyProfileName">Tú no eres el rey del tren fantasma</span>
       <i class="fa-solid fa-arrow-up-right-from-square"></i>
     </a>
 
@@ -203,7 +203,7 @@
     <div class="carousel-count" id="carouselCount">1 / 5</div>
 
     <div class="stream-wrap anim-y" style="margin-top:2rem;">
-      <p class="stream-label"><i class="fa-solid fa-list"></i> Todas las canciones también en</p>
+      <p class="stream-label" id="musicAlsoIn"><i class="fa-solid fa-list"></i> Todas las canciones también en</p>
       <ul class="stream-grid">
         <li><span class="stream-num">01</span><strong class="stream-title">Tan Mal Piensas de Mí</strong><span class="stream-meta">Single</span><span class="stream-platforms"><a href="https://open.spotify.com/intl-es/track/7i4JDI1V1LfPfxUQpOCtKz" target="_blank" rel="noopener"><i class="fa-brands fa-spotify"></i> Spotify</a><a href="https://music.apple.com/mx/song/tan-mal-piensas-de-m%C3%AD/1814512073" target="_blank" rel="noopener"><i class="fa-brands fa-apple"></i> Apple</a></span></li>
         <li><span class="stream-num">02</span><strong class="stream-title">Coronada</strong><span class="stream-meta">Single</span><span class="stream-platforms"><a href="https://open.spotify.com/intl-es/track/4z1wmFcI3hTqg0OFUSeOoU" target="_blank" rel="noopener"><i class="fa-brands fa-spotify"></i> Spotify</a></span></li>
@@ -219,10 +219,10 @@
 <section id="contact">
   <div class="container">
     <div class="section-head" style="text-align:center;">
-      <p class="kicker anim-y" style="justify-content:center;">Hablemos</p>
-      <h2 class="anim-x">Contacto</h2>
+      <p class="kicker anim-y" id="contactKicker" style="justify-content:center;">Hablemos</p>
+      <h2 class="anim-x" id="contactTitle">Contacto</h2>
       <div class="separator center anim-fade"></div>
-      <p class="highlight anim-y" style="margin-bottom:1rem;">— &lt; Tú no eres el rey del tren fantasma &gt; —<br><span>León, Guanajuato, México</span></p>
+      <p class="highlight anim-y" style="margin-bottom:1rem;"><span id="contactHl">— &lt; Tú no eres el rey del tren fantasma &gt; —</span><br><span id="contactCity">León, Guanajuato, México</span></p>
       <p id="insertMail" class="anim-y"></p>
     </div>
     <form class="contact-form anim-y" id="contactForm" novalidate>
@@ -231,7 +231,7 @@
       <input type="text" id="telephone" placeholder="Teléfono" autocomplete="tel"><p class="help-text" id="helpTel"></p>
       <textarea id="message" rows="5" placeholder="Cuéntanos algo — booking, prensa, colaboraciones…"></textarea><p class="help-text" id="helpMessage"></p>
       <input type="number" id="checkRobot" placeholder="3 + 4 = ?" aria-label="Anti-robot" inputmode="numeric"><p class="help-text" id="helpRobot"></p>
-      <button type="submit" class="btn-submit"><i class="fa-solid fa-paper-plane" style="margin-right:8px;"></i> Enviar mensaje</button>
+      <button type="submit" class="btn-submit" id="contactSubmit"><i class="fa-solid fa-paper-plane" style="margin-right:8px;"></i> Enviar mensaje</button>
     </form>
     <p id="form-response" aria-live="polite"></p>
   </div>
@@ -247,9 +247,9 @@
     <a href="https://www.tiktok.com/@elreydeltrenfantasma" class="social-icon" aria-label="TikTok" target="_blank" rel="noopener"><i class="fa-brands fa-tiktok"></i></a>
     <a href="https://www.youtube.com/channel/UC4h9_cWeI7jvSRNLXDt4Tlg" class="social-icon" aria-label="YouTube" target="_blank" rel="noopener"><i class="fa-brands fa-youtube"></i></a>
   </div>
-  <p class="band-name">&lt; Tú no eres el rey del tren fantasma &gt;</p>
-  <p>León, Guanajuato — México</p>
-  <p style="margin-top:1rem;opacity:.7;">Copyright 2026 · <a href="#">Aviso Legal</a></p>
+  <p class="band-name" id="footBand">&lt; Tú no eres el rey del tren fantasma &gt;</p>
+  <p id="footCity">León, Guanajuato — México</p>
+  <p id="footLegal" style="margin-top:1rem;opacity:.7;">Copyright 2026 · Aviso Legal</p>
 </footer>
 
 <div id="up-arrow" role="button" aria-label="Volver arriba" tabindex="0"><i class="fa-solid fa-chevron-up"></i></div>
@@ -257,7 +257,7 @@
   <!-- Config API desacoplada (GitHub Pages -> back .NET) v2 -->
   <script src="./js/config.js?v=2"></script>
   <script src="./js/api.js?v=2"></script>
-  <script src="./js/app.api.js?v=3"></script>
+  <script src="./js/app.api.js?v=4"></script>
 <script>
   const API_URL = (window.__CONFIG__ && window.__CONFIG__.API_URL) || window.location.origin;
 
@@ -396,6 +396,7 @@
     const input=document.getElementById('emailNews');
     const btn=document.getElementById('subBtn');
     const msg=document.getElementById('newsletter-msg');
+    const T=()=>window.__SITE_TEXTS__||{};
     function setMsg(t,type){ msg.textContent=t; msg.className=type; }
     form.addEventListener('submit', async (e)=>{
       e.preventDefault();
@@ -405,9 +406,9 @@
       try{
         const res=await fetch(`${API_URL}/api/v1/subscribe`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,source:'web'})});
         const data=await res.json();
-        if(res.ok||res.status===201){ setMsg(data.message||'¡Suscripción exitosa! Revisa tu correo.','ok'); input.value=''; btn.innerHTML='<i class="fa-solid fa-check" style="margin-right:6px;"></i> ¡Listo!'; setTimeout(()=>{btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-paper-plane" style="margin-right:6px;"></i> Suscribirse';},3000); }
+        if(res.ok||res.status===201){ setMsg(data.message||T()['nl.success']||'¡Suscripción exitosa! Revisa tu correo.','ok'); input.value=''; btn.innerHTML='<i class="fa-solid fa-check" style="margin-right:6px;"></i> ¡Listo!'; setTimeout(()=>{btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-paper-plane" style="margin-right:6px;"></i> '+(btn.dataset.label||'Suscribirse');},3000); }
         else throw new Error(data.detail||'Error');
-      }catch(err){ setMsg('Error de conexión. Inténtalo de nuevo.','error'); btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-paper-plane" style="margin-right:6px;"></i> Suscribirse'; }
+      }catch(err){ setMsg('Error de conexión. Inténtalo de nuevo.','error'); btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-paper-plane" style="margin-right:6px;"></i> '+(btn.dataset.label||'Suscribirse'); }
     });
   })();
 
@@ -415,14 +416,16 @@
   (function(){
     const regexMail=/^([a-z0-9_-]+\.)*[a-z0-9_-]+@[a-z0-9_-]+(\.[a-z0-9_-]+)*\.[a-z]{2,6}$/;
     const set=(id,msg)=>{ const el=document.getElementById(id); if(el) el.textContent=msg; };
+    const robotOk=()=>document.getElementById('checkRobot').dataset.answer||'7';
     document.getElementById('nom').addEventListener('input', function(){ set('helpNom', this.value.length>=50?'Máx. 50 caracteres.':''); });
     document.getElementById('mail').addEventListener('input', function(){ set('helpMail', this.value && !regexMail.test(this.value)?'Email incorrecto.':''); });
     document.getElementById('message').addEventListener('input', function(){ set('helpMessage', this.value.length>=3000?'Máx. 3000 caracteres.':''); });
-    document.getElementById('checkRobot').addEventListener('input', function(){ set('helpRobot', this.value && this.value!=7?'Resultado incorrecto.':''); });
+    document.getElementById('checkRobot').addEventListener('input', function(){ set('helpRobot', this.value && this.value!=robotOk()?'Resultado incorrecto.':''); });
     document.getElementById('contactForm').addEventListener('submit', function(e){
       e.preventDefault();
-      if(document.getElementById('checkRobot').value!=7){ set('helpRobot','Por favor responde la verificación.'); return; }
-      document.getElementById('form-response').textContent='¡Mensaje enviado! Gracias por contactarnos.'; this.reset();
+      if(document.getElementById('checkRobot').value!=robotOk()){ set('helpRobot','Por favor responde la verificación.'); return; }
+      const T=window.__SITE_TEXTS__||{};
+      document.getElementById('form-response').textContent=T['contact.success']||'¡Mensaje enviado! Gracias por contactarnos.'; this.reset();
     });
   })();
 </script>
