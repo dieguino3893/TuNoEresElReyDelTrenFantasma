@@ -28,15 +28,19 @@
         if(desc && s.seoDescription) desc.content = s.seoDescription;
         // hero
         setText('.hero-eyebrow', s.heroEyebrow);
-        if(s.siteTitle) {
+        if(s.heroTitle || s.heroTitleAccent) {
           const h1 = $('#hero h1');
-          // siteTitle viene plano, mantenemos split "Tú no eres el rey / del tren fantasma" si coincide
-          // fallback: solo reemplazar si h1 existe
+          if(h1) h1.innerHTML = `${esc(s.heroTitle)} <span>${esc(s.heroTitleAccent)}</span>`;
         }
         if(s.slogan) setText('.slogan', s.slogan);
         if(s.heroImageUrl){
           const hero = document.getElementById('hero');
-          if(hero) hero.style.setProperty('--hero-img', `url('${s.heroImageUrl}')`);
+          if(hero) {
+            hero.style.setProperty('--hero-img', `url('${s.heroImageUrl}')`);
+            if(s.heroImageZoom) hero.style.setProperty('--hero-zoom', (s.heroImageZoom / 100).toFixed(2));
+            if(s.heroImagePosX !== undefined) hero.style.setProperty('--hero-x', `${s.heroImagePosX}%`);
+            if(s.heroImagePosY !== undefined) hero.style.setProperty('--hero-y', `${s.heroImagePosY}%`);
+          }
         }
         if(s.contactEmail){
           const insertMail = $('#insertMail');

@@ -48,6 +48,10 @@ button, input, textarea { font: inherit; }
   --radius:        16px;
   --radius-sm:     10px;
   --radius-pill:   999px;
+  /* hero background — controlable desde /admin/settings */
+  --hero-zoom:     1.02;
+  --hero-x:        50%;
+  --hero-y:        53%;
 }
 
 /* ---------- BASE ---------- */
@@ -384,12 +388,11 @@ footer .social-icon:hover { background: var(--accent); border-color: var(--accen
   position: absolute;
   inset: 0;
   background-image: var(--hero-img, url('../img/IMG_1782.webp'));
-  background-position: center 53%;
+  background-position: var(--hero-x, 50%) var(--hero-y, 53%);
   background-size: cover;
   background-repeat: no-repeat;
-  /* elevada ~40% hacia arriba (de 35% a 18%) + calidez */
   filter: saturate(1.05) contrast(1.02) brightness(.92);
-  transform: scale(1.02);
+  transform: scale(var(--hero-zoom, 1.02));
 }
 #hero::after {
   content: '';
@@ -1363,7 +1366,7 @@ footer a:hover { color: var(--text); border-color: var(--line-strong); }
 }
 @media (max-width: 768px) {
   section { padding: 64px 20px; }
-  #hero::before { background-position: center 16%; }
+  #hero::before { background-position: var(--hero-x, 50%) var(--hero-y, 53%); }
   .hero-content { margin-top: 0; }
   .hero-meta { gap: 14px; }
   .share-btn { display: none; }
