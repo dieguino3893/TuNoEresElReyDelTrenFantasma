@@ -3,6 +3,8 @@ using Microsoft.OpenApi;
 using MVCCoreApp.Models;
 using MVCCoreApp.Services;
 using MVCCoreApp.Services.Auth;
+using MVCCoreApp.Services.Playback;
+using YoutubeExplode;
 
 // Carga .env si existe (para desarrollo local sin launchSettings)
 var envPath = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", ".env");
@@ -32,6 +34,16 @@ builder.Services.AddSingleton<SeedService>();
 builder.Services.AddSingleton<IFileService, CloudinaryService>();
 builder.Services.AddSingleton<IGeoLocationService, GeoLocationService>();
 builder.Services.AddHttpClient("GeoIp", c => c.Timeout = TimeSpan.FromSeconds(3));
+
+// Módulo playback (ensayo interno): API resuelve, <audio> del navegador suena.
+// Aislado tras IAudioResolver para que un cambio en la API no oficial no rompa setlists.
+builder.Services.AddMemoryCache();
+builder.Services.Configure<PlaybackOptions>(builder.Configuration.GetSection("Playback"));
+builder.Services.AddSingleton<YoutubeClient>(_ => new YoutubeClient());
+builder.Services.AddHttpClient("Saavn", c => c.Timeout = TimeSpan.FromSeconds(10));
+builder.Services.AddSingleton<YoutubeExplodeResolver>();
+builder.Services.AddSingleton<SaavnFallbackResolver>();
+builder.Services.AddSingleton<AudioResolverFactory>();
 
 // CORS para front desacoplado (GitHub Pages)
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
@@ -145,7 +157,7 @@ app.Use(async (ctx, next) =>
     ctx.Response.Headers["X-Content-Type-Options"] = "nosniff";
     ctx.Response.Headers["X-Frame-Options"] = "DENY";
     ctx.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
-    ctx.Response.Headers["Content-Security-Policy"] = "default-src 'self'; img-src 'self' https: data:; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; connect-src 'self' https://res.cloudinary.com; frame-src https://open.spotify.com;";
+    ctx.Response.Headers["Content-Security-Policy"] = "default-src 'self'; img-src 'self' https: data:; media-src 'self' https: blob:; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; connect-src 'self' https://res.cloudinary.com https://*.googlevideo.com https://*.youtube.com https://*.saavncdn.com https://www.jiosaavn.com; frame-src https://open.spotify.com;";
     await next();
 });
 app.UseHttpsRedirection();

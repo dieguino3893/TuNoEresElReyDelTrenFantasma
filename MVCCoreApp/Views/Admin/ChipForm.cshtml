@@ -1,0 +1,14 @@
+@model MVCCoreApp.Models.HeroChip
+@{ Layout="_AdminLayout"; var isEdit = ViewBag.IsEdit == true; ViewData["Title"]= isEdit ? "Editar chip" : "Nuevo chip"; }
+<div class="welcome"><div><h2>@ViewData["Title"]</h2><p>Un sello de la portada: icono + texto corto.</p></div><a href="/admin/chips" class="btn btn-secondary btn-sm">← Volver a chips</a></div>
+<form method="post" action="@(isEdit ? $"/admin/chips/edit/{Model.Id}" : "/admin/chips/create")" class="card">
+  <div class="grid2">
+    <div class="form-group"><label class="form-label">Texto</label><input class="form-control" name="Text" value="@Model.Text" placeholder="En vivo" required/><div class="form-hint">Dos o tres palabras máximo.</div></div>
+    <div class="form-group"><label class="form-label">Icono (Font Awesome)</label><input class="form-control mono" name="Icon" value="@(string.IsNullOrEmpty(Model.Icon) ? "fa-solid fa-circle" : Model.Icon)" placeholder="fa-solid fa-location-dot"/><div class="form-hint">Por ejemplo: fa-solid fa-location-dot, fa-solid fa-compact-disc, fa-solid fa-route.</div></div>
+  </div>
+  <div class="grid2">
+    <div class="form-group"><label class="form-label">Orden</label><input type="number" class="form-control" name="Order" value="@Model.Order" step="1" min="0"/></div>
+    <div class="form-group"><label class="form-label">Mostrar en el sitio</label><select name="IsVisible" class="form-control"><option value="true" selected="@(Model.IsVisible)">Sí, mostrar</option><option value="false" selected="@(!Model.IsVisible)">No, ocultar</option></select></div>
+  </div>
+  <div class="form-actions"><button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Guardar chip</button><a href="/admin/chips" class="btn btn-secondary">Cancelar</a></div>
+</form>

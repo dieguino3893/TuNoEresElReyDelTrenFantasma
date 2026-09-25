@@ -1,0 +1,25 @@
+@model List<MVCCoreApp.Models.SiteText>
+@{
+  Layout="_AdminLayout"; ViewData["Title"]="Textos del sitio";
+  var groups = Model.GroupBy(t => t.Group).ToList();
+}
+<div class="welcome">
+  <div><h2>Textos del sitio</h2><p>Títulos, etiquetas y textos fijos de cada sección. Vacío = se usa el texto original.</p></div>
+  <div class="actions-row"><a href="/admin/chips" class="btn btn-secondary btn-sm"><i class="fa-solid fa-tag"></i> Chips de portada</a><a href="/admin" class="btn btn-secondary btn-sm">← Volver al panel</a></div>
+</div>
+@if(TempData["ok"]!=null){<div class="alert alert-ok"><i class="fa-solid fa-check"></i> @TempData["ok"]</div>}
+@if(TempData["err"]!=null){<div class="alert alert-err"><i class="fa-solid fa-triangle-exclamation"></i> @TempData["err"]</div>}
+<form method="post" action="/admin/texts">
+@foreach(var g in groups){
+  <div class="card" style="margin-top:14px">
+    <h3 style="font-family:'Fraunces';margin-bottom:4px">@g.Key</h3>
+    @foreach(var t in g){
+      <div class="form-group"><label class="form-label">@t.Label</label>
+      @if(t.Multiline){<textarea class="form-control" name="values[@t.Key]" rows="2">@t.Value</textarea>}
+      else{<input class="form-control" name="values[@t.Key]" value="@t.Value"/>}
+      </div>
+    }
+  </div>
+}
+  <div class="form-actions"><button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Guardar textos</button><a href="/admin" class="btn btn-secondary">Cancelar</a></div>
+</form>

@@ -18,19 +18,28 @@
     <h3 style="font-family:'Fraunces';margin-bottom:4px"><i class="fa-solid fa-wand-magic-sparkles" style="color:var(--accent)"></i> Portada</h3>
     <div class="grid2">
       <div class="form-group"><label class="form-label">Título del sitio</label><input class="form-control" name="SiteTitle" value="@Model.SiteTitle" required/></div>
-      <div class="form-group"><label class="form-label">Frase corta</label><input class="form-control" name="Slogan" value="@Model.Slogan"/><div class="form-hint">La frase que acompaña al nombre de la banda.</div></div>
+      <div class="form-group"><label class="form-label">Frase corta (Slogan)</label><input class="form-control" name="Slogan" value="@Model.Slogan"/><div class="form-hint">La frase que acompaña al nombre de la banda.</div></div>
+    </div>
+    <div class="grid2">
+      <div class="form-group"><label class="form-label">Título Grande (Hero)</label><input class="form-control" name="HeroTitle" value="@Model.HeroTitle" placeholder="Tú no eres el rey"/><div class="form-hint">La primera parte del título en la portada.</div></div>
+      <div class="form-group"><label class="form-label">Texto acentuado (Hero)</label><input class="form-control" name="HeroTitleAccent" value="@Model.HeroTitleAccent" placeholder="del tren fantasma"/><div class="form-hint">La parte del título que aparece abajo/resaltada.</div></div>
     </div>
     <div class="grid2">
       <div class="form-group"><label class="form-label">Etiqueta de portada</label><input class="form-control" name="HeroEyebrow" value="@Model.HeroEyebrow"/><div class="form-hint">Un texto pequeño sobre el título, por ejemplo "Nuevo disco fuera".</div></div>
       <div class="form-group"><label class="form-label">Ubicación que se muestra</label><input class="form-control" name="HeroLocation" value="@Model.HeroLocation"/><div class="form-hint">Por ejemplo "Ciudad de México".</div></div>
     </div>
     <div class="form-group"><label class="form-label">Imagen de fondo de la portada</label>
-      <div style="display:flex;gap:8px;align-items:center">
+      <div class="input-row">
         <input id="HeroImageUrl" name="HeroImageUrl" class="form-control" value="@Model.HeroImageUrl" placeholder="img/IMG_1782.webp o https://..."/>
         <button type="button" onclick="openImagePicker('HeroImageUrl')" class="btn btn-secondary"><i class="fa-solid fa-images"></i> Elegir</button>
       </div>
-      <div class="form-hint">Elige una imagen de Archivos o pega un enlace.</div>
     </div>
+    <div class="grid3">
+        <div class="form-group"><label class="form-label">Zoom (%)</label><input type="number" class="form-control" name="HeroImageZoom" value="@Model.HeroImageZoom" step="1" min="100" max="200"/></div>
+        <div class="form-group"><label class="form-label">Posición X (%)</label><input type="number" class="form-control" name="HeroImagePosX" value="@Model.HeroImagePosX" step="1" min="0" max="100"/></div>
+        <div class="form-group"><label class="form-label">Posición Y (%)</label><input type="number" class="form-control" name="HeroImagePosY" value="@Model.HeroImagePosY" step="1" min="0" max="100"/></div>
+    </div>
+    <div class="form-hint">Ajusta el zoom y la posición para encuadrar mejor la imagen de fondo.</div>
   </div>
 
   <div class="card" style="margin-top:14px">
@@ -79,7 +88,7 @@
     }
   </div>
 
-  <div style="margin-top:20px;display:flex;gap:10px"><button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Guardar cambios</button><a href="/admin" class="btn btn-secondary">Cancelar</a></div>
+  <div class="form-actions"><button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Guardar cambios</button><a href="/admin" class="btn btn-secondary">Cancelar</a></div>
 </form>
 @await Html.PartialAsync("_ImagePicker")
 }

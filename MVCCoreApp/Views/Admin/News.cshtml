@@ -19,7 +19,7 @@
   <td data-label="Publicación">@n.PublishedAt.ToString("d MMMM yyyy", es)</td>
   <td data-label="Estado"><span class="pill @(n.IsPublished?"ok":"off")">@(n.IsPublished ? "Publicada" : "Borrador")</span></td>
   <td data-label="Editado"><small style="color:var(--muted)">por @n.UpdatedBy</small></td>
-  <td data-label="Acciones" style="display:flex;gap:6px"><a href="/admin/news/edit/@n.Id" class="btn btn-secondary btn-sm">Editar</a><form method="post" action="/admin/news/delete/@n.Id" onsubmit="return confirm('¿Eliminar @n.Title?')"><button type="submit" class="btn btn-danger btn-sm">Eliminar</button></form></td>
+  <td data-label="Acciones" style="display:flex;gap:6px;flex-wrap:wrap"><a href="/admin/news/edit/@n.Id" class="btn btn-secondary btn-sm">Editar</a><form method="post" action="/admin/news/delete/@n.Id" onsubmit="return confirm('¿Eliminar @n.Title?')"><button type="submit" class="btn btn-danger btn-sm">Eliminar</button></form></td>
 </tr>
 }
 </tbody></table></div>

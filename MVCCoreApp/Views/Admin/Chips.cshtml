@@ -1,0 +1,23 @@
+@model List<MVCCoreApp.Models.HeroChip>
+@{
+  Layout="_AdminLayout"; ViewData["Title"]="Chips de portada";
+}
+<div class="welcome">
+  <div><h2>Chips de portada</h2><p>Los sellos que aparecen bajo el slogan (En vivo, Estudio, Gira...). El orden de la lista es el que se muestra.</p></div>
+  <div class="actions-row"><a href="/admin/chips/create" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> Nuevo chip</a><a href="/admin" class="btn btn-secondary btn-sm">← Volver al panel</a></div>
+</div>
+@if(TempData["ok"]!=null){<div class="alert alert-ok"><i class="fa-solid fa-check"></i> @TempData["ok"]</div>}
+@if(TempData["err"]!=null){<div class="alert alert-err"><i class="fa-solid fa-triangle-exclamation"></i> @TempData["err"]</div>}
+<div style="overflow:auto"><table class="tbl" id="tbl"><thead><tr><th>#</th><th>Chip</th><th>Icono</th><th>Estado</th><th>Editado</th><th>Acciones</th></tr></thead><tbody>
+@foreach(var c in Model.OrderBy(x=>x.Order)){
+<tr>
+  <td data-label="Orden">@c.Order</td>
+  <td data-label="Texto"><strong><i class="@c.Icon" style="margin-right:6px;color:var(--accent2)"></i>@c.Text</strong></td>
+  <td data-label="Icono"><span class="mono">@c.Icon</span></td>
+  <td data-label="Estado"><span class="pill @(c.IsVisible?"ok":"off")">@(c.IsVisible ? "Visible" : "Oculto")</span></td>
+  <td data-label="Editado"><small style="color:var(--muted)">por @c.UpdatedBy</small></td>
+  <td data-label="Acciones" style="display:flex;gap:6px;flex-wrap:wrap"><a href="/admin/chips/edit/@c.Id" class="btn btn-secondary btn-sm">Editar</a><form method="post" action="/admin/chips/delete/@c.Id" onsubmit="return confirm('¿Eliminar el chip @c.Text?')"><button type="submit" class="btn btn-danger btn-sm">Eliminar</button></form></td>
+</tr>
+}
+</tbody></table></div>
+@if(!Model.Any()){<p class="mono" style="margin-top:10px">Aún no hay chips. Crea el primero o pulsa "Inicializar estructura" en el panel.</p>}

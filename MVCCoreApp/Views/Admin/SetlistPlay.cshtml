@@ -1,0 +1,54 @@
+@model MVCCoreApp.Models.Setlist
+@{
+  Layout = "_AdminLayout";
+  ViewData["Title"] = "Ensayar: " + Model.Name;
+}
+<div class="welcome">
+  <div>
+    <h2><i class="fa-solid fa-drum"></i> Ensayar: @Model.Name</h2>
+    <p>Uso interno de la banda. El audio es stream directo sin anuncios; las URLs expiran y se resuelven al pulsar play.</p>
+  </div>
+  <a href="/admin/setlists" class="btn btn-secondary btn-sm">← Volver a setlists</a>
+</div>
+
+<div class="card">
+  <h3 id="rp-now">♪ Elige un tema</h3>
+  <audio id="rp-audio" controls preload="none" style="width:100%"></audio>
+  <div class="input-row" style="margin-top:10px">
+    <button id="rp-prev" class="btn btn-secondary btn-sm" title="Anterior"><i class="fa-solid fa-backward-step"></i></button>
+    <button id="rp-play" class="btn btn-primary btn-sm" title="Play/Pause"><i class="fa-solid fa-play"></i> / <i class="fa-solid fa-pause"></i></button>
+    <button id="rp-next" class="btn btn-secondary btn-sm" title="Siguiente"><i class="fa-solid fa-forward-step"></i></button>
+    <input id="rp-seek" type="range" min="0" max="1" step="0.001" value="0" style="flex:2" title="Posición" />
+    <span id="rp-time" class="mono">— / —</span>
+    <input id="rp-vol" type="range" min="0" max="1" step="0.05" value="1" style="flex:1" title="Volumen" />
+  </div>
+  <p id="rp-status" class="mono" style="margin-top:8px">Cargando…</p>
+</div>
+
+<div class="grid2" style="margin-top:14px">
+  <div class="card">
+    <h3>Temas del setlist</h3>
+    <ol id="rp-list" style="padding-left:20px"></ol>
+  </div>
+  <div class="card">
+    <h3>Buscar tema suelto</h3>
+    <div class="input-row">
+      <input id="rp-q" class="form-control" placeholder="Título + artista…" />
+      <button id="rp-search-btn" class="btn btn-secondary btn-sm"><i class="fa-solid fa-magnifying-glass"></i> Buscar</button>
+    </div>
+    <ul id="rp-hits" style="list-style:none;padding:0;margin-top:10px"></ul>
+    <p class="form-hint">Primero YouTube; si falla, Saavn. Si ambos fallan verás el motivo (424).</p>
+  </div>
+</div>
+
+<style>
+.rp-item { margin:6px 0; }
+.rp-item.active strong { color: var(--accent, #f97316); }
+</style>
+<script src="/js/rehearsal-player.js"></script>
+<script>
+window.__SETLIST_ID__ = "@Model.Id";
+RehearsalPlayer.init(window.__SETLIST_ID__).catch(e => {
+  document.getElementById("rp-status").textContent = "Error: " + e.message;
+});
+</script>

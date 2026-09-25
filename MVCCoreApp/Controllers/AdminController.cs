@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using MongoDB.Driver;
 using MVCCoreApp.Models;
+using MVCCoreApp.Models.Enums;
 using MVCCoreApp.Services;
 
 namespace MVCCoreApp.Controllers;
@@ -15,12 +16,13 @@ public class AdminController : Controller
     private readonly MongoDbService _mongo;
     private readonly SeedService _seed;
     private readonly IFileService _files;
-    public AdminController(MongoDbService mongo, SeedService seed, IFileService files) { _mongo = mongo; _seed = seed; _files = files; }
+    private readonly IConfiguration _config;
+    public AdminController(MongoDbService mongo, SeedService seed, IFileService files, IConfiguration config) { _mongo = mongo; _seed = seed; _files = files; _config = config; }
 
     [HttpGet("")]
     public async Task<IActionResult> Index()
     {
-        ViewBag.SiteUrl = $"{Request.Scheme}://{Request.Host}";
+        ViewBag.SiteUrl = _config["Frontend:PublicUrl"] ?? $"{Request.Scheme}://{Request.Host}";
         try
         {
             var members = await _mongo.GetCollection<Member>("members").CountDocumentsAsync(x => !x.IsDeleted);
@@ -211,6 +213,15 @@ public class AdminController : Controller
         var m = await col.Find(x => x.Id == id && !x.IsDeleted).FirstOrDefaultAsync();
         if (m != null) { m.IsDeleted = true; m.UpdatedAt = DateTime.UtcNow; m.UpdatedBy = User.Identity?.Name ?? "system"; try { await col.ReplaceOneAsync(x => x.Id == id, m); TempData["ok"] = "Setlist eliminado"; } catch { TempData["err"] = "No se pudo eliminar (revisa tu conexión a la base)."; } }
         return RedirectToAction("Setlists");
+    }
+
+    // ===== PLAYER DE ENSAYO (uso interno: API resuelve, <audio> suena) =====
+    [HttpGet("setlists/play/{id}")]
+    public async Task<IActionResult> SetlistPlay(string id)
+    {
+        var m = await LoadByIdAsync<Setlist>("setlists", id);
+        if (m == null) return NotFound();
+        return View("SetlistPlay", m);
     }
 
     // ===== REHEARSALS =====
@@ -498,12 +509,138 @@ public class AdminController : Controller
         return RedirectToAction("Tracks");
     }
 
+    // ===== HERO CHIPS (sellos de la portada) =====
+    [HttpGet("chips")]
+    public async Task<IActionResult> Chips()
+    {
+        try { var list = await _mongo.GetCollection<HeroChip>("heroChips").Find(x => !x.IsDeleted).SortBy(x => x.Order).ToListAsync(); return View(list); }
+        catch { return View(new List<HeroChip>()); }
+    }
+    [HttpGet("chips/create")]
+    public IActionResult ChipCreate() { ViewBag.IsEdit = false; return View("ChipForm", new HeroChip()); }
+    [HttpPost("chips/create")]
+    public async Task<IActionResult> ChipCreate(HeroChip c)
+    {
+        var user = User.Identity?.Name ?? "system";
+        c.Text = SanitizeService.SanitizeText(c.Text); c.Icon = SanitizeService.SanitizeText(c.Icon);
+        c.CreatedBy = user; c.UpdatedBy = user; c.CreatedAt = DateTime.UtcNow; c.UpdatedAt = DateTime.UtcNow;
+        try { await _mongo.GetCollection<HeroChip>("heroChips").InsertOneAsync(c); TempData["ok"] = $"Chip {c.Text} creado"; }
+        catch (Exception ex) { TempData["err"] = "Mongo no disponible: "+ex.Message; return View("ChipForm", c); }
+        return RedirectToAction("Chips");
+    }
+    [HttpGet("chips/edit/{id}")]
+    public async Task<IActionResult> ChipEdit(string id)
+    {
+        var m = await LoadByIdAsync<HeroChip>("heroChips", id);
+        if (m == null) return NotFound();
+        ViewBag.IsEdit = true;
+        return View("ChipForm", m);
+    }
+    [HttpPost("chips/edit/{id}")]
+    public async Task<IActionResult> ChipEdit(string id, HeroChip dto)
+    {
+        var col = _mongo.GetCollection<HeroChip>("heroChips");
+        var m = await col.Find(x => x.Id == id && !x.IsDeleted).FirstOrDefaultAsync();
+        if (m == null) return NotFound();
+        m.Text = SanitizeService.SanitizeText(dto.Text); m.Icon = SanitizeService.SanitizeText(dto.Icon);
+        m.Order = dto.Order; m.IsVisible = dto.IsVisible;
+        m.UpdatedAt = DateTime.UtcNow; m.UpdatedBy = User.Identity?.Name ?? "system";
+        try { await col.ReplaceOneAsync(x => x.Id == id, m); TempData["ok"] = "Chip actualizado"; }
+        catch (Exception ex) { TempData["err"] = "Mongo no disponible: "+ex.Message; return View("ChipForm", dto); }
+        return RedirectToAction("Chips");
+    }
+    [HttpPost("chips/delete/{id}")]
+    public async Task<IActionResult> ChipDelete(string id)
+    {
+        var col = _mongo.GetCollection<HeroChip>("heroChips");
+        var m = await col.Find(x => x.Id == id && !x.IsDeleted).FirstOrDefaultAsync();
+        if (m != null) { m.IsDeleted = true; m.UpdatedAt = DateTime.UtcNow; m.UpdatedBy = User.Identity?.Name ?? "system"; try { await col.ReplaceOneAsync(x => x.Id == id, m); TempData["ok"] = "Chip eliminado"; } catch (Exception ex) { TempData["err"] = "Mongo no disponible: "+ex.Message; } }
+        else TempData["ok"] = "Chip eliminado";
+        return RedirectToAction("Chips");
+    }
+
+    // ===== TEXTOS DEL SITIO (clave-valor por grupos) =====
+    [HttpGet("texts")]
+    public async Task<IActionResult> Texts()
+    {
+        var col = _mongo.GetCollection<SiteText>("siteTexts");
+        Dictionary<string, SiteText> current;
+        try { current = (await col.Find(_ => true).ToListAsync()).GroupBy(t => t.Key).ToDictionary(g => g.Key, g => g.First()); }
+        catch { current = new Dictionary<string, SiteText>(); }
+        var model = SiteTextDefaults.All.Select(d => current.TryGetValue(d.Key, out var t)
+            ? t
+            : new SiteText { Key = d.Key, Group = d.Group, Label = d.Label, Value = d.Value, Multiline = d.Multiline }).ToList();
+        return View(model);
+    }
+    [HttpPost("texts")]
+    public async Task<IActionResult> Texts(Dictionary<string, string> values)
+    {
+        var col = _mongo.GetCollection<SiteText>("siteTexts");
+        var user = User.Identity?.Name ?? "system";
+        var now = DateTime.UtcNow;
+        try
+        {
+            foreach (var d in SiteTextDefaults.All)
+            {
+                if (values == null || !values.TryGetValue(d.Key, out var v) || v == null) continue;
+                var clean = SanitizeService.SanitizeText(v);
+                await col.ReplaceOneAsync(t => t.Key == d.Key,
+                    new SiteText { Key = d.Key, Group = d.Group, Label = d.Label, Value = clean, Multiline = d.Multiline, UpdatedAt = now, UpdatedBy = user },
+                    new ReplaceOptions { IsUpsert = true });
+            }
+            TempData["ok"] = "Textos guardados";
+        }
+        catch (Exception ex) { TempData["err"] = "Mongo no disponible: "+ex.Message; }
+        return RedirectToAction("Texts");
+    }
+
     // ===== SETTINGS =====
     [HttpGet("settings")]
     public async Task<IActionResult> Settings()
     {
-        try { var s = await _mongo.GetCollection<SiteSettings>("siteSettings").Find(x => x.Id == "main").FirstOrDefaultAsync(); return View(s); }
-        catch { SiteSettings? settings = null; return View(settings); }
+        try 
+        { 
+            var s = await _mongo.GetCollection<SiteSettings>("siteSettings").Find(x => x.Id == "main").FirstOrDefaultAsync();
+            if (s == null) 
+            {
+                s = new SiteSettings{ Id="main" };
+            }
+            // Ensure social links are initialized
+            if (s.SocialLinks == null || s.SocialLinks.Count == 0)
+            {
+                s.SocialLinks = new List<SocialLink>();
+                var order = 0;
+                foreach (SocialPlatform platform in Enum.GetValues(typeof(SocialPlatform)))
+                {
+                    string iconClass = platform switch
+                    {
+                        SocialPlatform.Facebook => "fa-brands fa-facebook",
+                        SocialPlatform.Instagram => "fa-brands fa-instagram",
+                        SocialPlatform.Spotify => "fa-brands fa-spotify",
+                        SocialPlatform.AppleMusic => "fa-brands fa-apple",
+                        SocialPlatform.TikTok => "fa-brands fa-tiktok",
+                        SocialPlatform.YouTube => "fa-brands fa-youtube",
+                        _ => ""
+                    };
+                    s.SocialLinks.Add(new SocialLink
+                    {
+                        Platform = platform,
+                        IconClass = iconClass,
+                        Url = string.Empty,
+                        ShowInHero = true,
+                        ShowInFooter = true,
+                        IsActive = true,
+                        Order = order++
+                    });
+                }
+            }
+            return View(s);
+        }
+        catch 
+        { 
+            SiteSettings? settings = null; 
+            return View(settings); 
+        }
     }
     [HttpPost("settings")]
     public async Task<IActionResult> Settings(SiteSettings dto)
@@ -512,6 +649,8 @@ public class AdminController : Controller
         var s = await col.Find(x => x.Id == "main").FirstOrDefaultAsync();
         if (s == null) s = new SiteSettings{ Id="main" };
         s.SiteTitle = SanitizeService.SanitizeText(dto.SiteTitle); s.Slogan = SanitizeService.SanitizeText(dto.Slogan); s.HeroEyebrow = SanitizeService.SanitizeText(dto.HeroEyebrow); s.HeroLocation = SanitizeService.SanitizeText(dto.HeroLocation);
+        s.HeroTitle = SanitizeService.SanitizeText(dto.HeroTitle); s.HeroTitleAccent = SanitizeService.SanitizeText(dto.HeroTitleAccent);
+        s.HeroImageZoom = dto.HeroImageZoom; s.HeroImagePosX = dto.HeroImagePosX; s.HeroImagePosY = dto.HeroImagePosY;
         s.BandTitle = SanitizeService.SanitizeText(dto.BandTitle); s.BandHighlight = SanitizeService.SanitizeText(dto.BandHighlight); s.BandHighlightSub = SanitizeService.SanitizeText(dto.BandHighlightSub); s.BandDescription = SanitizeService.Sanitize(dto.BandDescription);
         s.HeroImageUrl = SanitizeService.SanitizeText(dto.HeroImageUrl); s.ContactEmail = dto.ContactEmail; s.SpotifyArtistId = dto.SpotifyArtistId; s.SpotifyArtistUrl = dto.SpotifyArtistUrl;
         s.YouTubeChannelId = dto.YouTubeChannelId; s.YouTubeChannelUrl = dto.YouTubeChannelUrl;
@@ -559,7 +698,7 @@ public class AdminController : Controller
     public async Task<IActionResult> Seed()
     {
         await _seed.SeedAsync();
-        TempData["ok"] = "Índices verificados";
+        TempData["ok"] = "Estructura verificada (textos y chips incluidos)";
         return RedirectToAction("Index");
     }
 }

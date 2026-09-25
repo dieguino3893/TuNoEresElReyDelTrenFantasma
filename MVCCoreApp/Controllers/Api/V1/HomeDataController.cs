@@ -24,8 +24,10 @@ public class HomeDataController : ControllerBase
             var showsTask = _mongo.GetCollection<Show>("shows").Find(x => !x.IsDeleted && x.IsVisible).SortBy(x => x.Date).ToListAsync();
             var newsTask = _mongo.GetCollection<News>("news").Find(x => !x.IsDeleted && x.IsPublished).SortBy(x => x.Order).ToListAsync();
             var tracksTask = _mongo.GetCollection<Track>("tracks").Find(x => !x.IsDeleted && x.IsVisible).SortBy(x => x.Order).ToListAsync();
+            var chipsTask = _mongo.GetCollection<HeroChip>("heroChips").Find(x => !x.IsDeleted).SortBy(x => x.Order).ToListAsync();
+            var textsTask = _mongo.GetCollection<SiteText>("siteTexts").Find(_ => true).ToListAsync();
 
-            await Task.WhenAll(settingsTask, membersTask, showsTask, newsTask, tracksTask);
+            await Task.WhenAll(settingsTask, membersTask, showsTask, newsTask, tracksTask, chipsTask, textsTask);
 
             var now = DateTime.UtcNow;
             var allShows = showsTask.Result ?? new List<Show>();
@@ -39,6 +41,8 @@ public class HomeDataController : ControllerBase
                 shows = allShows,
                 news = newsTask.Result,
                 tracks = tracksTask.Result,
+                heroChips = chipsTask.Result,
+                texts = (textsTask.Result ?? new List<SiteText>()).GroupBy(t => t.Key).ToDictionary(g => g.Key, g => g.First().Value),
                 source = "mongodb"
             });
         }

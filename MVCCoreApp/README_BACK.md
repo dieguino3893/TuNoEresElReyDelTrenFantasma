@@ -8,8 +8,8 @@ Desplegar en servicio aparte (Render, Railway, Fly.io, Azure). Front en GitHub P
 ```
 MongoDbSettings__ConnectionString=mongodb+srv://...
 MongoDbSettings__DatabaseName=ElReyDelTrenFantasma
-Cors__AllowedOrigins__0=https://TU_USUARIO.github.io
-Cors__AllowedOrigins__1=https://TU_DOMINIO_PRODUCCION.tld
+Cors__AllowedOrigins__0=https://dieguino3893.github.io
+Cors__AllowedOrigins__1=https://elrey-del-trenfantasma.vellumdigitall.online
 ```
 
 ## Endpoints públicos (sin auth, CORS)

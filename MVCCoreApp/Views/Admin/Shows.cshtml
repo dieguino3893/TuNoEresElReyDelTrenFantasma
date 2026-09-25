@@ -24,7 +24,7 @@
   <td data-label="Visible"><span class="pill @(isFuture?"ok":"off")">@(s.IsVisible ? "Visible" : "Oculto")</span></td>
   <td data-label="Ensayos"><a href="/admin/rehearsals?show=@s.Id" title="Ver ensayos de este show" style="color:var(--accent2)"><span class="pill">@cnt</span> <i class="fa-solid fa-drum"></i></a></td>
   <td data-label="Editado"><small style="color:var(--muted)">por @s.UpdatedBy</small></td>
-  <td data-label="Acciones" style="display:flex;gap:6px"><a href="/admin/shows/edit/@s.Id" class="btn btn-secondary btn-sm">Editar</a><form method="post" action="/admin/shows/delete/@s.Id" onsubmit="return confirm('¿Eliminar @s.Venue?')"><button type="submit" class="btn btn-danger btn-sm">Eliminar</button></form></td>
+  <td data-label="Acciones" style="display:flex;gap:6px;flex-wrap:wrap"><a href="/admin/shows/edit/@s.Id" class="btn btn-secondary btn-sm">Editar</a><form method="post" action="/admin/shows/delete/@s.Id" onsubmit="return confirm('¿Eliminar @s.Venue?')"><button type="submit" class="btn btn-danger btn-sm">Eliminar</button></form></td>
 </tr>
 }
 </tbody></table></div>

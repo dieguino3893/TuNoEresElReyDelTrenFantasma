@@ -36,6 +36,21 @@ public class SiteSettings
     [BsonElement("heroImageUrl")]
     public string HeroImageUrl { get; set; } = string.Empty;
 
+    [BsonElement("heroTitle")]
+    public string HeroTitle { get; set; } = string.Empty;
+
+    [BsonElement("heroTitleAccent")]
+    public string HeroTitleAccent { get; set; } = string.Empty;
+
+    [BsonElement("heroImageZoom")]
+    public int HeroImageZoom { get; set; } = 102;
+
+    [BsonElement("heroImagePosX")]
+    public int HeroImagePosX { get; set; } = 50;
+
+    [BsonElement("heroImagePosY")]
+    public int HeroImagePosY { get; set; } = 53;
+
     [BsonElement("bandTitle")]
     public string BandTitle { get; set; } = string.Empty;
 

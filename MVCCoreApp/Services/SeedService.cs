@@ -17,7 +17,36 @@ public class SeedService
     public async Task SeedAsync()
     {
         await EnsureIndexesAsync();
-        _logger.LogInformation("Índices de MongoDB verificados. Los usuarios y el contenido se gestionan solo en la base de datos.");
+        await EnsureSiteTextsAsync();
+        await EnsureHeroChipsAsync();
+        _logger.LogInformation("Estructura verificada: índices, textos del sitio y chips de portada.");
+    }
+
+    private async Task EnsureSiteTextsAsync()
+    {
+        var col = _mongo.GetCollection<SiteText>("siteTexts");
+        var existing = await col.Find(_ => true).Project(t => t.Key).ToListAsync();
+        var missing = SiteTextDefaults.All.Where(d => !existing.Contains(d.Key)).ToList();
+        foreach (var d in missing)
+            await col.InsertOneAsync(new SiteText { Key = d.Key, Group = d.Group, Label = d.Label, Value = d.Value, Multiline = d.Multiline });
+        if (missing.Count > 0) _logger.LogInformation("Textos sembrados: {Count}", missing.Count);
+    }
+
+    private async Task EnsureHeroChipsAsync()
+    {
+        var col = _mongo.GetCollection<HeroChip>("heroChips");
+        var count = await col.CountDocumentsAsync(x => !x.IsDeleted);
+        if (count > 0) return;
+        var settings = await _mongo.GetCollection<SiteSettings>("siteSettings").Find(x => x.Id == "main").FirstOrDefaultAsync();
+        var first = string.IsNullOrWhiteSpace(settings?.HeroLocation) ? "En vivo" : settings.HeroLocation;
+        var chips = new[]
+        {
+            new HeroChip { Text = first, Icon = "fa-solid fa-location-dot", Order = 0, IsVisible = true },
+            new HeroChip { Text = "Estudio", Icon = "fa-solid fa-compact-disc", Order = 1, IsVisible = true },
+            new HeroChip { Text = "Gira 2026", Icon = "fa-solid fa-route", Order = 2, IsVisible = true },
+        };
+        await col.InsertManyAsync(chips);
+        _logger.LogInformation("Chips de portada sembrados.");
     }
 
     private async Task EnsureIndexesAsync()
