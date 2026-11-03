@@ -18,7 +18,7 @@
   <td data-label="Foto">@if(!string.IsNullOrEmpty(m.ImageUrl)){<img src="@m.ImageUrl" alt="@m.ImageAlt" loading="lazy" onerror="this.style.display='none'" style="width:52px;height:52px;object-fit:cover;border-radius:12px;border:1px solid var(--line)"/>}</td>
   <td data-label="Estado"><span class="pill @(m.IsActive?"ok":"off")">@(m.IsActive ? "Visible" : "Oculto")</span></td>
   <td data-label="Editado"><small style="color:var(--muted)">por @m.UpdatedBy</small></td>
-  <td data-label="Acciones" style="display:flex;gap:6px;flex-wrap:wrap"><a href="/admin/members/edit/@m.Id" class="btn btn-secondary btn-sm">Editar</a><form method="post" action="/admin/members/delete/@m.Id" onsubmit="return confirm('¿Eliminar a @m.Name?')"><button type="submit" class="btn btn-danger btn-sm">Eliminar</button></form></td>
+  <td data-label="Acciones" style="display:flex;gap:6px;flex-wrap:wrap"><a href="/admin/members/edit/@m.Id" class="btn btn-secondary btn-sm">Editar</a><form method="post" action="/admin/members/delete/@m.Id" onsubmit="return confirm('¿Eliminar a @m.Name?')">@Html.AntiForgeryToken()<button type="submit" class="btn btn-danger btn-sm">Eliminar</button></form></td>
 </tr>
 }
 </tbody></table></div>

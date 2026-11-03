@@ -21,7 +21,7 @@
   </td>
   <td data-label="Estado"><span class="pill @(t.IsVisible?"ok":"off")">@(t.IsVisible ? "Visible" : "Oculto")</span></td>
   <td data-label="Editado"><small style="color:var(--muted)">por @t.UpdatedBy</small></td>
-  <td data-label="Acciones" style="display:flex;gap:6px;flex-wrap:wrap"><a href="/admin/tracks/edit/@t.Id" class="btn btn-secondary btn-sm">Editar</a><form method="post" action="/admin/tracks/delete/@t.Id" onsubmit="return confirm('¿Eliminar @t.Title?')"><button type="submit" class="btn btn-danger btn-sm">Eliminar</button></form></td>
+  <td data-label="Acciones" style="display:flex;gap:6px;flex-wrap:wrap"><a href="/admin/tracks/edit/@t.Id" class="btn btn-secondary btn-sm">Editar</a><form method="post" action="/admin/tracks/delete/@t.Id" onsubmit="return confirm('¿Eliminar @t.Title?')">@Html.AntiForgeryToken()<button type="submit" class="btn btn-danger btn-sm">Eliminar</button></form></td>
 </tr>
 }
 </tbody></table></div>

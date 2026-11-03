@@ -29,12 +29,13 @@
     <a href="/admin/news"><i class="fa-solid fa-newspaper"></i> Noticias</a>
     <a href="/admin/tracks"><i class="fa-solid fa-music"></i> Música</a>
     <a href="/admin/users"><i class="fa-solid fa-user-shield"></i> Usuarios</a>
+    <a href="/admin/asistente"><i class="fa-solid fa-ghost"></i> Asistente</a>
     <a href="/admin/files"><i class="fa-solid fa-cloud-arrow-up"></i> Archivos</a>
   </nav>
   <div class="user">
     <span class="avatar"><i class="fa-solid fa-user"></i></span>
     <span class="username">@User.Identity?.Name</span>
-    <form method="post" action="/auth/logout" style="display:inline"><button class="btn btn-secondary btn-sm" type="submit"><i class="fa-solid fa-right-from-bracket"></i> Salir</button></form>
+    <form method="post" action="/auth/logout" style="display:inline">@Html.AntiForgeryToken()<button class="btn btn-secondary btn-sm" type="submit"><i class="fa-solid fa-right-from-bracket"></i> Salir</button></form>
   </div>
 </header>
 <div class="wrap">

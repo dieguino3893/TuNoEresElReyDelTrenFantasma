@@ -40,4 +40,18 @@ public static class SanitizeService
         // Si se usa textContent, <script> se muestra como texto, no se ejecuta. Devolvemos tal cual.
         return text;
     }
+
+    public static string GenerarSlug(string? titulo)
+    {
+        var bajo = (titulo ?? "").Trim().ToLowerInvariant();
+        var sb = new System.Text.StringBuilder();
+        foreach (var c in bajo)
+        {
+            if (char.IsLetterOrDigit(c)) sb.Append(c);
+            else if (c == ' ' || c == '-' || c == '_') sb.Append('-');
+        }
+        var slug = sb.ToString();
+        while (slug.Contains("--")) slug = slug.Replace("--", "-");
+        return slug.Trim('-');
+    }
 }

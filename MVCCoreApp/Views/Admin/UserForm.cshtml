@@ -2,7 +2,7 @@
 @{ Layout="_AdminLayout"; ViewData["Title"]="Nuevo usuario"; }
 <div class="welcome"><div><h2>Nuevo usuario</h2><p>Dale acceso al panel a alguien del equipo de la banda.</p></div><a href="/admin/users" class="btn btn-secondary btn-sm">← Volver a usuarios</a></div>
 @if(TempData["err"]!=null){<div class="alert alert-err"><i class="fa-solid fa-triangle-exclamation"></i> @TempData["err"]</div>}
-<form method="post" action="/admin/users/create" class="card">
+<form method="post" action="/admin/users/create" class="card">@Html.AntiForgeryToken()
   <div class="form-group"><label class="form-label">Nombre de usuario</label><input class="form-control" name="Username" value="@Model.Username" placeholder="diego" required/></div>
   <div class="form-group"><label class="form-label">Contraseña</label><input type="password" class="form-control" name="password" required/></div>
   <div class="form-group"><label class="form-label">Rol</label><select name="Role" class="form-control"><option value="Admin">Admin — acceso completo</option><option value="Editor">Editor — gestiona contenido</option></select></div>

@@ -9,7 +9,8 @@ namespace MVCCoreApp.Controllers.Api.V1;
 public class FilesController : ControllerBase
 {
     private readonly IFileService _files;
-    public FilesController(IFileService files) => _files = files;
+    private readonly ILogger<FilesController> _log;
+    public FilesController(IFileService files, ILogger<FilesController> log) { _files = files; _log = log; }
 
     // drag & drop upload — cliente → servidor (Cloudinary)
     [HttpPost("upload")]
@@ -26,7 +27,7 @@ public class FilesController : ControllerBase
             return Ok(new { url, publicId, fileName = file.FileName, size = file.Length });
         }
         catch (ArgumentException ex) { return BadRequest(new { detail = ex.Message }); }
-        catch (Exception ex) { return StatusCode(500, new { detail = ex.Message }); }
+        catch (Exception ex) { _log.LogWarning(ex, "Upload falló"); return StatusCode(500, new { detail = "No se pudo subir." }); }
     }
 
     // cliente ← servidor — descarga proxy (por url o publicId)
@@ -42,7 +43,7 @@ public class FilesController : ControllerBase
             if (string.IsNullOrWhiteSpace(name)) name = "download.jpg";
             return File(stream, "application/octet-stream", name);
         }
-        catch (Exception ex) { return StatusCode(500, new { detail = ex.Message }); }
+        catch (Exception ex) { _log.LogWarning(ex, "Descarga falló"); return StatusCode(500, new { detail = "No se pudo descargar." }); }
     }
 
     // descarga por publicId (ej: elrey/foto_abc123)
@@ -56,7 +57,7 @@ public class FilesController : ControllerBase
             var name = publicId.Split('/').Last() + ".jpg";
             return File(stream, "application/octet-stream", name);
         }
-        catch (Exception ex) { return StatusCode(500, new { detail = ex.Message }); }
+        catch (Exception ex) { _log.LogWarning(ex, "Descarga falló"); return StatusCode(500, new { detail = "No se pudo descargar." }); }
     }
 
     [HttpGet]
@@ -68,7 +69,7 @@ public class FilesController : ControllerBase
             var items = await _files.ListAsync(prefix, Math.Min(max, 100));
             return Ok(items);
         }
-        catch (Exception ex) { return StatusCode(500, new { detail = ex.Message }); }
+        catch (Exception ex) { _log.LogWarning(ex, "Lista falló"); return StatusCode(500, new { detail = "No se pudo listar." }); }
     }
 
     [HttpDelete("{*publicId}")]

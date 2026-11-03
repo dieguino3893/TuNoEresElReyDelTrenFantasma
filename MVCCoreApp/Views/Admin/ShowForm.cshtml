@@ -5,7 +5,7 @@
   var showSetl = ViewBag.ShowSetlistNames as Dictionary<string,string> ?? new Dictionary<string,string>();
 }
 <div class="welcome"><div><h2>@ViewData["Title"]</h2><p>Completa los datos del concierto. También puedes enlazar un mapa para que tus fans sepan dónde es.</p></div><a href="/admin/shows" class="btn btn-secondary btn-sm">← Volver a shows</a></div>
-<form method="post" action="@(isEdit ? $"/admin/shows/edit/{Model.Id}" : "/admin/shows/create")" class="card">
+<form method="post" action="@(isEdit ? $"/admin/shows/edit/{Model.Id}" : "/admin/shows/create")" class="card">@Html.AntiForgeryToken()
   <div class="grid2">
     <div class="form-group"><label class="form-label">Fecha</label><input type="datetime-local" class="form-control" name="Date" value="@Model.Date.ToString("yyyy-MM-ddTHH:mm")" required/></div>
     <div class="form-group"><label class="form-label">Hora</label><input class="form-control" name="Time" value="@Model.Time" placeholder="21:00"/></div>
@@ -35,7 +35,7 @@
         <td data-label="Qué se va a hacer">@(string.IsNullOrWhiteSpace(reh.Notes) ? "—" : reh.Notes)</td>
         <td data-label="Setlist">@(reh.SetlistId != null && showSetl.ContainsKey(reh.SetlistId) ? showSetl[reh.SetlistId] : "—")</td>
         <td data-label="Lugar">@reh.Place</td>
-        <td data-label="Acciones" style="display:flex;gap:6px;flex-wrap:wrap"><a href="/admin/rehearsals/edit/@reh.Id" class="btn btn-secondary btn-sm">Editar</a><form method="post" action="/admin/rehearsals/delete/@reh.Id" onsubmit="return confirm('¿Eliminar este ensayo?')"><button type="submit" class="btn btn-danger btn-sm">Eliminar</button></form></td>
+        <td data-label="Acciones" style="display:flex;gap:6px;flex-wrap:wrap"><a href="/admin/rehearsals/edit/@reh.Id" class="btn btn-secondary btn-sm">Editar</a><form method="post" action="/admin/rehearsals/delete/@reh.Id" onsubmit="return confirm('¿Eliminar este ensayo?')">@Html.AntiForgeryToken()<button type="submit" class="btn btn-danger btn-sm">Eliminar</button></form></td>
       </tr>
     }
     </tbody></table>

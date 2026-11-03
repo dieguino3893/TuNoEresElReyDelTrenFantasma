@@ -48,7 +48,7 @@ input:focus{border-color:var(--accent);box-shadow:0 0 0 4px rgba(255,92,51,.14)}
   @if(!string.IsNullOrEmpty(err)){
     <div class="alert"><i class="fa-solid fa-triangle-exclamation" style="margin-right:6px"></i> @err</div>
   }
-  <form method="post" action="/auth/login">
+  <form method="post" action="/auth/login">@Html.AntiForgeryToken()
     <input type="hidden" name="returnUrl" value="@returnUrl"/>
     <label for="username"><i class="fa-solid fa-user" style="margin-right:6px"></i> Usuario</label>
     <input id="username" name="username" placeholder="Tu usuario" required autocomplete="username"/>

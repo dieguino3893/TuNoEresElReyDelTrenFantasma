@@ -16,7 +16,7 @@
   <td data-label="Icono"><span class="mono">@c.Icon</span></td>
   <td data-label="Estado"><span class="pill @(c.IsVisible?"ok":"off")">@(c.IsVisible ? "Visible" : "Oculto")</span></td>
   <td data-label="Editado"><small style="color:var(--muted)">por @c.UpdatedBy</small></td>
-  <td data-label="Acciones" style="display:flex;gap:6px;flex-wrap:wrap"><a href="/admin/chips/edit/@c.Id" class="btn btn-secondary btn-sm">Editar</a><form method="post" action="/admin/chips/delete/@c.Id" onsubmit="return confirm('¿Eliminar el chip @c.Text?')"><button type="submit" class="btn btn-danger btn-sm">Eliminar</button></form></td>
+  <td data-label="Acciones" style="display:flex;gap:6px;flex-wrap:wrap"><a href="/admin/chips/edit/@c.Id" class="btn btn-secondary btn-sm">Editar</a><form method="post" action="/admin/chips/delete/@c.Id" onsubmit="return confirm('¿Eliminar el chip @c.Text?')">@Html.AntiForgeryToken()<button type="submit" class="btn btn-danger btn-sm">Eliminar</button></form></td>
 </tr>
 }
 </tbody></table></div>

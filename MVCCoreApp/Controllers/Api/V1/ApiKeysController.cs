@@ -9,6 +9,7 @@ namespace MVCCoreApp.Controllers.Api.V1;
 
 [ApiController]
 [Route("api/v1/auth/api-keys")]
+[Authorize(AuthenticationSchemes = "Cookies,Basic,ApiKey", Roles = "Admin")]
 public class ApiKeysController : ControllerBase
 {
     private readonly MongoDbService _mongo;
@@ -16,7 +17,6 @@ public class ApiKeysController : ControllerBase
 
     // crear api-key para la sesión actual (requiere estar logueado por Cookie o Basic)
     [HttpPost]
-    [Authorize(AuthenticationSchemes = "Cookies,Basic,ApiKey")]
     public async Task<IActionResult> Create([FromQuery] int hours = 8)
     {
         var username = User.Identity?.Name ?? "system";
@@ -42,8 +42,8 @@ public class ApiKeysController : ControllerBase
         }
         catch (Exception ex)
         {
-            // si Mongo cae, devolver la key igual pero sin persistir (solo demo)
-            return Ok(new { apiKey = plain, prefix = apiKey.Prefix, expiresAt = apiKey.ExpiresAt, warning = "Mongo no disponible, key no persistida: " + ex.Message });
+            // Sin base no hay key que valga: fallar en vez de entregar una inservible.
+            return StatusCode(503, new { detail = "Mongo no disponible: " + ex.Message });
         }
         // solo se muestra una vez
         return Ok(new { apiKey = plain, prefix = apiKey.Prefix, expiresAt = apiKey.ExpiresAt, id = apiKey.Id });

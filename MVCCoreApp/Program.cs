@@ -1,7 +1,10 @@
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.OpenApi;
 using MVCCoreApp.Models;
 using MVCCoreApp.Services;
+using MVCCoreApp.Services.Asistente;
 using MVCCoreApp.Services.Auth;
 using MVCCoreApp.Services.Playback;
 using YoutubeExplode;
@@ -34,6 +37,26 @@ builder.Services.AddSingleton<SeedService>();
 builder.Services.AddSingleton<IFileService, CloudinaryService>();
 builder.Services.AddSingleton<IGeoLocationService, GeoLocationService>();
 builder.Services.AddHttpClient("GeoIp", c => c.Timeout = TimeSpan.FromSeconds(3));
+
+// Detrás de proxy/IIS: respeta X-Forwarded-For/Proto para IP real y esquema.
+// Ojo: se acepta el XFF que mande el cliente; un atacante puede rotarlo para
+// esquivar el rate limit por IP (el bloqueo por usuario de IntentosLogin sí lo frena).
+builder.Services.Configure<ForwardedHeadersOptions>(o =>
+{
+    o.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    o.KnownIPNetworks.Clear();
+    o.KnownProxies.Clear();
+});
+builder.WebHost.ConfigureKestrel(o => o.AddServerHeader = false);
+
+builder.Services.AddSingleton<LimiteAsistente>();
+builder.Services.AddSingleton<IntentosLogin>();
+builder.Services.AddScoped<AuditoriaService>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddHttpClient<AsistenteCliente>(c => c.Timeout = TimeSpan.FromSeconds(60));
+builder.Services.AddScoped<AsistenteDatos>();
+builder.Services.AddScoped<AsistenteEjecutor>();
+builder.Services.AddScoped<AsistenteServicio>();
 
 // Módulo playback (ensayo interno): API resuelve, <audio> del navegador suena.
 // Aislado tras IAudioResolver para que un cambio en la API no oficial no rompa setlists.
@@ -88,6 +111,50 @@ builder.Services.AddAuthorization(options =>
 });
 
 builder.Services.AddAntiforgery(o => o.HeaderName = "X-XSRF-TOKEN");
+builder.Services.AddHsts(o =>
+{
+    o.MaxAge = TimeSpan.FromDays(365);
+    o.IncludeSubDomains = false;
+});
+builder.Services.AddRateLimiter(opciones =>
+{
+    opciones.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    // Login: 10 por minuto por IP.
+    opciones.AddPolicy("login", contexto =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            contexto.Connection.RemoteIpAddress?.ToString() ?? "desconocida",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+                AutoReplenishment = true,
+            }));
+    // Asistente: 30 por minuto por usuario (ventana fija) + 3 por segundo y
+    // 300 por hora por usuario (contadores en memoria, ver LimiteAsistente).
+    opciones.AddPolicy("asistente", contexto =>
+    {
+        var clave = contexto.User?.Identity?.Name
+            ?? contexto.Connection.RemoteIpAddress?.ToString()
+            ?? "desconocida";
+        return RateLimitPartition.GetFixedWindowLimiter(
+            clave,
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 30,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+                AutoReplenishment = true,
+            });
+    });
+    opciones.OnRejected = async (contexto, cancelacion) =>
+    {
+        contexto.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+        contexto.HttpContext.Response.ContentType = "application/json";
+        await contexto.HttpContext.Response.WriteAsJsonAsync(
+            new { mensaje = "Demasiados intentos. Espera un momento." }, cancelacion);
+    };
+});
 builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(o => o.MultipartBodyLengthLimit = 10 * 1024 * 1024);
 
 // Add services to the container.
@@ -143,14 +210,18 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Home/Error");
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
+    app.UseHttpsRedirection();
 }
 
-app.UseSwagger();
-app.UseSwaggerUI(c =>
+if (app.Environment.IsDevelopment())
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "ElRey API v1");
-    c.RoutePrefix = "swagger";
-});
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "ElRey API v1");
+        c.RoutePrefix = "swagger";
+    });
+}
 
 app.Use(async (ctx, next) =>
 {
@@ -158,10 +229,15 @@ app.Use(async (ctx, next) =>
     ctx.Response.Headers["X-Frame-Options"] = "DENY";
     ctx.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
     ctx.Response.Headers["Content-Security-Policy"] = "default-src 'self'; img-src 'self' https: data:; media-src 'self' https: blob:; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; connect-src 'self' https://res.cloudinary.com https://*.googlevideo.com https://*.youtube.com https://*.saavncdn.com https://www.jiosaavn.com; frame-src https://open.spotify.com;";
+    if (ctx.Request.Path.StartsWithSegments("/api"))
+    {
+        ctx.Response.Headers.CacheControl = "no-store";
+    }
     await next();
 });
-app.UseHttpsRedirection();
+app.UseForwardedHeaders();
 app.UseRouting();
+app.UseRateLimiter();
 app.UseCors("PublicApi");
 app.UseAuthentication();
 app.UseAuthorization();

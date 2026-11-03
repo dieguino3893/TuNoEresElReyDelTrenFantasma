@@ -38,7 +38,7 @@
     <td data-label="Setlist a ensayar">@(r.SetlistId != null && setl.ContainsKey(r.SetlistId) ? setl[r.SetlistId] : "—")</td>
     <td data-label="Notas"><small style="color:var(--muted)">@r.Notes</small></td>
     <td data-label="Editado"><small style="color:var(--muted)">por @r.UpdatedBy</small></td>
-    <td data-label="Acciones" style="display:flex;gap:6px;flex-wrap:wrap"><a href="/admin/rehearsals/edit/@r.Id" class="btn btn-secondary btn-sm">Editar</a><form method="post" action="/admin/rehearsals/delete/@r.Id" onsubmit="return confirm('¿Eliminar este ensayo?')"><button type="submit" class="btn btn-danger btn-sm">Eliminar</button></form></td>
+    <td data-label="Acciones" style="display:flex;gap:6px;flex-wrap:wrap"><a href="/admin/rehearsals/edit/@r.Id" class="btn btn-secondary btn-sm">Editar</a><form method="post" action="/admin/rehearsals/delete/@r.Id" onsubmit="return confirm('¿Eliminar este ensayo?')">@Html.AntiForgeryToken()<button type="submit" class="btn btn-danger btn-sm">Eliminar</button></form></td>
   </tr>
 }
 </tbody></table></div>

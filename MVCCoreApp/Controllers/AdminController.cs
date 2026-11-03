@@ -2,6 +2,7 @@ using System.Globalization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using MVCCoreApp.Models;
 using MVCCoreApp.Models.Enums;
@@ -10,6 +11,7 @@ using MVCCoreApp.Services;
 namespace MVCCoreApp.Controllers;
 
 [Authorize(AuthenticationSchemes = "Cookies,Basic")]
+[AutoValidateAntiforgeryToken]
 [Route("admin")]
 public class AdminController : Controller
 {
@@ -17,7 +19,9 @@ public class AdminController : Controller
     private readonly SeedService _seed;
     private readonly IFileService _files;
     private readonly IConfiguration _config;
-    public AdminController(MongoDbService mongo, SeedService seed, IFileService files, IConfiguration config) { _mongo = mongo; _seed = seed; _files = files; _config = config; }
+    private readonly AuditoriaService _auditoria;
+    private readonly ILogger<AdminController> _log;
+    public AdminController(MongoDbService mongo, SeedService seed, IFileService files, IConfiguration config, AuditoriaService auditoria, ILogger<AdminController> log) { _mongo = mongo; _seed = seed; _files = files; _config = config; _auditoria = auditoria; _log = log; }
 
     [HttpGet("")]
     public async Task<IActionResult> Index()
@@ -50,7 +54,7 @@ public class AdminController : Controller
     public async Task<IActionResult> Members()
     {
         try { var list = await _mongo.GetCollection<Member>("members").Find(x => !x.IsDeleted).SortBy(x => x.Order).ToListAsync(); return View(list); }
-        catch { return View(new List<Member>()); }
+        catch (Exception ex) { _log.LogWarning(ex, "Admin: operación falló"); return View(new List<Member>()); }
     }
     [HttpGet("members/create")]
     public IActionResult MemberCreate() { ViewBag.IsEdit = false; return View("MemberForm", new Member()); }
@@ -58,11 +62,12 @@ public class AdminController : Controller
     public async Task<IActionResult> MemberCreate(Member m, IFormFile? imageFile)
     {
         var user = User.Identity?.Name ?? "system";
+        m.Id = ObjectId.GenerateNewId().ToString(); m.IsDeleted = false;
         if (imageFile != null && imageFile.Length > 0) { try { var (url,_) = await _files.UploadAsync(imageFile, "elrey/members"); m.ImageUrl = url; } catch(Exception ex){ TempData["err"] = "Upload Cloudinary falló: "+ex.Message; return View("MemberForm", m); } }
         m.Name = SanitizeService.Sanitize(m.Name); m.Role = SanitizeService.Sanitize(m.Role); m.ImageAlt = SanitizeService.Sanitize(m.ImageAlt);
         m.CreatedBy = user; m.UpdatedBy = user; m.CreatedAt = DateTime.UtcNow; m.UpdatedAt = DateTime.UtcNow;
         try { await _mongo.GetCollection<Member>("members").InsertOneAsync(m); TempData["ok"] = $"Miembro {m.Name} creado"; }
-        catch (Exception ex) { TempData["err"] = "Mongo no disponible (whitelist/IP): "+ex.Message; return View("MemberForm", m); }
+        catch (Exception ex) { _log.LogWarning(ex, "Admin: operación falló"); TempData["err"] = "Mongo no disponible (whitelist/IP): "+ex.Message; return View("MemberForm", m); }
         return RedirectToAction("Members");
     }
     [HttpGet("members/edit/{id}")]
@@ -121,6 +126,7 @@ public class AdminController : Controller
     public async Task<IActionResult> ShowCreate(Show s)
     {
         var user = User.Identity?.Name ?? "system";
+        s.Id = ObjectId.GenerateNewId().ToString(); s.IsDeleted = false;
         s.CreatedBy = user; s.UpdatedBy = user; s.CreatedAt = DateTime.UtcNow; s.UpdatedAt = DateTime.UtcNow;
         try{ await _mongo.GetCollection<Show>("shows").InsertOneAsync(s); TempData["ok"] = $"Show {s.Venue} creado"; } catch(Exception ex){ TempData["err"]="Mongo no disponible: "+ex.Message; return View("ShowForm", s); }
         return RedirectToAction("Shows");
@@ -161,7 +167,7 @@ public class AdminController : Controller
     public async Task<IActionResult> Setlists()
     {
         try { var list = await _mongo.GetCollection<Setlist>("setlists").Find(x => !x.IsDeleted).SortBy(x => x.Name).ToListAsync(); return View(list); }
-        catch { return View(new List<Setlist>()); }
+        catch (Exception ex) { _log.LogWarning(ex, "Admin: operación falló"); return View(new List<Setlist>()); }
     }
     [HttpGet("setlists/create")]
     public async Task<IActionResult> SetlistCreate()
@@ -174,12 +180,13 @@ public class AdminController : Controller
     public async Task<IActionResult> SetlistCreate(Setlist s)
     {
         var user = User.Identity?.Name ?? "system";
+        s.Id = ObjectId.GenerateNewId().ToString(); s.IsDeleted = false;
         s.Name = SanitizeService.SanitizeText(s.Name);
         s.Description = SanitizeService.SanitizeText(s.Description);
         NormalizeSetlistItems(s, await TrackCatalogAsync());
         s.CreatedBy = user; s.UpdatedBy = user; s.CreatedAt = DateTime.UtcNow; s.UpdatedAt = DateTime.UtcNow;
         try { await _mongo.GetCollection<Setlist>("setlists").InsertOneAsync(s); TempData["ok"] = $"Setlist \"{s.Name}\" guardado"; }
-        catch { TempData["err"] = "No se pudo guardar (revisa tu conexión a la base)."; return View("SetlistForm", s); }
+        catch (Exception ex) { _log.LogWarning(ex, "Admin: operación falló"); TempData["err"] = "No se pudo guardar (revisa tu conexión a la base)."; return View("SetlistForm", s); }
         return RedirectToAction("Setlists");
     }
     [HttpGet("setlists/edit/{id}")]
@@ -203,7 +210,7 @@ public class AdminController : Controller
         NormalizeSetlistItems(m, await TrackCatalogAsync());
         m.UpdatedAt = DateTime.UtcNow; m.UpdatedBy = User.Identity?.Name ?? "system";
         try { await col.ReplaceOneAsync(x => x.Id == id, m); TempData["ok"] = "Setlist actualizado"; }
-        catch { TempData["err"] = "No se pudo actualizar (revisa tu conexión a la base)."; return View("SetlistForm", dto); }
+        catch (Exception ex) { _log.LogWarning(ex, "Admin: operación falló"); TempData["err"] = "No se pudo actualizar (revisa tu conexión a la base)."; return View("SetlistForm", dto); }
         return RedirectToAction("Setlists");
     }
     [HttpPost("setlists/delete/{id}")]
@@ -211,7 +218,7 @@ public class AdminController : Controller
     {
         var col = _mongo.GetCollection<Setlist>("setlists");
         var m = await col.Find(x => x.Id == id && !x.IsDeleted).FirstOrDefaultAsync();
-        if (m != null) { m.IsDeleted = true; m.UpdatedAt = DateTime.UtcNow; m.UpdatedBy = User.Identity?.Name ?? "system"; try { await col.ReplaceOneAsync(x => x.Id == id, m); TempData["ok"] = "Setlist eliminado"; } catch { TempData["err"] = "No se pudo eliminar (revisa tu conexión a la base)."; } }
+        if (m != null) { m.IsDeleted = true; m.UpdatedAt = DateTime.UtcNow; m.UpdatedBy = User.Identity?.Name ?? "system"; try { await col.ReplaceOneAsync(x => x.Id == id, m); TempData["ok"] = "Setlist eliminado"; } catch (Exception ex) { _log.LogWarning(ex, "Admin: operación falló"); TempData["err"] = "No se pudo eliminar (revisa tu conexión a la base)."; } }
         return RedirectToAction("Setlists");
     }
 
@@ -282,7 +289,7 @@ public class AdminController : Controller
         }
         r.CreatedAt = DateTime.UtcNow; r.UpdatedAt = DateTime.UtcNow; r.CreatedBy = user; r.UpdatedBy = user;
         try { await _mongo.GetCollection<Rehearsal>("rehearsals").InsertOneAsync(r); TempData["ok"] = kind == "show" ? "Ensayo del show guardado" : "Ensayo suelto guardado"; }
-        catch { TempData["err"] = "No se pudo guardar (revisa tu conexión a la base)."; ViewBag.IsEdit=false; ViewBag.SetlistOptions = await SetlistOptionsAsync(r.SetlistId); ViewBag.ShowOptions = await ShowOptionsAsync(r.ShowId); ViewBag.ShowDataJson = await ShowDataJsonAsync(r.ShowId); return View("RehearsalForm", r); }
+        catch (Exception ex) { _log.LogWarning(ex, "Admin: operación falló"); TempData["err"] = "No se pudo guardar (revisa tu conexión a la base)."; ViewBag.IsEdit=false; ViewBag.SetlistOptions = await SetlistOptionsAsync(r.SetlistId); ViewBag.ShowOptions = await ShowOptionsAsync(r.ShowId); ViewBag.ShowDataJson = await ShowDataJsonAsync(r.ShowId); return View("RehearsalForm", r); }
         return RedirectToAction("Rehearsals", new { show = r.ShowId });
     }
     [HttpGet("rehearsals/edit/{id}")]
@@ -320,7 +327,7 @@ public class AdminController : Controller
         }
         m.UpdatedAt = DateTime.UtcNow; m.UpdatedBy = User.Identity?.Name ?? "system";
         try { await col.ReplaceOneAsync(x => x.Id == id, m); TempData["ok"] = "Ensayo actualizado"; }
-        catch { TempData["err"] = "No se pudo actualizar (revisa tu conexión a la base)."; ViewBag.IsEdit=true; ViewBag.SetlistOptions = await SetlistOptionsAsync(dto.SetlistId); ViewBag.ShowOptions = await ShowOptionsAsync(dto.ShowId); ViewBag.ShowDataJson = await ShowDataJsonAsync(dto.ShowId); return View("RehearsalForm", dto); }
+        catch (Exception ex) { _log.LogWarning(ex, "Admin: operación falló"); TempData["err"] = "No se pudo actualizar (revisa tu conexión a la base)."; ViewBag.IsEdit=true; ViewBag.SetlistOptions = await SetlistOptionsAsync(dto.SetlistId); ViewBag.ShowOptions = await ShowOptionsAsync(dto.ShowId); ViewBag.ShowDataJson = await ShowDataJsonAsync(dto.ShowId); return View("RehearsalForm", dto); }
         return RedirectToAction("Rehearsals");
     }
     [HttpPost("rehearsals/delete/{id}")]
@@ -328,26 +335,26 @@ public class AdminController : Controller
     {
         var col = _mongo.GetCollection<Rehearsal>("rehearsals");
         var m = await col.Find(x => x.Id == id && !x.IsDeleted).FirstOrDefaultAsync();
-        if (m != null) { m.IsDeleted = true; m.UpdatedAt = DateTime.UtcNow; m.UpdatedBy = User.Identity?.Name ?? "system"; try { await col.ReplaceOneAsync(x => x.Id == id, m); TempData["ok"] = "Ensayo eliminado"; } catch { TempData["err"] = "No se pudo eliminar (revisa tu conexión a la base)."; } }
+        if (m != null) { m.IsDeleted = true; m.UpdatedAt = DateTime.UtcNow; m.UpdatedBy = User.Identity?.Name ?? "system"; try { await col.ReplaceOneAsync(x => x.Id == id, m); TempData["ok"] = "Ensayo eliminado"; } catch (Exception ex) { _log.LogWarning(ex, "Admin: operación falló"); TempData["err"] = "No se pudo eliminar (revisa tu conexión a la base)."; } }
         return RedirectToAction("Rehearsals");
     }
 
     private async Task<List<Show>> LoadShowsAsync()
     {
         try { return await _mongo.GetCollection<Show>("shows").Find(x => !x.IsDeleted).SortBy(x => x.Date).ToListAsync(); }
-        catch { return new List<Show>(); }
+        catch (Exception ex) { _log.LogWarning(ex, "Admin: operación falló"); return new List<Show>(); }
     }
 
     private async Task<T?> LoadByIdAsync<T>(string collection, string id) where T : Models.Base.AuditableDocument
     {
         try { return await _mongo.GetCollection<T>(collection).Find(x => x.Id == id && !x.IsDeleted).FirstOrDefaultAsync(); }
-        catch { return default; }
+        catch (Exception ex) { _log.LogWarning(ex, "Admin: operación falló"); return default; }
     }
 
     private async Task<Show?> LoadShowAsync(string? id)
     {
         if (string.IsNullOrWhiteSpace(id)) return null;
-        return await _mongo.GetCollection<Show>("shows").Find(x => x.Id == id).FirstOrDefaultAsync();
+        return await _mongo.GetCollection<Show>("shows").Find(x => x.Id == id && !x.IsDeleted).FirstOrDefaultAsync();
     }
 
     private async Task<List<SelectListItem>> ShowOptionsAsync(string? selectedId)
@@ -385,7 +392,7 @@ public class AdminController : Controller
     private async Task<List<Track>> TrackCatalogAsync()
     {
         try { return await _mongo.GetCollection<Track>("tracks").Find(x => !x.IsDeleted).SortBy(x => x.Order).ToListAsync(); }
-        catch { return new List<Track>(); }
+        catch (Exception ex) { _log.LogWarning(ex, "Admin: operación falló"); return new List<Track>(); }
     }
 
     private async Task<SelectList?> SetlistOptionsAsync(string? selectedId)
@@ -395,7 +402,7 @@ public class AdminController : Controller
             var all = await _mongo.GetCollection<Setlist>("setlists").Find(x => !x.IsDeleted).SortBy(x => x.Name).ToListAsync();
             return new SelectList(all, "Id", "Name", selectedId);
         }
-        catch { return new SelectList(new List<Setlist>(), "Id", "Name", selectedId); }
+        catch (Exception ex) { _log.LogWarning(ex, "Admin: operación falló"); return new SelectList(new List<Setlist>(), "Id", "Name", selectedId); }
     }
 
     private void NormalizeSetlistItems(Setlist s, List<Track> catalog)
@@ -415,7 +422,7 @@ public class AdminController : Controller
     public async Task<IActionResult> News()
     {
         try { var list = await _mongo.GetCollection<News>("news").Find(x => !x.IsDeleted).SortBy(x => x.Order).ToListAsync(); return View(list); }
-        catch { return View(new List<News>()); }
+        catch (Exception ex) { _log.LogWarning(ex, "Admin: operación falló"); return View(new List<News>()); }
     }
     [HttpGet("news/create")]
     public IActionResult NewsCreate() { ViewBag.IsEdit = false; return View("NewsForm", new News{ PublishedAt = DateTime.UtcNow }); }
@@ -423,8 +430,9 @@ public class AdminController : Controller
     public async Task<IActionResult> NewsCreate(News n, IFormFile? imageFile)
     {
         var user = User.Identity?.Name ?? "system";
+        n.Id = ObjectId.GenerateNewId().ToString(); n.IsDeleted = false;
         if (imageFile != null && imageFile.Length > 0) { var (url,_) = await _files.UploadAsync(imageFile, "elrey/news"); n.ImageUrl = url; }
-        if (string.IsNullOrWhiteSpace(n.Slug)) n.Slug = n.Title.ToLower().Replace(" ", "-").Replace("\"", "");
+        if (string.IsNullOrWhiteSpace(n.Slug)) n.Slug = SanitizeService.GenerarSlug(n.Title);
         n.Title = SanitizeService.Sanitize(n.Title); n.Excerpt = SanitizeService.Sanitize(n.Excerpt); n.ContentHtml = SanitizeService.Sanitize(n.ContentHtml);
         n.CreatedBy = user; n.UpdatedBy = user; n.CreatedAt = DateTime.UtcNow; n.UpdatedAt = DateTime.UtcNow;
         try{ await _mongo.GetCollection<News>("news").InsertOneAsync(n); TempData["ok"] = $"Noticia {n.Title} creada"; } catch(Exception ex){ TempData["err"]="Mongo no disponible: "+ex.Message; return View("NewsForm", n); }
@@ -445,7 +453,7 @@ public class AdminController : Controller
         var m = await col.Find(x => x.Id == id && !x.IsDeleted).FirstOrDefaultAsync();
         if (m == null) return NotFound();
         if (imageFile != null && imageFile.Length > 0) { var (url,_) = await _files.UploadAsync(imageFile, "elrey/news"); dto.ImageUrl = url; }
-        m.Title = SanitizeService.Sanitize(dto.Title); m.Slug = dto.Slug; m.Tag = dto.Tag; m.ImageUrl = string.IsNullOrWhiteSpace(dto.ImageUrl) ? m.ImageUrl : dto.ImageUrl;
+        m.Title = SanitizeService.Sanitize(dto.Title); m.Slug = string.IsNullOrWhiteSpace(dto.Slug) ? SanitizeService.GenerarSlug(dto.Title) : SanitizeService.GenerarSlug(dto.Slug); m.Tag = dto.Tag; m.ImageUrl = string.IsNullOrWhiteSpace(dto.ImageUrl) ? m.ImageUrl : dto.ImageUrl;
         m.ImageAlt = dto.ImageAlt; m.Excerpt = SanitizeService.Sanitize(dto.Excerpt); m.ContentHtml = SanitizeService.Sanitize(dto.ContentHtml); m.PublishedAt = dto.PublishedAt; m.IsPublished = dto.IsPublished; m.Order = dto.Order;
         m.UpdatedAt = DateTime.UtcNow; m.UpdatedBy = User.Identity?.Name ?? "system";
         try{ await col.ReplaceOneAsync(x => x.Id == id, m); TempData["ok"] = "Noticia actualizada"; } catch(Exception ex){ TempData["err"]="Mongo no disponible: "+ex.Message; return View("NewsForm", dto); }
@@ -465,7 +473,7 @@ public class AdminController : Controller
     public async Task<IActionResult> Tracks()
     {
         try { var list = await _mongo.GetCollection<Track>("tracks").Find(x => !x.IsDeleted).SortBy(x => x.Order).ToListAsync(); return View(list); }
-        catch { return View(new List<Track>()); }
+        catch (Exception ex) { _log.LogWarning(ex, "Admin: operación falló"); return View(new List<Track>()); }
     }
     [HttpGet("tracks/create")]
     public IActionResult TrackCreate() { ViewBag.IsEdit = false; return View("TrackForm", new Track()); }
@@ -473,6 +481,7 @@ public class AdminController : Controller
     public async Task<IActionResult> TrackCreate(Track t)
     {
         var user = User.Identity?.Name ?? "system";
+        t.Id = ObjectId.GenerateNewId().ToString(); t.IsDeleted = false;
         if (!string.IsNullOrEmpty(t.Links.SpotifyTrackId) && string.IsNullOrEmpty(t.Links.SpotifyEmbedUrl))
             t.Links.SpotifyEmbedUrl = $"https://open.spotify.com/embed/track/{t.Links.SpotifyTrackId}?utm_source=generator&theme=0";
         t.Source = "Manual"; t.CreatedBy = user; t.UpdatedBy = user; t.CreatedAt = DateTime.UtcNow; t.UpdatedAt = DateTime.UtcNow;
@@ -514,7 +523,7 @@ public class AdminController : Controller
     public async Task<IActionResult> Chips()
     {
         try { var list = await _mongo.GetCollection<HeroChip>("heroChips").Find(x => !x.IsDeleted).SortBy(x => x.Order).ToListAsync(); return View(list); }
-        catch { return View(new List<HeroChip>()); }
+        catch (Exception ex) { _log.LogWarning(ex, "Admin: operación falló"); return View(new List<HeroChip>()); }
     }
     [HttpGet("chips/create")]
     public IActionResult ChipCreate() { ViewBag.IsEdit = false; return View("ChipForm", new HeroChip()); }
@@ -522,10 +531,11 @@ public class AdminController : Controller
     public async Task<IActionResult> ChipCreate(HeroChip c)
     {
         var user = User.Identity?.Name ?? "system";
+        c.Id = ObjectId.GenerateNewId().ToString(); c.IsDeleted = false;
         c.Text = SanitizeService.SanitizeText(c.Text); c.Icon = SanitizeService.SanitizeText(c.Icon);
         c.CreatedBy = user; c.UpdatedBy = user; c.CreatedAt = DateTime.UtcNow; c.UpdatedAt = DateTime.UtcNow;
         try { await _mongo.GetCollection<HeroChip>("heroChips").InsertOneAsync(c); TempData["ok"] = $"Chip {c.Text} creado"; }
-        catch (Exception ex) { TempData["err"] = "Mongo no disponible: "+ex.Message; return View("ChipForm", c); }
+        catch (Exception ex) { _log.LogWarning(ex, "Admin: operación falló"); TempData["err"] = "Mongo no disponible: "+ex.Message; return View("ChipForm", c); }
         return RedirectToAction("Chips");
     }
     [HttpGet("chips/edit/{id}")]
@@ -546,7 +556,7 @@ public class AdminController : Controller
         m.Order = dto.Order; m.IsVisible = dto.IsVisible;
         m.UpdatedAt = DateTime.UtcNow; m.UpdatedBy = User.Identity?.Name ?? "system";
         try { await col.ReplaceOneAsync(x => x.Id == id, m); TempData["ok"] = "Chip actualizado"; }
-        catch (Exception ex) { TempData["err"] = "Mongo no disponible: "+ex.Message; return View("ChipForm", dto); }
+        catch (Exception ex) { _log.LogWarning(ex, "Admin: operación falló"); TempData["err"] = "Mongo no disponible: "+ex.Message; return View("ChipForm", dto); }
         return RedirectToAction("Chips");
     }
     [HttpPost("chips/delete/{id}")]
@@ -554,7 +564,7 @@ public class AdminController : Controller
     {
         var col = _mongo.GetCollection<HeroChip>("heroChips");
         var m = await col.Find(x => x.Id == id && !x.IsDeleted).FirstOrDefaultAsync();
-        if (m != null) { m.IsDeleted = true; m.UpdatedAt = DateTime.UtcNow; m.UpdatedBy = User.Identity?.Name ?? "system"; try { await col.ReplaceOneAsync(x => x.Id == id, m); TempData["ok"] = "Chip eliminado"; } catch (Exception ex) { TempData["err"] = "Mongo no disponible: "+ex.Message; } }
+        if (m != null) { m.IsDeleted = true; m.UpdatedAt = DateTime.UtcNow; m.UpdatedBy = User.Identity?.Name ?? "system"; try { await col.ReplaceOneAsync(x => x.Id == id, m); TempData["ok"] = "Chip eliminado"; } catch (Exception ex) { _log.LogWarning(ex, "Admin: operación falló"); TempData["err"] = "Mongo no disponible: "+ex.Message; } }
         else TempData["ok"] = "Chip eliminado";
         return RedirectToAction("Chips");
     }
@@ -566,13 +576,14 @@ public class AdminController : Controller
         var col = _mongo.GetCollection<SiteText>("siteTexts");
         Dictionary<string, SiteText> current;
         try { current = (await col.Find(_ => true).ToListAsync()).GroupBy(t => t.Key).ToDictionary(g => g.Key, g => g.First()); }
-        catch { current = new Dictionary<string, SiteText>(); }
+        catch (Exception ex) { _log.LogWarning(ex, "Admin: operación falló"); current = new Dictionary<string, SiteText>(); }
         var model = SiteTextDefaults.All.Select(d => current.TryGetValue(d.Key, out var t)
             ? t
             : new SiteText { Key = d.Key, Group = d.Group, Label = d.Label, Value = d.Value, Multiline = d.Multiline }).ToList();
         return View(model);
     }
     [HttpPost("texts")]
+    [Authorize(AuthenticationSchemes = "Cookies,Basic", Roles = "Admin")]
     public async Task<IActionResult> Texts(Dictionary<string, string> values)
     {
         var col = _mongo.GetCollection<SiteText>("siteTexts");
@@ -583,19 +594,20 @@ public class AdminController : Controller
             foreach (var d in SiteTextDefaults.All)
             {
                 if (values == null || !values.TryGetValue(d.Key, out var v) || v == null) continue;
-                var clean = SanitizeService.SanitizeText(v);
+                var clean = d.Multiline ? SanitizeService.Sanitize(v) : SanitizeService.SanitizeText(v);
                 await col.ReplaceOneAsync(t => t.Key == d.Key,
                     new SiteText { Key = d.Key, Group = d.Group, Label = d.Label, Value = clean, Multiline = d.Multiline, UpdatedAt = now, UpdatedBy = user },
                     new ReplaceOptions { IsUpsert = true });
             }
             TempData["ok"] = "Textos guardados";
         }
-        catch (Exception ex) { TempData["err"] = "Mongo no disponible: "+ex.Message; }
+        catch (Exception ex) { _log.LogWarning(ex, "Admin: operación falló"); TempData["err"] = "Mongo no disponible: "+ex.Message; }
         return RedirectToAction("Texts");
     }
 
     // ===== SETTINGS =====
     [HttpGet("settings")]
+    [Authorize(AuthenticationSchemes = "Cookies,Basic", Roles = "Admin")]
     public async Task<IActionResult> Settings()
     {
         try 
@@ -643,6 +655,7 @@ public class AdminController : Controller
         }
     }
     [HttpPost("settings")]
+    [Authorize(AuthenticationSchemes = "Cookies,Basic", Roles = "Admin")]
     public async Task<IActionResult> Settings(SiteSettings dto)
     {
         var col = _mongo.GetCollection<SiteSettings>("siteSettings");
@@ -668,7 +681,7 @@ public class AdminController : Controller
     public async Task<IActionResult> Users()
     {
         try { var list = await _mongo.GetCollection<User>("users").Find(x => !x.IsDeleted).ToListAsync(); return View(list); }
-        catch { return View(new List<User>()); }
+        catch (Exception ex) { _log.LogWarning(ex, "Admin: operación falló"); return View(new List<User>()); }
     }
     [HttpGet("users/create")]
     [Authorize(AuthenticationSchemes = "Cookies,Basic", Roles = "Admin")]
@@ -678,9 +691,11 @@ public class AdminController : Controller
     public async Task<IActionResult> UserCreate(User u, string password)
     {
         if (string.IsNullOrWhiteSpace(password)) { TempData["err"]="Password requerido"; return View("UserForm", u); }
+        if (password.Length < 10) { TempData["err"]="Mínimo 10 caracteres"; return View("UserForm", u); }
+        u.Id = ObjectId.GenerateNewId().ToString(); u.IsDeleted = false;
         u.PasswordHash = BCrypt.Net.BCrypt.HashPassword(password);
         u.CreatedBy = User.Identity?.Name ?? "system"; u.UpdatedBy = User.Identity?.Name ?? "system"; u.CreatedAt=DateTime.UtcNow; u.UpdatedAt=DateTime.UtcNow;
-        try{ await _mongo.GetCollection<User>("users").InsertOneAsync(u); TempData["ok"]="Usuario creado"; } catch(Exception ex){ TempData["err"]="Mongo no disponible: "+ex.Message; return View("UserForm", u); }
+        try{ await _mongo.GetCollection<User>("users").InsertOneAsync(u); TempData["ok"]="Usuario creado"; await _auditoria.RegistrarAsync("usuario_creado", u.Username); } catch(Exception ex){ TempData["err"]="Mongo no disponible: "+ex.Message; return View("UserForm", u); }
         return RedirectToAction("Users");
     }
     [HttpPost("users/delete/{id}")]
@@ -689,7 +704,7 @@ public class AdminController : Controller
     {
         var col = _mongo.GetCollection<User>("users");
         var u = await col.Find(x=>x.Id==id).FirstOrDefaultAsync();
-        if(u!=null){ u.IsDeleted=true; u.UpdatedAt=DateTime.UtcNow; u.UpdatedBy=User.Identity?.Name??"system"; try{ await col.ReplaceOneAsync(x=>x.Id==id,u); TempData["ok"]="Usuario eliminado"; } catch(Exception ex){ TempData["err"]="Mongo no disponible: "+ex.Message; } } else TempData["ok"]="Usuario eliminado";
+        if(u!=null){ u.IsDeleted=true; u.UpdatedAt=DateTime.UtcNow; u.UpdatedBy=User.Identity?.Name??"system"; try{ await col.ReplaceOneAsync(x=>x.Id==id,u); TempData["ok"]="Usuario eliminado"; await _auditoria.RegistrarAsync("usuario_eliminado", u.Username); } catch(Exception ex){ TempData["err"]="Mongo no disponible: "+ex.Message; } } else TempData["ok"]="Usuario eliminado";
         return RedirectToAction("Users");
     }
 

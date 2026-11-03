@@ -1,7 +1,7 @@
 @model MVCCoreApp.Models.Member
 @{ Layout="_AdminLayout"; var isEdit = ViewBag.IsEdit == true; ViewData["Title"]= isEdit ? "Editar miembro" : "Nuevo miembro"; }
 <div class="welcome"><div><h2>@ViewData["Title"]</h2><p>El orden de los integrantes es el que ves en tu sitio, de arriba hacia abajo.</p></div><a href="/admin/members" class="btn btn-secondary btn-sm">← Volver a miembros</a></div>
-<form method="post" enctype="multipart/form-data" action="@(isEdit ? $"/admin/members/edit/{Model.Id}" : "/admin/members/create")" class="card">
+<form method="post" enctype="multipart/form-data" action="@(isEdit ? $"/admin/members/edit/{Model.Id}" : "/admin/members/create")" class="card">@Html.AntiForgeryToken()
   <div class="grid2">
     <div class="form-group"><label class="form-label">Nombre</label><input class="form-control" name="Name" value="@Model.Name" required/></div>
     <div class="form-group"><label class="form-label">Instrumento o rol</label><input class="form-control" name="Role" value="@Model.Role" placeholder="Guitarra" required/></div>

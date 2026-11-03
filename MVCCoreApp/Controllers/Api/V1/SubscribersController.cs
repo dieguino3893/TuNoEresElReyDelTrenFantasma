@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using MongoDB.Driver;
 using MVCCoreApp.Models;
 using MVCCoreApp.Services;
@@ -20,6 +21,7 @@ public class SubscribersController : ControllerBase
 
     [HttpPost("subscribe")]
     [AllowAnonymous]
+    [EnableRateLimiting("login")]
     public async Task<IActionResult> Subscribe([FromBody] SubscribeDto dto)
     {
         if (string.IsNullOrWhiteSpace(dto.Email) || !dto.Email.Contains("@"))
@@ -45,17 +47,21 @@ public class SubscribersController : ControllerBase
                 UpdatedBy = "public"
             };
             await col.InsertOneAsync(sub);
-            return StatusCode(201, new { message = "¡Suscripción exitosa! Revisa tu correo." });
+            return StatusCode(201, new { message = "Suscripción lista." });
+        }
+        catch (MongoWriteException ex) when (ex.WriteError?.Category == ServerErrorCategory.DuplicateKey)
+        {
+            return Ok(new { message = "Ya estás suscrito" });
         }
         catch
         {
-            // fallback si Mongo cae
-            return StatusCode(201, new { message = "¡Suscripción exitosa! (modo offline)" });
+            return StatusCode(503, new { detail = "No se pudo guardar. Intenta de nuevo." });
         }
     }
 
     [HttpDelete("unsubscribe")]
     [AllowAnonymous]
+    [EnableRateLimiting("login")]
     public async Task<IActionResult> Unsubscribe([FromQuery] string email)
     {
         if (string.IsNullOrWhiteSpace(email) || !email.Contains("@"))

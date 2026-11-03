@@ -1,0 +1,44 @@
+@{
+  Layout="_AdminLayout"; ViewData["Title"]="Asistente";
+}
+<div class="welcome">
+  <div><h2><i class="fa-solid fa-ghost"></i> Asistente</h2><p>Pregunta por shows, miembros, noticias, música, setlists y ensayos. Nada se guarda sin tu confirmación.</p></div>
+  <div class="actions-row"><a href="/admin" class="btn btn-secondary btn-sm">← Volver al panel</a></div>
+</div>
+@if(ViewBag.Configurado==false){<div class="alert alert-err"><i class="fa-solid fa-triangle-exclamation"></i> Asistente sin configurar: falta <span class="mono">Asistente:ApiKey</span> en el servidor.</div>}
+<div class="card">
+  <div class="chat-wrap">
+    <aside class="chat-hilos">
+      <button class="btn btn-secondary btn-sm" id="btnNuevoChat" type="button"><i class="fa-solid fa-plus"></i> Nuevo chat</button>
+      <div id="listaHilos" class="chat-hilos-lista"></div>
+    </aside>
+    <section class="chat-main">
+      <div id="mensajes" class="chat-mensajes"></div>
+      <div id="aviso" class="alert alert-err" style="display:none;margin-top:8px"></div>
+      <form id="formChat" class="chat-form">
+        @Html.AntiForgeryToken()
+        <input class="form-control" id="inputTexto" placeholder="Ej. ¿qué shows hay en diciembre?" maxlength="2000" autocomplete="off"/>
+        <button class="btn btn-primary" type="submit" id="btnEnviar"><i class="fa-solid fa-paper-plane"></i></button>
+      </form>
+      <p class="muted" style="margin:6px 0 0">El asistente necesita internet. Nada se guarda sin tu confirmación.</p>
+    </section>
+  </div>
+</div>
+<style>
+.chat-wrap{display:flex;gap:14px;min-height:60vh}
+.chat-hilos{width:230px;flex-shrink:0;display:flex;flex-direction:column;gap:8px}
+.chat-hilos-lista{overflow-y:auto;display:flex;flex-direction:column;gap:4px}
+.chat-hilo{display:flex;align-items:center;gap:6px;padding:8px;border:1px solid #e2e2e2;border-radius:8px;background:#fff;cursor:pointer;text-align:left;width:100%}
+.chat-hilo.active{border-color:#c2410c;background:#fff7ed}
+.chat-hilo span{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px}
+.chat-hilo button{border:none;background:none;cursor:pointer;color:#999}
+.chat-main{flex:1;display:flex;flex-direction:column;min-width:0}
+.chat-mensajes{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;min-height:300px;max-height:60vh}
+.burbuja{max-width:85%;padding:10px 12px;border-radius:10px;white-space:pre-wrap;font-size:14px}
+.burbuja.usuario{align-self:flex-end;background:#c2410c;color:#fff}
+.burbuja.asistente{align-self:flex-start;background:#f3f3f3;color:#222}
+.burbuja .prop-btns{margin-top:8px;display:flex;gap:8px}
+.chat-form{display:flex;gap:8px;margin-top:10px}
+@@media(max-width:720px){.chat-wrap{flex-direction:column}.chat-hilos{width:100%}}
+</style>
+<script src="/js/asistente.js?v=1"></script>

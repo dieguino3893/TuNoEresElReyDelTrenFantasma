@@ -20,7 +20,7 @@
     </div>
     <div class="actions-row">
       <a class="btn btn-primary" href="@siteUrl" target="_blank" rel="noopener"><i class="fa-solid fa-arrow-up-right-from-square"></i> Ver tu sitio</a>
-      <form method="post" action="/admin/seed"><button class="btn btn-secondary" type="submit"><i class="fa-solid fa-rotate-left"></i> Inicializar estructura</button></form>
+      <form method="post" action="/admin/seed">@Html.AntiForgeryToken()<button class="btn btn-secondary" type="submit"><i class="fa-solid fa-rotate-left"></i> Inicializar estructura</button></form>
     </div>
   </div>
   <div class="grid">

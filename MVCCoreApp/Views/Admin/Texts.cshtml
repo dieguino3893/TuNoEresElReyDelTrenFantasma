@@ -9,7 +9,7 @@
 </div>
 @if(TempData["ok"]!=null){<div class="alert alert-ok"><i class="fa-solid fa-check"></i> @TempData["ok"]</div>}
 @if(TempData["err"]!=null){<div class="alert alert-err"><i class="fa-solid fa-triangle-exclamation"></i> @TempData["err"]</div>}
-<form method="post" action="/admin/texts">
+<form method="post" action="/admin/texts">@Html.AntiForgeryToken()
 @foreach(var g in groups){
   <div class="card" style="margin-top:14px">
     <h3 style="font-family:'Fraunces';margin-bottom:4px">@g.Key</h3>

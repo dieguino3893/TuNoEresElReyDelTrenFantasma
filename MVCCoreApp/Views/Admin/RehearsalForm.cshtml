@@ -12,7 +12,7 @@
   <a href="/admin/rehearsals" class="btn btn-secondary btn-sm">← Volver a ensayos</a>
 </div>
 @if(TempData["err"]!=null){<div class="alert alert-err"><i class="fa-solid fa-triangle-exclamation"></i> @TempData["err"]</div>}
-<form method="post" action="@(isEdit ? $"/admin/rehearsals/edit/{Model.Id}" : "/admin/rehearsals/create")" class="card">
+<form method="post" action="@(isEdit ? $"/admin/rehearsals/edit/{Model.Id}" : "/admin/rehearsals/create")" class="card">@Html.AntiForgeryToken()
   <div class="form-group">
     <label class="form-label">Tipo de ensayo</label>
     <div class="segmented">

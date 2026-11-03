@@ -11,7 +11,8 @@ namespace MVCCoreApp.Controllers.Api.V1;
 public class HomeDataController : ControllerBase
 {
     private readonly MongoDbService _mongo;
-    public HomeDataController(MongoDbService mongo) => _mongo = mongo;
+    private readonly ILogger<HomeDataController> _log;
+    public HomeDataController(MongoDbService mongo, ILogger<HomeDataController> log) { _mongo = mongo; _log = log; }
 
     [HttpGet]
     [AllowAnonymous]
@@ -48,7 +49,8 @@ public class HomeDataController : ControllerBase
         }
         catch (Exception ex)
         {
-            return StatusCode(503, new { detail = "Mongo no disponible (whitelist/IP)." + ex.Message });
+            _log.LogWarning(ex, "Home falló");
+            return StatusCode(503, new { detail = "Mongo no disponible. Intenta de nuevo." });
         }
     }
 }

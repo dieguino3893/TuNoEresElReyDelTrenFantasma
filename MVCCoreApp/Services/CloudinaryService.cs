@@ -6,10 +6,12 @@ namespace MVCCoreApp.Services;
 public class CloudinaryService : IFileService
 {
     private readonly Cloudinary _cloudinary;
+    private readonly IHttpClientFactory _httpFactory;
     private readonly ILogger<CloudinaryService> _logger;
 
-    public CloudinaryService(IConfiguration config, ILogger<CloudinaryService> logger)
+    public CloudinaryService(IConfiguration config, IHttpClientFactory httpFactory, ILogger<CloudinaryService> logger)
     {
+        _httpFactory = httpFactory;
         _logger = logger;
         var cloudName = config["Cloudinary:CloudName"] ?? Environment.GetEnvironmentVariable("Cloudinary__CloudName") ?? "";
         var apiKey = config["Cloudinary:ApiKey"] ?? Environment.GetEnvironmentVariable("Cloudinary__ApiKey") ?? "";
@@ -43,18 +45,37 @@ public class CloudinaryService : IFileService
 
     public async Task<Stream> DownloadAsync(string publicIdOrUrl)
     {
-        // Si es URL, extraer publicId o descargar directo
-        if (publicIdOrUrl.StartsWith("http"))
+        // Solo se permite descargar del CDN propio: el endpoint público de descarga
+        // es anónimo y una URL arbitraria sería un proxy SSRF.
+        static string SoloCloudinary(string url, Cloudinary cloudinary)
         {
-            using var http = new HttpClient();
-            var bytes = await http.GetByteArrayAsync(publicIdOrUrl);
-            return new MemoryStream(bytes);
+            if (!url.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+            {
+                url = cloudinary.Api.UrlImgUp.BuildUrl(url);
+            }
+            var host = new Uri(url).Host.ToLowerInvariant();
+            if (host != "res.cloudinary.com")
+            {
+                throw new ArgumentException("Solo se pueden descargar archivos del CDN propio.");
+            }
+            return url;
         }
-        // publicId
-        var url = _cloudinary.Api.UrlImgUp.BuildUrl(publicIdOrUrl);
-        using var http2 = new HttpClient();
-        var data = await http2.GetByteArrayAsync(url);
-        return new MemoryStream(data);
+
+        var final = SoloCloudinary(publicIdOrUrl, _cloudinary);
+        using var http = _httpFactory.CreateClient();
+        using var respuesta = await http.GetAsync(final, HttpCompletionOption.ResponseHeadersRead);
+        respuesta.EnsureSuccessStatusCode();
+        const long maximo = 25 * 1024 * 1024;
+        if (respuesta.Content.Headers.ContentLength > maximo)
+        {
+            throw new ArgumentException("Archivo demasiado grande (máx 25MB).");
+        }
+        var bytes = await respuesta.Content.ReadAsByteArrayAsync();
+        if (bytes.Length > maximo)
+        {
+            throw new ArgumentException("Archivo demasiado grande (máx 25MB).");
+        }
+        return new MemoryStream(bytes);
     }
 
     public async Task<bool> DeleteAsync(string publicId)

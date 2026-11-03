@@ -13,7 +13,7 @@
 @if(TempData["ok"]!=null){<div class="alert alert-ok"><i class="fa-solid fa-check"></i> @TempData["ok"]</div>}
 @if(TempData["err"]!=null){<div class="alert alert-err"><i class="fa-solid fa-triangle-exclamation"></i> @TempData["err"]</div>}
 
-<form method="post" action="/admin/settings">
+<form method="post" action="/admin/settings">@Html.AntiForgeryToken()
   <div class="card">
     <h3 style="font-family:'Fraunces';margin-bottom:4px"><i class="fa-solid fa-wand-magic-sparkles" style="color:var(--accent)"></i> Portada</h3>
     <div class="grid2">
