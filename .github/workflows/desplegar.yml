@@ -99,6 +99,10 @@ jobs:
           FTP_USUARIO: ${{ secrets.FTP_USUARIO }}
           FTP_CONTRASENA: ${{ secrets.FTP_CONTRASENA }}
         run: |
+          if [ -z "$FTP_SERVIDOR" ] || [ -z "$FTP_USUARIO" ] || [ -z "$FTP_CONTRASENA" ]; then
+            echo "Faltan los secrets FTP_SERVIDOR, FTP_USUARIO o FTP_CONTRASENA." >&2
+            exit 1
+          fi
           curl --fail --show-error --silent \
             --insecure \
             --ssl-reqd \
