@@ -1,42 +1,39 @@
-/* ============================================================
-   EL REY DEL TREN FANTASMA — Rediseño Premium 2026 v2
-   Concepto: Ghost Train Lantern — negro profundo, arena cálida y coral
-   Paleta: negro profundo + arena cálida + coral lantern
-   Inspo: indie editorial 2025-26 — dark-first con acento tierra
-   ============================================================ */
+/* EL REY DEL TREN FANTASMA — Monocromo 2026 v4
+   Concepto: negro / blanco / gris. Paleta única en ./tokens.css. */
+@import url("./tokens.css");
 
-/* ---------- RESET & TOKENS ---------- */
+/* ---------- RESET ---------- */
 *, ::before, ::after { box-sizing: border-box; padding: 0; margin: 0; }
-html { scroll-behavior: smooth; scrollbar-width: thin; scrollbar-color: #FF4E2A #06070A; }
+html { scroll-behavior: smooth; scrollbar-width: thin; scrollbar-color: #525252 #000000; }
 ::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-track { background: #06070A; }
-::-webkit-scrollbar-thumb { background: #171B24; border-radius: 999px; }
-::-webkit-scrollbar-thumb:hover { background: #FF4E2A; }
-::selection { background: #FF4E2A; color: #fff; }
+::-webkit-scrollbar-track { background: #000000; }
+::-webkit-scrollbar-thumb { background: #262626; border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: #525252; }
+::selection { background: #ffffff; color: #000000; }
 a { text-decoration: none; color: inherit; }
 img { display: block; max-width: 100%; }
 button, input, textarea { font: inherit; }
 
 :root {
   /* superficies — casi negro, tinte azul mínimo */
-  --bg:            #06070A;
-  --bg-soft:       #090B0F;
-  --surface:       #0E1116;
-  --surface-2:     #12151C;
-  --surface-3:     #171B24;
+  --bg:            #000000;
+  --bg-soft:       #0a0a0a;
+  --surface:       #111111;
+  --surface-2:     #1a1a1a;
+  --surface-3:     #242424;
   --line:          rgba(255,255,255,.06);
   --line-strong:   rgba(255,255,255,.11);
   /* texto — blanco cálido neutro, sin matiz azul */
-  --text:          #F5F0E6;
-  --text-soft:     #D6D3CB;
-  --muted:         #9AA0A6;
-  --faint:         #5F646B;
+  --text:          #ffffff;
+  --text-soft:     #d4d4d4;
+  --muted:         #a3a3a3;
+  --faint:         #737373;
   /* acentos — uso limitado a 10-12% de la UI (accesible y no chillón) */
-  --accent:        #FF4E2A;   /* coral lantern — CTA principal */
-  --accent-2:      #FF7A3D;   /* coral claro hover */
-  --accent-3:      #FFC857;   /* ámbar para detalles */
-  --accent-glow:   rgba(255,78,42,.32);
-  --accent-soft:   rgba(255,78,42,.10);
+  --accent:        #ffffff;   /* cta principal mono */
+  --accent-2:      #e5e5e5;   /* hover */
+  --accent-3:      #a3a3a3;   /* detalle */
+  --accent-glow:   rgba(255,255,255,.22);
+  --accent-soft:   rgba(255,255,255,.08);
   /* tipografía */
   --font-display:  'Bebas Neue', sans-serif;
   --font-heading:  'Space Grotesk', sans-serif;
@@ -67,7 +64,7 @@ body {
   overflow-x: hidden;
 }
 
-/* grano + velo indigo muy sutil para quitar flat B&W */
+/* grano sutil */
 body::before {
   content: '';
   position: fixed;
@@ -85,7 +82,7 @@ body::after {
   z-index: -1;
   background:
     radial-gradient(ellipse 1200px 700px at 15% 10%, rgba(110,124,255,.06), transparent 60%),
-    radial-gradient(ellipse 900px 600px at 85% 90%, rgba(255,78,42,.05), transparent 60%),
+    radial-gradient(ellipse 900px 600px at 85% 90%, rgba(255,255,255,.05), transparent 60%),
     radial-gradient(ellipse 800px 500px at 50% 50%, transparent, transparent 70%);
 }
 
@@ -141,7 +138,7 @@ section.alt { background: var(--bg-soft); }
   margin: 0 auto;
 }
 
-/* separadores — coral + trazo indigo */
+/* separadores — mono + trazo gris */
 .separator {
   width: 56px;
   height: 2px;
@@ -175,7 +172,7 @@ section.alt { background: var(--bg-soft); }
   box-shadow: 0 0 10px var(--accent-glow);
 }
 
-/* kicker / eyebrow — texto solo blanco/negro, luz naranja solo en pseudo */
+/* kicker / eyebrow — texto solo blanco/negro, línea gris en pseudo */
 .kicker {
   font-family: var(--font-mono);
   font-size: .68rem;
@@ -277,7 +274,7 @@ section.alt { background: var(--bg-soft); }
 }
 /* footer usa mismo componente pero sobre fondo más oscuro */
 footer .social-icon { background: rgba(255,255,255,.04); border-color: rgba(255,255,255,.08); color: var(--muted); }
-footer .social-icon:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+footer .social-icon:hover { background: var(--accent); border-color: var(--accent); color: #000; }
 
 .menu-btn {
   position: fixed;
@@ -342,7 +339,7 @@ footer .social-icon:hover { background: var(--accent); border-color: var(--accen
   color: var(--text);
 }
 .nav-item i { font-size: 16px; transition: color 200ms; }
-.nav-item:hover { background: var(--accent); border-color: var(--accent); color: #fff; transform: translateY(var(--ty,0)) scale(1.04); }
+.nav-item:hover { background: var(--accent); border-color: var(--accent); color: #000; transform: translateY(var(--ty,0)) scale(1.04); }
 .nav-item::after {
   content: attr(title);
   position: absolute;
@@ -391,7 +388,7 @@ footer .social-icon:hover { background: var(--accent); border-color: var(--accen
   background-position: var(--hero-x, 50%) var(--hero-y, 53%);
   background-size: cover;
   background-repeat: no-repeat;
-  filter: saturate(1.05) contrast(1.02) brightness(.92);
+  filter: grayscale(.55) contrast(1.02) brightness(.96);
   transform: scale(var(--hero-zoom, 1.02));
 }
 #hero::after {
@@ -399,10 +396,10 @@ footer .social-icon:hover { background: var(--accent); border-color: var(--accen
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 900px 600px at 50% 88%, rgba(255,78,42,.16) 0%, transparent 62%),
-    radial-gradient(ellipse 700px 400px at 20% 20%, rgba(6,7,10,.08) 0%, transparent 60%),
-    linear-gradient(to top, var(--bg) 0%, rgba(6,7,10,.94) 18%, rgba(6,7,10,.55) 42%, rgba(6,7,10,.18) 72%, rgba(6,7,10,.02) 100%),
-    linear-gradient(to bottom, rgba(6,7,10,.45) 0%, transparent 22%);
+    radial-gradient(ellipse 900px 600px at 50% 88%, rgba(255,255,255,.16) 0%, transparent 62%),
+    radial-gradient(ellipse 700px 400px at 20% 20%, rgba(0,0,0,.08) 0%, transparent 60%),
+    linear-gradient(to top, var(--bg) 0%, rgba(0,0,0,.94) 18%, rgba(0,0,0,.55) 42%, rgba(0,0,0,.18) 72%, rgba(0,0,0,.02) 100%),
+    linear-gradient(to bottom, rgba(0,0,0,.45) 0%, transparent 22%);
 }
 .hero-content {
   position: relative;
@@ -522,7 +519,7 @@ footer .social-icon:hover { background: var(--accent); border-color: var(--accen
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse 800px 400px at 50% 0%, rgba(255,78,42,.06), transparent 70%);
+  background: radial-gradient(ellipse 800px 400px at 50% 0%, rgba(255,255,255,.06), transparent 70%);
   pointer-events: none;
 }
 #next-show h2 { animation: none; }
@@ -549,7 +546,7 @@ footer .social-icon:hover { background: var(--accent); border-color: var(--accen
   inset: 0;
   border-radius: inherit;
   padding: 1px;
-  background: linear-gradient(135deg, rgba(255,78,42,.45), transparent 38%, transparent 62%, rgba(255,78,42,.28));
+  background: linear-gradient(135deg, rgba(255,255,255,.45), transparent 38%, transparent 62%, rgba(255,255,255,.28));
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
@@ -635,17 +632,17 @@ footer .social-icon:hover { background: var(--accent); border-color: var(--accen
   width: 100%;
   height: 100%;
   object-fit: cover;
-  /* sin B&W: imagen a color natural con un poco de viveza */
-  filter: saturate(1.05) contrast(1.02);
+  /* fotos en B&W */
+  filter: grayscale(.55) contrast(1.02);
   transition: filter 520ms, transform 620ms cubic-bezier(.16,1,.3,1);
 }
 .member-card:hover .img-wrap {
-  border-color: rgba(255,78,42,.35);
+  border-color: rgba(255,255,255,.35);
   transform: translateY(-6px);
-  box-shadow: 0 18px 40px rgba(8,12,28,.45), 0 0 0 1px rgba(255,78,42,.10);
+  box-shadow: 0 18px 40px rgba(8,12,28,.45), 0 0 0 1px rgba(255,255,255,.08);
 }
 .member-card:hover img {
-  filter: saturate(1.15) contrast(1.02);
+  filter: grayscale(.15) contrast(1.03);
   transform: scale(1.06);
 }
 .member-card .overlay {
@@ -782,23 +779,23 @@ footer .social-icon:hover { background: var(--accent); border-color: var(--accen
 }
 .blog-card:hover {
   transform: translateY(-6px);
-  border-color: rgba(255,78,42,.22);
+  border-color: rgba(255,255,255,.22);
   box-shadow: 0 20px 40px rgba(8,12,28,.35);
 }
 .blog-card .blog-img {
   width: 100%;
   aspect-ratio: 16 / 10;
   object-fit: cover;
-  filter: saturate(1.08) contrast(1.02);
+  filter: grayscale(.55) contrast(1.02);
   transition: filter 420ms, transform 620ms cubic-bezier(.16,1,.3,1);
 }
-.blog-card:hover .blog-img { filter: saturate(1.18); transform: scale(1.04); }
+.blog-card:hover .blog-img { filter: grayscale(.15) contrast(1.03); transform: scale(1.04); }
 .blog-card .img-wrap { overflow: hidden; position: relative; }
 .blog-card .img-wrap::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(6,7,10,.55) 0%, transparent 58%);
+  background: linear-gradient(to top, rgba(0,0,0,.55) 0%, transparent 58%);
   opacity: .9;
 }
 .blog-card .blog-body { padding: 20px 20px 22px; flex: 1; display: flex; flex-direction: column; }
@@ -860,7 +857,7 @@ footer .social-icon:hover { background: var(--accent); border-color: var(--accen
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 700px 400px at 20% 0%, rgba(255,78,42,.08), transparent 60%),
+    radial-gradient(ellipse 700px 400px at 20% 0%, rgba(255,255,255,.08), transparent 60%),
     radial-gradient(ellipse 600px 300px at 80% 100%, transparent, transparent 60%),
     radial-gradient(ellipse 500px 300px at 50% 50%, rgba(255,200,87,.04), transparent 70%);
   pointer-events: none;
@@ -885,7 +882,7 @@ footer .social-icon:hover { background: var(--accent); border-color: var(--accen
   box-shadow: 0 8px 32px rgba(8,12,28,.28);
 }
 .newsletter-form:focus-within {
-  border-color: rgba(255,78,42,.45);
+  border-color: rgba(255,255,255,.45);
   box-shadow: 0 8px 32px rgba(8,12,28,.28), 0 0 0 4px var(--accent-soft);
 }
 .newsletter-form input[type="email"] {
@@ -945,7 +942,7 @@ footer .social-icon:hover { background: var(--accent); border-color: var(--accen
   inset: 0;
   background:
     radial-gradient(ellipse 800px 500px at 10% 15%, rgba(110,124,255,.06), transparent 65%),
-    radial-gradient(ellipse 600px 400px at 90% 85%, rgba(255,78,42,.05), transparent 65%);
+    radial-gradient(ellipse 600px 400px at 90% 85%, rgba(255,255,255,.05), transparent 65%);
   pointer-events: none;
 }
 #music .container { display: flex; flex-direction: column; align-items: center; position: relative; z-index: 1; width: 100%; }
@@ -967,11 +964,11 @@ footer .social-icon:hover { background: var(--accent); border-color: var(--accen
   overflow: hidden;
 }
 .spotify-card:hover {
-  border-color: rgba(255,78,42,.20);
+  border-color: rgba(255,255,255,.20);
   transform: translateY(-4px);
   box-shadow: 0 16px 36px rgba(8,12,28,.32);
 }
-.spotify-card:nth-child(2):hover { border-color: rgba(255,78,42,.22); }
+.spotify-card:nth-child(2):hover { border-color: rgba(255,255,255,.22); }
 .spotify-card iframe {
   display: block;
   width: 100%;
@@ -1149,8 +1146,8 @@ footer .social-icon:hover { background: var(--accent); border-color: var(--accen
   text-align: left;
 }
 .stream-grid li + li { margin-top: 12px; }
-.stream-grid li:hover { border-color: rgba(255,78,42,.26); transform: translateY(-2px); background: rgba(255,255,255,.03); }
-.stream-grid li:nth-child(2):hover { border-color: rgba(255,78,42,.22); }
+.stream-grid li:hover { border-color: rgba(255,255,255,.26); transform: translateY(-2px); background: rgba(255,255,255,.03); }
+.stream-grid li:nth-child(2):hover { border-color: rgba(255,255,255,.22); }
 .stream-num {
   font-family: var(--font-mono);
   font-size: .72rem;
@@ -1235,7 +1232,7 @@ footer .social-icon:hover { background: var(--accent); border-color: var(--accen
 .contact-form textarea::placeholder { color: var(--faint); }
 .contact-form input:focus,
 .contact-form textarea:focus {
-  border-color: rgba(255,78,42,.42);
+  border-color: rgba(255,255,255,.42);
   box-shadow: 0 0 0 4px var(--accent-soft);
   background: var(--surface-2);
 }
@@ -1334,7 +1331,7 @@ footer a:hover { color: var(--text); border-color: var(--line-strong); }
   box-shadow: 0 8px 24px rgba(8,12,28,.35);
   transition: all 220ms;
 }
-#up-arrow:hover { background: var(--accent); border-color: var(--accent); color: #fff; transform: translateY(-3px); box-shadow: 0 12px 32px var(--accent-glow); }
+#up-arrow:hover { background: var(--accent); border-color: var(--accent); color: #000; transform: translateY(-3px); box-shadow: 0 12px 32px var(--accent-glow); }
 #up-arrow i { font-size: 14px; }
 
 /* ---------- ANIMATIONS ---------- */

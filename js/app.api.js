@@ -1,14 +1,17 @@
 // Hidratación dinámica de la home desde el back .NET (Mongo)
-// Mantiene fallback estático si API no responde (GitHub Pages vanilla).
+// Mantiene fallback estático si API no responde. Usa window.DomUtils si existe.
 (function(){
-  const $ = (s, r=document)=>r.querySelector(s);
-  const $$ = (s, r=document)=>[...r.querySelectorAll(s)];
+  const D = window.DomUtils || {};
+  const $ = D.$ || ((s, r=document)=>r.querySelector(s));
+  const $$ = D.$$ || ((s, r=document)=>[...r.querySelectorAll(s)]);
 
   function setText(sel, text){
+    if(D.setText) return D.setText(sel, text);
     const el = $(sel); if(el && text) el.textContent = text;
   }
-   function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+   function esc(s){ if(D.esc) return D.esc(s); return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
   function setHtml(sel, html){
+    if(D.setHtml) return D.setHtml(sel, html);
     const el = $(sel); if(el && html) el.innerHTML = html;
   }
 

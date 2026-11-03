@@ -6,8 +6,8 @@
   <meta name="description" content="Tú no eres el rey del tren fantasma — Indie Rock & Rock Alternativo desde León, Guanajuato. Música, shows y novedades.">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="index, follow">
-  <meta name="theme-color" content="#0F141E">
-  <link rel="icon" type="image/svg+xml" href="./img/ghost-orange.svg">
+  <meta name="theme-color" content="#000000">
+  <link rel="icon" type="image/svg+xml" href="./img/ghost-white.svg">
   <link rel="icon" type="image/png" sizes="32x32" href="./img/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="./img/favicon-16x16.png">
   <link rel="shortcut icon" href="./favicon.ico">
@@ -16,7 +16,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./css/styles.css?v=3">
+  <link rel="stylesheet" href="./css/tokens.css?v=4">
+  <link rel="stylesheet" href="./css/styles.css?v=4">
 </head>
 
 <body>
@@ -256,178 +257,13 @@
 
   <!-- Config API desacoplada (GitHub Pages -> back .NET) v2 -->
   <script src="./js/config.js?v=2"></script>
-  <script src="./js/api.js?v=2"></script>
-  <script src="./js/app.api.js?v=4"></script>
-<script>
-  const API_URL = (window.__CONFIG__ && window.__CONFIG__.API_URL) || window.location.origin;
-
-  /* MENÚ */
-  (function () {
-    const btn = document.getElementById('menuBtn');
-    const navIds = ['nav1','nav2','nav3','nav4','nav5','nav6'];
-    const cls = ['v1','v2','v3','v4','v5','v6'];
-    function openMenu(){ btn.classList.add('active'); navIds.forEach((id,i)=>document.getElementById(id).classList.add(cls[i])); }
-    function closeMenu(){ btn.classList.remove('active'); navIds.forEach((id,i)=>document.getElementById(id).classList.remove(cls[i])); }
-    btn.addEventListener('click', ()=> btn.classList.contains('active') ? closeMenu() : openMenu());
-    navIds.forEach(id=>document.getElementById(id).addEventListener('click', closeMenu));
-    window.addEventListener('scroll', ()=>{ if(btn.classList.contains('active')) closeMenu(); }, {passive:true});
-    window.addEventListener('keydown', e=>{ if(e.key==='Escape' && btn.classList.contains('active')) closeMenu(); });
-  })();
-
-  /* SCROLL DOWN */
-  (function () {
-    const el = document.getElementById('scroll-down');
-    el.addEventListener('click', ()=> document.getElementById('next-show').scrollIntoView({behavior:'smooth'}));
-    window.addEventListener('scroll', ()=>{ el.style.opacity = window.scrollY >=150 ? '0':'1'; }, {passive:true});
-  })();
-
-  /* SCROLL UP */
-  (function () {
-    const btn = document.getElementById('up-arrow');
-    let lastY=0;
-    window.addEventListener('scroll', ()=>{
-      const y=window.scrollY;
-      btn.style.display = (y>600 && y<lastY) ? 'flex':'none';
-      lastY=y;
-    },{passive:true});
-    btn.addEventListener('click', ()=> window.scrollTo({top:0,behavior:'smooth'}));
-    btn.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' ') window.scrollTo({top:0,behavior:'smooth'}); });
-  })();
-
-  /* ANIMACIONES ON SCROLL */
-  (function () {
-    const els=document.querySelectorAll('.anim-y,.anim-x,.anim-fade');
-    const check=()=>{ const h=window.innerHeight; els.forEach(el=>{ if(el.getBoundingClientRect().top+100<=h) el.classList.add('showed'); }); };
-    window.addEventListener('scroll', check,{passive:true}); check();
-  })();
-
-  /* EMAIL */
-  (function(){
-    const el=document.getElementById('insertMail'); if(!el) return;
-    const name='tunoeresrelreydeltrenfantasma', domain='gmail.com';
-    const a=document.createElement('a'); a.href='mailto:'+name+'@'+domain; a.textContent=name+'@'+domain; el.appendChild(a);
-  })();
-
-  /* MEMBER CARDS */
-  document.querySelectorAll('.member-card').forEach(c=>{ c.addEventListener('click', ()=> window.open(c.dataset.href||'https://www.instagram.com/','_blank')); });
-
-  /* CARRUSEL SPOTIFY — scroll-snap + flechas + dots + drag (re-inicializable tras hydrate) */
-  window.initCarousel = function(){
-    const viewport=document.getElementById('carouselViewport');
-    const track=document.getElementById('carouselTrack');
-    if(!viewport || !track) return;
-    const prev=document.getElementById('carouselPrev');
-    const next=document.getElementById('carouselNext');
-    const dotsWrap=document.getElementById('carouselDots');
-    const count=document.getElementById('carouselCount');
-    if(!dotsWrap || !count) return;
-
-    // limpiar listeners previos clonando botones
-    const newPrev = prev.cloneNode(true); prev.parentNode.replaceChild(newPrev, prev);
-    const newNext = next.cloneNode(true); next.parentNode.replaceChild(newNext, next);
-    const vpClone = viewport.cloneNode(false);
-    // mover track al nuevo viewport clonado para limpiar scroll listeners? mejor remover y re-crear
-    // simplificamos: limpiar dots y reconstruir
-    dotsWrap.innerHTML='';
-    const slides=[...track.children];
-    const total=slides.length;
-    if(total===0) { count.textContent='0 / 0'; return; }
-    let index=0;
-    slides.forEach((_,i)=>{
-      const b=document.createElement('button');
-      b.className='carousel-dot'+(i===0?' active':'');
-      b.setAttribute('aria-label','Ir a canción '+(i+1));
-      b.addEventListener('click',()=>goTo(i));
-      dotsWrap.appendChild(b);
-    });
-    const dots=[...dotsWrap.children];
-    const pBtn=document.getElementById('carouselPrev');
-    const nBtn=document.getElementById('carouselNext');
-    const vp=document.getElementById('carouselViewport');
-    function update(){
-      dots.forEach((d,i)=>d.classList.toggle('active', i===index));
-      count.textContent=(index+1)+' / '+total;
-      pBtn.disabled=index===0; nBtn.disabled=index===total-1;
-      pBtn.style.opacity=index===0?.45:1; nBtn.style.opacity=index===total-1?.45:1;
-    }
-    function goTo(i){
-      index=Math.max(0,Math.min(total-1,i));
-      const w=vp.clientWidth;
-      vp.scrollTo({left: w*index, behavior:'smooth'});
-      update();
-    }
-    pBtn.addEventListener('click',()=>goTo(index-1));
-    nBtn.addEventListener('click',()=>goTo(index+1));
-    let ticking=false;
-    vp.onscroll=null;
-    vp.addEventListener('scroll',()=>{
-      if(ticking) return; ticking=true;
-      requestAnimationFrame(()=>{
-        const w=vp.clientWidth;
-        const newIndex=Math.round(vp.scrollLeft / w);
-        if(newIndex!==index){ index=newIndex; update(); }
-        ticking=false;
-      });
-    },{passive:true});
-    const observer=new IntersectionObserver(entries=>{
-      entries.forEach(e=>{
-        if(e.isIntersecting) window.addEventListener('keydown', keyNav);
-        else window.removeEventListener('keydown', keyNav);
-      });
-    },{threshold:.3});
-    const carouselEl=document.getElementById('songCarousel');
-    if(carouselEl) observer.observe(carouselEl);
-    function keyNav(e){
-      if(e.key==='ArrowLeft') goTo(index-1);
-      if(e.key==='ArrowRight') goTo(index+1);
-    }
-    update();
-    window.addEventListener('resize',()=>goTo(index));
-    // exponer para app.api.js
-    window._carouselGoTo=goTo;
-  };
-  // init inicial
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', window.initCarousel);
-  else window.initCarousel();
-
-  /* NEWSLETTER */
-  (function(){
-    const form=document.getElementById('newsletterForm');
-    const input=document.getElementById('emailNews');
-    const btn=document.getElementById('subBtn');
-    const msg=document.getElementById('newsletter-msg');
-    const T=()=>window.__SITE_TEXTS__||{};
-    function setMsg(t,type){ msg.textContent=t; msg.className=type; }
-    form.addEventListener('submit', async (e)=>{
-      e.preventDefault();
-      const email=input.value.trim();
-      if(!email) return setMsg('Ingresa tu email.','error');
-      btn.disabled=true; btn.innerHTML='Enviando…'; setMsg('','');
-      try{
-        const res=await fetch(`${API_URL}/api/v1/subscribe`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,source:'web'})});
-        const data=await res.json();
-        if(res.ok||res.status===201){ setMsg(data.message||T()['nl.success']||'¡Suscripción exitosa! Revisa tu correo.','ok'); input.value=''; btn.innerHTML='<i class="fa-solid fa-check" style="margin-right:6px;"></i> ¡Listo!'; setTimeout(()=>{btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-paper-plane" style="margin-right:6px;"></i> '+(btn.dataset.label||'Suscribirse');},3000); }
-        else throw new Error(data.detail||'Error');
-      }catch(err){ setMsg('Error de conexión. Inténtalo de nuevo.','error'); btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-paper-plane" style="margin-right:6px;"></i> '+(btn.dataset.label||'Suscribirse'); }
-    });
-  })();
-
-  /* CONTACTO */
-  (function(){
-    const regexMail=/^([a-z0-9_-]+\.)*[a-z0-9_-]+@[a-z0-9_-]+(\.[a-z0-9_-]+)*\.[a-z]{2,6}$/;
-    const set=(id,msg)=>{ const el=document.getElementById(id); if(el) el.textContent=msg; };
-    const robotOk=()=>document.getElementById('checkRobot').dataset.answer||'7';
-    document.getElementById('nom').addEventListener('input', function(){ set('helpNom', this.value.length>=50?'Máx. 50 caracteres.':''); });
-    document.getElementById('mail').addEventListener('input', function(){ set('helpMail', this.value && !regexMail.test(this.value)?'Email incorrecto.':''); });
-    document.getElementById('message').addEventListener('input', function(){ set('helpMessage', this.value.length>=3000?'Máx. 3000 caracteres.':''); });
-    document.getElementById('checkRobot').addEventListener('input', function(){ set('helpRobot', this.value && this.value!=robotOk()?'Resultado incorrecto.':''); });
-    document.getElementById('contactForm').addEventListener('submit', function(e){
-      e.preventDefault();
-      if(document.getElementById('checkRobot').value!=robotOk()){ set('helpRobot','Por favor responde la verificación.'); return; }
-      const T=window.__SITE_TEXTS__||{};
-      document.getElementById('form-response').textContent=T['contact.success']||'¡Mensaje enviado! Gracias por contactarnos.'; this.reset();
-    });
-  })();
-</script>
+  <script src="./js/utils/dom.js?v=4"></script>
+  <script src="./js/services/api.js?v=4"></script>
+  <script src="./js/app.api.js?v=5"></script>
+  <script src="./js/ui/menu.js?v=5"></script>
+  <script src="./js/ui/scroll.js?v=5"></script>
+  <script src="./js/ui/carousel.js?v=5"></script>
+  <script src="./js/forms/newsletter.js?v=5"></script>
+  <script src="./js/forms/contact.js?v=5"></script>
 </body>
 </html>
