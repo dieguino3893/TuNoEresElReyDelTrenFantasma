@@ -1,0 +1,106 @@
+name: Compilar y desplegar
+
+# back_dev: solo compila. back_main: compila y despliega.
+on:
+  push:
+    branches: [back_dev, back_main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: elrey-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Preparar .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restaurar paquetes bloqueados
+        run: dotnet restore MVCCoreApp/MVCCoreApp.csproj --locked-mode
+
+      - name: Auditar vulnerabilidades
+        run: |
+          dotnet package list --project MVCCoreApp/MVCCoreApp.csproj --vulnerable --include-transitive --format json --no-restore > vulnerabilidades.json
+          total=$(jq '[.. | objects | (.vulnerabilities? // empty) | .[]] | length' vulnerabilidades.json)
+          if [ "$total" -ne 0 ]; then
+            jq -r '.. | objects | select((.vulnerabilities? // []) | length > 0) | "\(.id) \(.resolvedVersion): \(.vulnerabilities | map(.severity) | join(", "))"' vulnerabilidades.json
+            echo "Hay $total vulnerabilidades conocidas. Deploy bloqueado." >&2
+            exit 1
+          fi
+          echo "Sin vulnerabilidades conocidas."
+
+      - name: Compilar el backend
+        run: dotnet build MVCCoreApp/MVCCoreApp.csproj -c Release --no-restore
+
+      - name: Publicar el backend
+        if: github.ref == 'refs/heads/back_main'
+        run: dotnet publish MVCCoreApp/MVCCoreApp.csproj -c Release -o publicacion --no-restore
+
+      - name: Escribir la configuración de producción
+        if: github.ref == 'refs/heads/back_main'
+        env:
+          MONGO_CONN: ${{ secrets.MONGO_CONN }}
+          MONGO_DB: ${{ secrets.MONGO_DB }}
+          ASISTENTE_KEY: ${{ secrets.ASISTENTE_KEY }}
+          FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
+        run: |
+          jq -n \
+            --arg mongo "$MONGO_CONN" \
+            --arg db "$MONGO_DB" \
+            --arg asistente "$ASISTENTE_KEY" \
+            --arg front "$FRONTEND_URL" \
+            '{
+              MongoDbSettings: { ConnectionString: $mongo, DatabaseName: $db },
+              Cors: { AllowedOrigins: ["https://dieguino3893.github.io", $front] },
+              Frontend: { PublicUrl: $front },
+              Asistente: {
+                ApiKey: $asistente,
+                Modelo: "deepseek-v4.1-flash",
+                BaseUrl: "https://opencode.ai/zen/go/v1"
+              }
+            }' > publicacion/appsettings.Production.json
+          chmod 600 publicacion/appsettings.Production.json
+
+      - name: Preparar FTPS
+        id: herramientas
+        if: github.ref == 'refs/heads/back_main'
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+          cat > ~/.lftprc <<'EOF'
+          set ftp:ssl-force true
+          set ftp:ssl-protect-data true
+          set ssl:verify-certificate yes
+          set ssl:check-hostname yes
+          EOF
+
+      - name: Desplegar por FTPS
+        if: github.ref == 'refs/heads/back_main'
+        env:
+          FTP_SERVIDOR: ${{ secrets.FTP_SERVIDOR }}
+          FTP_USUARIO: ${{ secrets.FTP_USUARIO }}
+          FTP_CONTRASENA: ${{ secrets.FTP_CONTRASENA }}
+        run: |
+          lftp -u "$FTP_USUARIO,$FTP_CONTRASENA" "ftp://$FTP_SERVIDOR" -e "put deploy/app_offline.htm -o /wwwroot/app_offline.htm; bye"
+          sleep 15
+          lftp -u "$FTP_USUARIO,$FTP_CONTRASENA" "ftp://$FTP_SERVIDOR" -e "mirror -R --delete --no-perms --parallel=4 -X 'logs/*' -X 'stdout*' -X 'app_offline.htm' publicacion/ /wwwroot/; bye"
+          lftp -u "$FTP_USUARIO,$FTP_CONTRASENA" "ftp://$FTP_SERVIDOR" -e "rm -f /wwwroot/app_offline.htm; bye"
+
+      - name: Quitar la página offline si el deploy falla
+        if: always() && github.ref == 'refs/heads/back_main' && steps.herramientas.outcome == 'success'
+        env:
+          FTP_SERVIDOR: ${{ secrets.FTP_SERVIDOR }}
+          FTP_USUARIO: ${{ secrets.FTP_USUARIO }}
+          FTP_CONTRASENA: ${{ secrets.FTP_CONTRASENA }}
+        run: lftp -u "$FTP_USUARIO,$FTP_CONTRASENA" "ftp://$FTP_SERVIDOR" -e "rm -f /wwwroot/app_offline.htm; bye"
