@@ -33,7 +33,7 @@ jobs:
 
       - name: Auditar vulnerabilidades
         run: |
-          dotnet package list MVCCoreApp/MVCCoreApp.csproj --vulnerable --include-transitive --format json --no-restore > vulnerabilidades.json
+          dotnet package list --project MVCCoreApp/MVCCoreApp.csproj --vulnerable --include-transitive --format json --no-restore > vulnerabilidades.json
 
           total=$(jq '[.. | objects | (.vulnerabilities? // empty) | .[]] | length' vulnerabilidades.json)
 
@@ -45,6 +45,7 @@ jobs:
           fi
 
           echo "Sin vulnerabilidades conocidas."
+
 
       - name: Compilar el backend
         run: dotnet build MVCCoreApp/MVCCoreApp.csproj -c Release --no-restore
