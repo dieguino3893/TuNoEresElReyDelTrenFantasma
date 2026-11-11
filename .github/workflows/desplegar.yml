@@ -117,7 +117,7 @@ jobs:
           username: ${{ secrets.FTP_USUARIO }}
           password: ${{ secrets.FTP_CONTRASENA }}
           protocol: ftps
-          security: strict
+          security: loose
           local-dir: publicacion/
           server-dir: /wwwroot/
           dangerous-clean-slate: false
