@@ -86,4 +86,26 @@ public class SiteSettings
 
     [BsonElement("seoDescription")]
     public string SeoDescription { get; set; } = string.Empty;
+
+    // Secciones visibles en la portada (todas activas por defecto).
+    [BsonElement("nextShowVisible")]
+    public bool NextShowVisible { get; set; } = true;
+
+    [BsonElement("bandVisible")]
+    public bool BandVisible { get; set; } = true;
+
+    [BsonElement("showsVisible")]
+    public bool ShowsVisible { get; set; } = true;
+
+    [BsonElement("blogVisible")]
+    public bool BlogVisible { get; set; } = true;
+
+    [BsonElement("newsletterVisible")]
+    public bool NewsletterVisible { get; set; } = true;
+
+    [BsonElement("musicVisible")]
+    public bool MusicVisible { get; set; } = true;
+
+    [BsonElement("contactVisible")]
+    public bool ContactVisible { get; set; } = true;
 }

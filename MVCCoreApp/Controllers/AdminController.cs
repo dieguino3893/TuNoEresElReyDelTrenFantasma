@@ -668,6 +668,8 @@ public class AdminController : Controller
         s.HeroImageUrl = SanitizeService.SanitizeText(dto.HeroImageUrl); s.ContactEmail = dto.ContactEmail; s.SpotifyArtistId = dto.SpotifyArtistId; s.SpotifyArtistUrl = dto.SpotifyArtistUrl;
         s.YouTubeChannelId = dto.YouTubeChannelId; s.YouTubeChannelUrl = dto.YouTubeChannelUrl;
         s.SeoTitle = SanitizeService.SanitizeText(dto.SeoTitle); s.SeoDescription = SanitizeService.SanitizeText(dto.SeoDescription); s.SocialLinks = dto.SocialLinks;
+        s.NextShowVisible = dto.NextShowVisible; s.BandVisible = dto.BandVisible; s.ShowsVisible = dto.ShowsVisible; s.BlogVisible = dto.BlogVisible;
+        s.NewsletterVisible = dto.NewsletterVisible; s.MusicVisible = dto.MusicVisible; s.ContactVisible = dto.ContactVisible;
         s.UpdatedAt = DateTime.UtcNow; s.UpdatedBy = User.Identity?.Name ?? "system";
         try{ await col.ReplaceOneAsync(x => x.Id == "main", s, new ReplaceOptions{ IsUpsert = true }); TempData["ok"] = "Ajustes guardados"; } catch(Exception ex){ TempData["err"]="Mongo no disponible: "+ex.Message; return View("Settings", dto); }
         return RedirectToAction("Settings");

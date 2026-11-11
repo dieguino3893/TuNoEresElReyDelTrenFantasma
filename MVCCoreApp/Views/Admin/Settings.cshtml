@@ -24,10 +24,8 @@
       <div class="form-group"><label class="form-label">Título Grande (Hero)</label><input class="form-control" name="HeroTitle" value="@Model.HeroTitle" placeholder="Tú no eres el rey"/><div class="form-hint">La primera parte del título en la portada.</div></div>
       <div class="form-group"><label class="form-label">Texto acentuado (Hero)</label><input class="form-control" name="HeroTitleAccent" value="@Model.HeroTitleAccent" placeholder="del tren fantasma"/><div class="form-hint">La parte del título que aparece abajo/resaltada.</div></div>
     </div>
-    <div class="grid2">
-      <div class="form-group"><label class="form-label">Etiqueta de portada</label><input class="form-control" name="HeroEyebrow" value="@Model.HeroEyebrow"/><div class="form-hint">Un texto pequeño sobre el título, por ejemplo "Nuevo disco fuera".</div></div>
-      <div class="form-group"><label class="form-label">Ubicación que se muestra</label><input class="form-control" name="HeroLocation" value="@Model.HeroLocation"/><div class="form-hint">Por ejemplo "Ciudad de México".</div></div>
-    </div>
+    <div class="form-group"><label class="form-label">Etiqueta de portada</label><input class="form-control" name="HeroEyebrow" value="@Model.HeroEyebrow"/><div class="form-hint">Un texto pequeño sobre el título, por ejemplo "Nuevo disco fuera".</div></div>
+    <input type="hidden" name="HeroLocation" value="@Model.HeroLocation"/>
     <div class="form-group"><label class="form-label">Imagen de fondo de la portada</label>
       <div class="input-row">
         <input id="HeroImageUrl" name="HeroImageUrl" class="form-control" value="@Model.HeroImageUrl" placeholder="img/IMG_1782.webp o https://..."/>
@@ -51,6 +49,20 @@
     <div class="form-group"><label class="form-label">Frase bajo el nombre</label><input class="form-control" name="BandHighlightSub" value="@Model.BandHighlightSub"/></div>
     <div class="form-group"><label class="form-label">Descripción de la banda</label><textarea class="form-control" name="BandDescription">@Model.BandDescription</textarea><div class="form-hint">Puedes usar negritas e itálicas para darle vida al texto.</div></div>
     <div class="form-group"><label class="form-label">Correo de contacto</label><input class="form-control" name="ContactEmail" value="@Model.ContactEmail"/><div class="form-hint">Se muestra en la sección de contacto de tu sitio.</div></div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h3 style="font-family:'Fraunces';margin-bottom:4px"><i class="fa-solid fa-eye" style="color:var(--accent)"></i> Secciones visibles</h3>
+    <p class="form-hint">Desmarca una sección para ocultarla de tu sitio.</p>
+    <div class="grid2">
+      <label class="check"><input type="checkbox" name="NextShowVisible" value="true" @(Model.NextShowVisible?"checked":"")/> Próximo show</label>
+      <label class="check"><input type="checkbox" name="BandVisible" value="true" @(Model.BandVisible?"checked":"")/> Banda</label>
+      <label class="check"><input type="checkbox" name="ShowsVisible" value="true" @(Model.ShowsVisible?"checked":"")/> Shows</label>
+      <label class="check"><input type="checkbox" name="BlogVisible" value="true" @(Model.BlogVisible?"checked":"")/> Noticias</label>
+      <label class="check"><input type="checkbox" name="NewsletterVisible" value="true" @(Model.NewsletterVisible?"checked":"")/> Newsletter</label>
+      <label class="check"><input type="checkbox" name="MusicVisible" value="true" @(Model.MusicVisible?"checked":"")/> Música</label>
+      <label class="check"><input type="checkbox" name="ContactVisible" value="true" @(Model.ContactVisible?"checked":"")/> Contacto</label>
+    </div>
   </div>
 
   <div class="card" style="margin-top:14px">

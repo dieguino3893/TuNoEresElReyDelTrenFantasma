@@ -1,0 +1,22 @@
+/* Paleta única del admin — monocromo negro / blanco / gris.
+   Para cambiar un color, editar solo aquí. */
+:root {
+  --bg: #000000;
+  --bg2: #0a0a0a;
+  --surf: #111111;
+  --surf2: #1a1a1a;
+  --line: rgba(255, 255, 255, .08);
+  --line2: rgba(255, 255, 255, .16);
+  --text: #ffffff;
+  --muted: #a3a3a3;
+  --faint: #737373;
+  --accent: #ffffff;
+  --accent2: #e5e5e5;
+  --accent-soft: rgba(255, 255, 255, .08);
+  --gold: #a3a3a3;
+  --success: #7fe0a5;
+  --danger: #ff8f8f;
+  --radius: 18px;
+  --shadow: 0 18px 42px -20px rgba(0, 0, 0, .7), 0 4px 10px -6px rgba(0, 0, 0, .4);
+  color-scheme: dark;
+}
