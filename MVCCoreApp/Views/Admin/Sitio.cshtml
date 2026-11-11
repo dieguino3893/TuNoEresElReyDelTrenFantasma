@@ -1,0 +1,46 @@
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Sitio";
+}
+
+<div class="editor-bar">
+  <span class="editor-estado" id="estado"><i class="fa-solid fa-hand-pointer"></i> Haz clic en cualquier texto para editarlo</span>
+  <button class="btn btn-primary btn-sm" id="btnGuardar" disabled><i class="fa-solid fa-floppy-disk"></i> Guardar</button>
+  <a class="btn btn-secondary btn-sm" href="@ViewBag.SiteUrl" target="_blank" rel="noopener"><i class="fa-solid fa-arrow-up-right-from-square"></i> Ver el sitio</a>
+  <a class="btn btn-secondary btn-sm" href="/admin/settings"><i class="fa-solid fa-sliders"></i> Ajustes finos</a>
+</div>
+
+<iframe id="lienzo" src="/admin/sitio/lienzo" title="Editor del sitio"></iframe>
+
+@Html.AntiForgeryToken()
+
+<script>
+(function(){
+  const lienzo = document.getElementById('lienzo');
+  const estado = document.getElementById('estado');
+  const btnGuardar = document.getElementById('btnGuardar');
+  const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+  const enviar = (datos)=> lienzo.contentWindow.postMessage(datos, location.origin);
+
+  lienzo.addEventListener('load', ()=> enviar({ tipo:'token', token }));
+
+  window.addEventListener('message', function(e){
+    if (e.origin !== location.origin || !e.data) return;
+    const d = e.data;
+    if (d.tipo === 'cambios'){
+      btnGuardar.disabled = d.n === 0;
+      estado.textContent = d.n ? d.n + ' cambio(s) sin guardar' : 'Todo guardado';
+    }
+    if (d.tipo === 'guardado'){
+      btnGuardar.disabled = true;
+      estado.textContent = 'Guardado';
+      lienzo.contentWindow.location.reload();
+    }
+    if (d.tipo === 'error'){
+      estado.textContent = d.msg;
+    }
+  });
+
+  btnGuardar.addEventListener('click', ()=> enviar({ tipo:'guardar' }));
+})();
+</script>

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using MVCCoreApp.Dtos;
 using MVCCoreApp.Models;
 using MVCCoreApp.Models.Enums;
 using MVCCoreApp.Services;
@@ -20,8 +21,9 @@ public class AdminController : Controller
     private readonly IFileService _files;
     private readonly IConfiguration _config;
     private readonly AuditoriaService _auditoria;
+    private readonly SitioPreviewService _sitioPreview;
     private readonly ILogger<AdminController> _log;
-    public AdminController(MongoDbService mongo, SeedService seed, IFileService files, IConfiguration config, AuditoriaService auditoria, ILogger<AdminController> log) { _mongo = mongo; _seed = seed; _files = files; _config = config; _auditoria = auditoria; _log = log; }
+    public AdminController(MongoDbService mongo, SeedService seed, IFileService files, IConfiguration config, AuditoriaService auditoria, SitioPreviewService sitioPreview, ILogger<AdminController> log) { _mongo = mongo; _seed = seed; _files = files; _config = config; _auditoria = auditoria; _sitioPreview = sitioPreview; _log = log; }
 
     [HttpGet("")]
     public async Task<IActionResult> Index()
@@ -673,6 +675,90 @@ public class AdminController : Controller
         s.UpdatedAt = DateTime.UtcNow; s.UpdatedBy = User.Identity?.Name ?? "system";
         try{ await col.ReplaceOneAsync(x => x.Id == "main", s, new ReplaceOptions{ IsUpsert = true }); TempData["ok"] = "Ajustes guardados"; } catch(Exception ex){ TempData["err"]="Mongo no disponible: "+ex.Message; return View("Settings", dto); }
         return RedirectToAction("Settings");
+    }
+
+    // ===== EDITOR DEL SITIO =====
+    [HttpGet("sitio")]
+    public IActionResult Sitio()
+    {
+        ViewBag.SiteUrl = _config["Frontend:PublicUrl"] ?? $"{Request.Scheme}://{Request.Host}";
+        return View();
+    }
+
+    [HttpGet("sitio/lienzo")]
+    public async Task<IActionResult> SitioLienzo()
+    {
+        try { return Content(await _sitioPreview.ObtenerAsync($"{Request.Scheme}://{Request.Host}"), "text/html; charset=utf-8"); }
+        catch (Exception ex)
+        {
+            _log.LogWarning(ex, "Editor del sitio: no se pudo traer el HTML publicado");
+            return Content("<p style=\"font:14px system-ui;color:#a3a3a3;padding:24px\">No se pudo cargar el sitio publicado. Revisa Frontend:PublicUrl.</p>", "text/html; charset=utf-8");
+        }
+    }
+
+    [HttpPost("sitio")]
+    public async Task<IActionResult> GuardarSitio([FromBody] SitioCambios cambios)
+    {
+        var user = User.Identity?.Name ?? "system";
+        var now = DateTime.UtcNow;
+        try
+        {
+            if (cambios.Textos.Count > 0)
+            {
+                var textos = _mongo.GetCollection<SiteText>("siteTexts");
+                foreach (var (key, valor) in cambios.Textos)
+                {
+                    var d = SiteTextDefaults.All.FirstOrDefault(x => x.Key == key);
+                    if (d == null) continue;
+                    var limpio = d.Multiline ? SanitizeService.Sanitize(valor) : SanitizeService.SanitizeText(valor);
+                    await textos.ReplaceOneAsync(t => t.Key == key,
+                        new SiteText { Key = key, Group = d.Group, Label = d.Label, Value = limpio, Multiline = d.Multiline, UpdatedAt = now, UpdatedBy = user },
+                        new ReplaceOptions { IsUpsert = true });
+                }
+            }
+
+            if (cambios.Ajustes.Count > 0 || cambios.Secciones.Count > 0)
+            {
+                var col = _mongo.GetCollection<SiteSettings>("siteSettings");
+                var s = await col.Find(x => x.Id == "main").FirstOrDefaultAsync() ?? new SiteSettings { Id = "main" };
+                foreach (var (campo, valor) in cambios.Ajustes)
+                {
+                    switch (campo)
+                    {
+                        case nameof(SiteSettings.HeroEyebrow): s.HeroEyebrow = SanitizeService.SanitizeText(valor); break;
+                        case nameof(SiteSettings.HeroTitle): s.HeroTitle = SanitizeService.SanitizeText(valor); break;
+                        case nameof(SiteSettings.HeroTitleAccent): s.HeroTitleAccent = SanitizeService.SanitizeText(valor); break;
+                        case nameof(SiteSettings.Slogan): s.Slogan = SanitizeService.SanitizeText(valor); break;
+                        case nameof(SiteSettings.BandTitle): s.BandTitle = SanitizeService.SanitizeText(valor); break;
+                        case nameof(SiteSettings.BandHighlight): s.BandHighlight = SanitizeService.SanitizeText(valor); break;
+                        case nameof(SiteSettings.BandHighlightSub): s.BandHighlightSub = SanitizeService.SanitizeText(valor); break;
+                        case nameof(SiteSettings.BandDescription): s.BandDescription = SanitizeService.Sanitize(valor); break;
+                    }
+                }
+                foreach (var (campo, visible) in cambios.Secciones)
+                {
+                    switch (campo)
+                    {
+                        case nameof(SiteSettings.NextShowVisible): s.NextShowVisible = visible; break;
+                        case nameof(SiteSettings.BandVisible): s.BandVisible = visible; break;
+                        case nameof(SiteSettings.ShowsVisible): s.ShowsVisible = visible; break;
+                        case nameof(SiteSettings.BlogVisible): s.BlogVisible = visible; break;
+                        case nameof(SiteSettings.NewsletterVisible): s.NewsletterVisible = visible; break;
+                        case nameof(SiteSettings.MusicVisible): s.MusicVisible = visible; break;
+                        case nameof(SiteSettings.ContactVisible): s.ContactVisible = visible; break;
+                    }
+                }
+                s.UpdatedAt = now; s.UpdatedBy = user;
+                await col.ReplaceOneAsync(x => x.Id == "main", s, new ReplaceOptions { IsUpsert = true });
+            }
+
+            return Ok(new { ok = true });
+        }
+        catch (Exception ex)
+        {
+            _log.LogWarning(ex, "Editor del sitio: no se pudo guardar");
+            return StatusCode(503, new { detail = "Mongo no disponible, intenta de nuevo." });
+        }
     }
 
     [HttpGet("files")]

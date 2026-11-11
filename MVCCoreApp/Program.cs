@@ -64,6 +64,7 @@ builder.Services.AddMemoryCache();
 builder.Services.Configure<PlaybackOptions>(builder.Configuration.GetSection("Playback"));
 builder.Services.AddSingleton<YoutubeClient>(_ => new YoutubeClient());
 builder.Services.AddHttpClient("Saavn", c => c.Timeout = TimeSpan.FromSeconds(10));
+builder.Services.AddHttpClient<SitioPreviewService>(c => c.Timeout = TimeSpan.FromSeconds(10));
 builder.Services.AddSingleton<YoutubeExplodeResolver>();
 builder.Services.AddSingleton<SaavnFallbackResolver>();
 builder.Services.AddSingleton<AudioResolverFactory>();
@@ -225,10 +226,15 @@ if (app.Environment.IsDevelopment())
 
 app.Use(async (ctx, next) =>
 {
+    // El editor del sitio mete el HTML del front (otro origen) en un iframe del panel.
+    var esEditor = ctx.Request.Path.StartsWithSegments("/admin/sitio");
+    var esLienzo = ctx.Request.Path.StartsWithSegments("/admin/sitio/lienzo");
     ctx.Response.Headers["X-Content-Type-Options"] = "nosniff";
-    ctx.Response.Headers["X-Frame-Options"] = "DENY";
+    ctx.Response.Headers["X-Frame-Options"] = esEditor ? "SAMEORIGIN" : "DENY";
     ctx.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
-    ctx.Response.Headers["Content-Security-Policy"] = "default-src 'self'; img-src 'self' https: data:; media-src 'self' https: blob:; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; connect-src 'self' https://res.cloudinary.com https://*.googlevideo.com https://*.youtube.com https://*.saavncdn.com https://www.jiosaavn.com; frame-src https://open.spotify.com;";
+    ctx.Response.Headers["Content-Security-Policy"] = esLienzo
+        ? "default-src 'self' https: data: 'unsafe-inline'; frame-src https://open.spotify.com https://www.youtube.com;"
+        : "default-src 'self'; img-src 'self' https: data:; media-src 'self' https: blob:; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; connect-src 'self' https://res.cloudinary.com https://*.googlevideo.com https://*.youtube.com https://*.saavncdn.com https://www.jiosaavn.com; frame-src 'self' https://open.spotify.com;";
     if (ctx.Request.Path.StartsWithSegments("/api"))
     {
         ctx.Response.Headers.CacheControl = "no-store";

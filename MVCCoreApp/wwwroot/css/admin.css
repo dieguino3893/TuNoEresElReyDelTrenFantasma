@@ -85,6 +85,12 @@ body { padding-bottom: 48px; }
 /* --- Contenedor --- */
 .wrap { max-width: 1210px; margin: 0 auto; padding: 28px 20px; }
 
+/* --- Editor del sitio (el front real dentro de un iframe) --- */
+.wrap:has(#lienzo) { max-width: none; padding: 8px 20px 16px; }
+.editor-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 10px; }
+.editor-estado { font-size: .8rem; color: var(--muted); margin-right: auto; display: inline-flex; gap: 7px; align-items: center; }
+#lienzo { width: 100%; height: calc(100vh - 180px); min-height: 520px; display: block; background: #000; border: 1px solid var(--line); border-radius: 16px; }
+
 .card {
   background: linear-gradient(180deg, rgba(255, 255, 255, .035), rgba(255, 255, 255, .012));
   border: 1px solid var(--line); border-radius: var(--radius);
