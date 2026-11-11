@@ -100,6 +100,7 @@ jobs:
           FTP_CONTRASENA: ${{ secrets.FTP_CONTRASENA }}
         run: |
           curl --fail --show-error --silent \
+            --insecure \
             --ssl-reqd \
             --ftp-pasv \
             --user "$FTP_USUARIO:$FTP_CONTRASENA" \
@@ -133,6 +134,7 @@ jobs:
           FTP_CONTRASENA: ${{ secrets.FTP_CONTRASENA }}
         run: |
           curl --fail --show-error --silent \
+            --insecure \
             --ssl-reqd \
             --ftp-pasv \
             --user "$FTP_USUARIO:$FTP_CONTRASENA" \
