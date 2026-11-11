@@ -1,6 +1,6 @@
+
 name: Compilar y desplegar
 
-# back_dev: solo compila. back_main: compila y despliega.
 on:
   push:
     branches: [back_dev, back_main]
@@ -16,6 +16,7 @@ concurrency:
 jobs:
   pipeline:
     runs-on: ubuntu-latest
+
     steps:
       - name: Descargar el código
         uses: actions/checkout@v4
@@ -32,13 +33,17 @@ jobs:
 
       - name: Auditar vulnerabilidades
         run: |
-          dotnet package list --project MVCCoreApp/MVCCoreApp.csproj --vulnerable --include-transitive --format json --no-restore > vulnerabilidades.json
+          dotnet package list MVCCoreApp/MVCCoreApp.csproj --vulnerable --include-transitive --format json --no-restore > vulnerabilidades.json
+
           total=$(jq '[.. | objects | (.vulnerabilities? // empty) | .[]] | length' vulnerabilidades.json)
+
           if [ "$total" -ne 0 ]; then
             jq -r '.. | objects | select((.vulnerabilities? // []) | length > 0) | "\(.id) \(.resolvedVersion): \(.vulnerabilities | map(.severity) | join(", "))"' vulnerabilidades.json
+
             echo "Hay $total vulnerabilidades conocidas. Deploy bloqueado." >&2
             exit 1
           fi
+
           echo "Sin vulnerabilidades conocidas."
 
       - name: Compilar el backend
@@ -62,45 +67,73 @@ jobs:
             --arg asistente "$ASISTENTE_KEY" \
             --arg front "$FRONTEND_URL" \
             '{
-              MongoDbSettings: { ConnectionString: $mongo, DatabaseName: $db },
-              Cors: { AllowedOrigins: ["https://dieguino3893.github.io", $front] },
-              Frontend: { PublicUrl: $front },
+              MongoDbSettings: {
+                ConnectionString: $mongo,
+                DatabaseName: $db
+              },
+              Cors: {
+                AllowedOrigins: ["https://dieguino3893.github.io", $front]
+              },
+              Frontend: {
+                PublicUrl: $front
+              },
               Asistente: {
                 ApiKey: $asistente,
                 Modelo: "deepseek-v4.1-flash",
                 BaseUrl: "https://opencode.ai/zen/go/v1"
               }
             }' > publicacion/appsettings.Production.json
+
           chmod 600 publicacion/appsettings.Production.json
 
-      - name: Preparar FTPS
-        id: herramientas
-        if: github.ref == 'refs/heads/back_main'
-        run: |
-          sudo apt-get update -qq && sudo apt-get install -y -qq lftp
-          cat > ~/.lftprc <<'EOF'
-          set ftp:ssl-force true
-          set ftp:ssl-protect-data true
-          set ssl:verify-certificate yes
-          set ssl:check-hostname yes
-          EOF
+      # ==========================================
+      # DESPLIEGUE FTPS
+      # ==========================================
 
-      - name: Desplegar por FTPS
+      - name: Activar modo mantenimiento
+        id: offline
         if: github.ref == 'refs/heads/back_main'
         env:
           FTP_SERVIDOR: ${{ secrets.FTP_SERVIDOR }}
           FTP_USUARIO: ${{ secrets.FTP_USUARIO }}
           FTP_CONTRASENA: ${{ secrets.FTP_CONTRASENA }}
         run: |
-          lftp -u "$FTP_USUARIO,$FTP_CONTRASENA" "ftp://$FTP_SERVIDOR" -e "put deploy/app_offline.htm -o /wwwroot/app_offline.htm; bye"
+          curl --fail --show-error --silent \
+            --ssl-reqd \
+            --ftp-pasv \
+            --user "$FTP_USUARIO:$FTP_CONTRASENA" \
+            --upload-file deploy/app_offline.htm \
+            "ftp://$FTP_SERVIDOR/wwwroot/app_offline.htm"
+
           sleep 15
-          lftp -u "$FTP_USUARIO,$FTP_CONTRASENA" "ftp://$FTP_SERVIDOR" -e "mirror -R --delete --no-perms --parallel=4 -X 'logs/*' -X 'stdout*' -X 'app_offline.htm' publicacion/ /wwwroot/; bye"
-          lftp -u "$FTP_USUARIO,$FTP_CONTRASENA" "ftp://$FTP_SERVIDOR" -e "rm -f /wwwroot/app_offline.htm; bye"
 
-      - name: Quitar la página offline si el deploy falla
-        if: always() && github.ref == 'refs/heads/back_main' && steps.herramientas.outcome == 'success'
+      - name: Sincronizar publicación por FTPS
+        if: github.ref == 'refs/heads/back_main'
+        uses: SamKirkland/FTP-Deploy-Action@v4.4.0
+        with:
+          server: ${{ secrets.FTP_SERVIDOR }}
+          username: ${{ secrets.FTP_USUARIO }}
+          password: ${{ secrets.FTP_CONTRASENA }}
+          protocol: ftps
+          security: strict
+          local-dir: publicacion/
+          server-dir: /wwwroot/
+          dangerous-clean-slate: false
+          exclude: |
+            **/logs/**
+            **/stdout*
+            **/app_offline.htm
+
+      - name: Retirar modo mantenimiento
+        if: always() && github.ref == 'refs/heads/back_main' && steps.offline.outcome == 'success'
         env:
           FTP_SERVIDOR: ${{ secrets.FTP_SERVIDOR }}
           FTP_USUARIO: ${{ secrets.FTP_USUARIO }}
           FTP_CONTRASENA: ${{ secrets.FTP_CONTRASENA }}
-        run: lftp -u "$FTP_USUARIO,$FTP_CONTRASENA" "ftp://$FTP_SERVIDOR" -e "rm -f /wwwroot/app_offline.htm; bye"
+        run: |
+          curl --fail --show-error --silent \
+            --ssl-reqd \
+            --ftp-pasv \
+            --user "$FTP_USUARIO:$FTP_CONTRASENA" \
+            --quote "DELE /wwwroot/app_offline.htm" \
+            "ftp://$FTP_SERVIDOR/"
