@@ -23,6 +23,8 @@ if (File.Exists(envPath))
         if (idx <= 0) continue;
         var key = trimmed[..idx].Trim();
         var value = trimmed[(idx + 1)..].Trim().Trim('"', '\'');
+        // Un valor vacío no debe pisar lo que ya trae appsettings.json.
+        if (value.Length == 0) continue;
         Environment.SetEnvironmentVariable(key, value);
     }
 }
@@ -233,7 +235,7 @@ app.Use(async (ctx, next) =>
     ctx.Response.Headers["X-Frame-Options"] = esEditor ? "SAMEORIGIN" : "DENY";
     ctx.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
     ctx.Response.Headers["Content-Security-Policy"] = esLienzo
-        ? "default-src 'self' https: data: 'unsafe-inline'; frame-src https://open.spotify.com https://www.youtube.com;"
+        ? "default-src 'self' http: https: data: 'unsafe-inline'; frame-src https://open.spotify.com https://www.youtube.com;"
         : "default-src 'self'; img-src 'self' https: data:; media-src 'self' https: blob:; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; connect-src 'self' https://res.cloudinary.com https://*.googlevideo.com https://*.youtube.com https://*.saavncdn.com https://www.jiosaavn.com; frame-src 'self' https://open.spotify.com;";
     if (ctx.Request.Path.StartsWithSegments("/api"))
     {

@@ -28,7 +28,7 @@ public class MembersController : ControllerBase
     }
 
     [HttpGet("admin")]
-    [Authorize(AuthenticationSchemes = "Basic,ApiKey")]
+    [Authorize(AuthenticationSchemes = "Cookies,Basic,ApiKey")]
     public async Task<ActionResult<IEnumerable<MemberDto>>> GetAllAdmin()
     {
         var col = _mongo.GetCollection<Member>("members");
@@ -47,7 +47,7 @@ public class MembersController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(AuthenticationSchemes = "Basic,ApiKey")]
+    [Authorize(AuthenticationSchemes = "Cookies,Basic,ApiKey")]
     public async Task<ActionResult<MemberDto>> Create([FromBody] CreateMemberDto dto)
     {
         var col = _mongo.GetCollection<Member>("members");
@@ -63,7 +63,7 @@ public class MembersController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize(AuthenticationSchemes = "Basic,ApiKey")]
+    [Authorize(AuthenticationSchemes = "Cookies,Basic,ApiKey")]
     public async Task<ActionResult<MemberDto>> Update(string id, [FromBody] UpdateMemberDto dto)
     {
         var col = _mongo.GetCollection<Member>("members");
@@ -77,7 +77,7 @@ public class MembersController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(AuthenticationSchemes = "Basic,ApiKey")]
+    [Authorize(AuthenticationSchemes = "Cookies,Basic,ApiKey")]
     public async Task<IActionResult> Delete(string id)
     {
         var col = _mongo.GetCollection<Member>("members");

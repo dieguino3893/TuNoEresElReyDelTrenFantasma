@@ -12,8 +12,23 @@
 
 <iframe id="lienzo" src="/admin/sitio/lienzo" title="Editor del sitio"></iframe>
 
+<div id="modalCrud" class="modal-crud" hidden>
+  <div class="modal-caja">
+    <h3 id="crudTitulo">Editar</h3>
+    <div id="crudForma"></div>
+    <div class="form-actions">
+      <button class="btn btn-primary btn-sm" id="crudGuardar"><i class="fa-solid fa-floppy-disk"></i> Guardar</button>
+      <button class="btn btn-danger btn-sm" id="crudBorrar" hidden><i class="fa-solid fa-trash"></i> Eliminar</button>
+      <button class="btn btn-secondary btn-sm" id="crudCancelar">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+@await Html.PartialAsync("_ImagePicker")
+
 @Html.AntiForgeryToken()
 
+<script src="/js/admin-sitio-crud.js"></script>
 <script>
 (function(){
   const lienzo = document.getElementById('lienzo');

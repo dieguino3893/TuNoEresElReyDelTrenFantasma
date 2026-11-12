@@ -36,9 +36,9 @@
     ['band','Banda','BandVisible'],
     ['dates','Shows','ShowsVisible'],
     ['blog','Noticias','BlogVisible'],
-    ['newsletter','Newsletter','NewsletterVisible'],
     ['music','Música','MusicVisible'],
-    ['contact','Contacto','ContactVisible']
+    ['contact','Contacto','ContactVisible'],
+    ['newsletter','Newsletter','NewsletterVisible']
   ];
 
   const cambios = { textos:{}, ajustes:{}, secciones:{} };
@@ -142,7 +142,13 @@
         border-radius:14px; padding:10px 14px; font:12px/1.6 system-ui; color:#fff; box-shadow:0 16px 40px rgba(0,0,0,.6); }
       #panel-editor summary{ cursor:pointer; font-weight:600; letter-spacing:.02em; }
       #panel-editor label{ display:flex; gap:8px; align-items:center; cursor:pointer; }
-      #panel-editor input{ accent-color:#fff; }`;
+      #panel-editor input{ accent-color:#fff; }
+      .boton-crud{ position:absolute; z-index:9998; width:26px; height:26px; border-radius:50%; border:1px solid rgba(255,255,255,.35);
+        background:rgba(0,0,0,.82); color:#fff; font-size:12px; line-height:1; cursor:pointer; display:grid; place-items:center; }
+      .boton-crud:hover{ background:#fff; color:#000; }
+      .boton-crud.editar{ top:8px; right:8px; }
+      .boton-crud.borrar{ top:8px; right:40px; }
+      [data-entidad]{ position:relative; }`;
     document.head.appendChild(estilo);
 
     const panel = document.createElement('details');
@@ -150,7 +156,10 @@
     panel.innerHTML = '<summary>Secciones</summary>' + SECCIONES.map(([id, etiqueta, prop])=>{
       const visible = !document.getElementById(id)?.hidden;
       return `<label><input type="checkbox" data-seccion="${id}" data-prop="${prop}" ${visible ? 'checked' : ''}/> ${etiqueta}</label>`;
-    }).join('');
+    }).join('') + '<div style="margin-top:8px;display:grid;gap:6px">'
+      + [['members','＋ Integrante'],['shows','＋ Show'],['news','＋ Noticia'],['tracks','＋ Canción']]
+        .map(([ent, txt])=>`<button data-nuevo="${ent}" style="padding:8px;border-radius:10px;border:1px dashed rgba(255,255,255,.4);background:transparent;color:#fff;cursor:pointer">${txt}</button>`).join('')
+      + '</div>';
     document.body.appendChild(panel);
 
     panel.addEventListener('change', (e)=>{
@@ -177,6 +186,32 @@
     }).catch(()=>{});
   }
 
+  // CRUD embebido: lápiz y papelera sobre cada tarjeta/fila con data-entidad+data-id.
+  // La hidratación del front reemplaza el HTML, así que se reconecta con un observador.
+  function ponerBotones(nodo){
+    if (!nodo.dataset || !nodo.dataset.entidad || !nodo.dataset.id) return;
+    if (nodo.querySelector(':scope > .boton-crud')) return;
+    const editar = document.createElement('button');
+    editar.className = 'boton-crud editar'; editar.title = 'Editar'; editar.textContent = '✎';
+    const borrar = document.createElement('button');
+    borrar.className = 'boton-crud borrar'; borrar.title = 'Eliminar'; borrar.textContent = '🗑';
+    const abrir = (accion)=> (e)=>{
+      e.preventDefault(); e.stopPropagation();
+      parent.postMessage({ tipo:'crud', entidad:nodo.dataset.entidad, accion, id:nodo.dataset.id }, location.origin);
+    };
+    editar.addEventListener('click', abrir('editar'));
+    borrar.addEventListener('click', abrir('borrar'));
+    nodo.appendChild(editar); nodo.appendChild(borrar);
+  }
+
+  function conectarCrud(raiz){
+    (raiz || document).querySelectorAll('[data-entidad][data-id]').forEach(ponerBotones);
+  }
+
+  new MutationObserver((cambios)=>{
+    cambios.forEach((c)=> c.addedNodes.forEach((n)=>{ if (n.nodeType !== 1) return; ponerBotones(n); conectarCrud(n); }));
+  }).observe(document.body, { childList:true, subtree:true });
+
   // En el editor los enlaces y formularios no navegan.
   document.addEventListener('click', (e)=>{ if (e.target.closest('a')) e.preventDefault(); }, true);
   document.addEventListener('submit', (e)=> e.preventDefault(), true);
@@ -194,4 +229,10 @@
   if (desc) desc.dataset.multilinea = '';
 
   montarPanel();
+  conectarCrud(document);
+
+  // Los botones ＋ del panel viven en el lienzo pero abren el modal del panel.
+  document.getElementById('panel-editor').querySelectorAll('[data-nuevo]').forEach((b)=> b.addEventListener('click', ()=>{
+    parent.postMessage({ tipo:'crud', entidad:b.dataset.nuevo, accion:'nuevo' }, location.origin);
+  }));
 })();

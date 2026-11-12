@@ -59,8 +59,6 @@ public static class SiteTextDefaults
         new("contact.mailPh", "Contacto", "Campo email", "Email"),
         new("contact.telPh", "Contacto", "Campo teléfono", "Teléfono"),
         new("contact.msgPh", "Contacto", "Campo mensaje", "Cuéntanos algo — booking, prensa, colaboraciones…", true),
-        new("contact.robotQ", "Contacto", "Pregunta anti-robot", "3 + 4 = ?"),
-        new("contact.robotA", "Contacto", "Respuesta correcta", "7"),
         new("contact.submit", "Contacto", "Botón enviar", "Enviar mensaje"),
         new("contact.success", "Contacto", "Mensaje de éxito", "¡Mensaje enviado! Gracias por contactarnos.", true),
         // Pie de página

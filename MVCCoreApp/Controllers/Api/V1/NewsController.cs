@@ -26,7 +26,7 @@ public class NewsController : ControllerBase
     }
 
     [HttpGet("admin")]
-    [Authorize(AuthenticationSchemes = "Basic,ApiKey")]
+    [Authorize(AuthenticationSchemes = "Cookies,Basic,ApiKey")]
     public async Task<ActionResult<IEnumerable<NewsDto>>> GetAllAdmin()
     {
         var col = _mongo.GetCollection<News>("news");
@@ -55,7 +55,7 @@ public class NewsController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(AuthenticationSchemes = "Basic,ApiKey")]
+    [Authorize(AuthenticationSchemes = "Cookies,Basic,ApiKey")]
     public async Task<ActionResult<NewsDto>> Create([FromBody] CreateNewsDto dto)
     {
         var col = _mongo.GetCollection<News>("news");
@@ -69,7 +69,7 @@ public class NewsController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize(AuthenticationSchemes = "Basic,ApiKey")]
+    [Authorize(AuthenticationSchemes = "Cookies,Basic,ApiKey")]
     public async Task<ActionResult<NewsDto>> Update(string id, [FromBody] UpdateNewsDto dto)
     {
         var col = _mongo.GetCollection<News>("news");
@@ -86,7 +86,7 @@ public class NewsController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(AuthenticationSchemes = "Basic,ApiKey")]
+    [Authorize(AuthenticationSchemes = "Cookies,Basic,ApiKey")]
     public async Task<IActionResult> Delete(string id)
     {
         var col = _mongo.GetCollection<News>("news");

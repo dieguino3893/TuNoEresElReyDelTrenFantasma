@@ -24,7 +24,7 @@ public class TracksController : ControllerBase
     }
 
     [HttpGet("admin")]
-    [Authorize(AuthenticationSchemes = "Basic,ApiKey")]
+    [Authorize(AuthenticationSchemes = "Cookies,Basic,ApiKey")]
     public async Task<ActionResult<IEnumerable<TrackDto>>> GetAllAdmin()
     {
         var col = _mongo.GetCollection<Track>("tracks");
@@ -43,7 +43,7 @@ public class TracksController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(AuthenticationSchemes = "Basic,ApiKey")]
+    [Authorize(AuthenticationSchemes = "Cookies,Basic,ApiKey")]
     public async Task<ActionResult<TrackDto>> Create([FromBody] CreateTrackDto dto)
     {
         var col = _mongo.GetCollection<Track>("tracks");
@@ -63,7 +63,7 @@ public class TracksController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize(AuthenticationSchemes = "Basic,ApiKey")]
+    [Authorize(AuthenticationSchemes = "Cookies,Basic,ApiKey")]
     public async Task<ActionResult<TrackDto>> Update(string id, [FromBody] UpdateTrackDto dto)
     {
         var col = _mongo.GetCollection<Track>("tracks");
@@ -78,7 +78,7 @@ public class TracksController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(AuthenticationSchemes = "Basic,ApiKey")]
+    [Authorize(AuthenticationSchemes = "Cookies,Basic,ApiKey")]
     public async Task<IActionResult> Delete(string id)
     {
         var col = _mongo.GetCollection<Track>("tracks");

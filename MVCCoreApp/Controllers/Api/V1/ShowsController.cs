@@ -35,7 +35,7 @@ public class ShowsController : ControllerBase
     }
 
     [HttpGet("admin")]
-    [Authorize(AuthenticationSchemes = "Basic,ApiKey")]
+    [Authorize(AuthenticationSchemes = "Cookies,Basic,ApiKey")]
     public async Task<ActionResult<IEnumerable<ShowDto>>> GetAllAdmin()
     {
         var col = _mongo.GetCollection<Show>("shows");
@@ -54,7 +54,7 @@ public class ShowsController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(AuthenticationSchemes = "Basic,ApiKey")]
+    [Authorize(AuthenticationSchemes = "Cookies,Basic,ApiKey")]
     public async Task<ActionResult<ShowDto>> Create([FromBody] CreateShowDto dto)
     {
         var col = _mongo.GetCollection<Show>("shows");
@@ -65,7 +65,7 @@ public class ShowsController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize(AuthenticationSchemes = "Basic,ApiKey")]
+    [Authorize(AuthenticationSchemes = "Cookies,Basic,ApiKey")]
     public async Task<ActionResult<ShowDto>> Update(string id, [FromBody] UpdateShowDto dto)
     {
         var col = _mongo.GetCollection<Show>("shows");
@@ -78,7 +78,7 @@ public class ShowsController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(AuthenticationSchemes = "Basic,ApiKey")]
+    [Authorize(AuthenticationSchemes = "Cookies,Basic,ApiKey")]
     public async Task<IActionResult> Delete(string id)
     {
         var col = _mongo.GetCollection<Show>("shows");
