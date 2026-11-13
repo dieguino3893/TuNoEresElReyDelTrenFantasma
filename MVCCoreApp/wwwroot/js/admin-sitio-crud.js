@@ -10,7 +10,7 @@
       ['venue','Lugar','texto'], ['cityState','Ciudad','texto'],
       ['googleMapsUrl','Google Maps','texto'], ['order','Orden','numero'], ['isVisible','Visible','check']] },
     news: { titulo:'Noticia', campos:[
-      ['title','Título','texto'], ['slug','Slug','texto'], ['tag','Etiqueta','texto'],
+      ['title','Título','texto'], ['slug','Slug','texto'], ['tag','Categoría','select:Música,Shows,Banda,Prensa'],
       ['imageUrl','Imagen','imagen'], ['imageAlt','Texto alternativo','texto'],
       ['excerpt','Resumen','area'], ['contentHtml','Contenido','area'],
       ['publishedAt','Publicada','fecha'], ['order','Orden','numero'], ['isPublished','Publicada','check']] },
@@ -34,6 +34,7 @@
 
   function campoHtml([ruta, etiqueta, tipo], valor){
     const id = 'f-' + ruta.replaceAll('.', '-');
+    if (tipo.startsWith('select:')){ const ops = tipo.slice(7).split(','); return `<div class="form-group"><label class="form-label">${etiqueta}</label><select id="${id}" class="form-control">${ops.map((o)=>`<option${(valor ?? '') === o ? ' selected' : ''}>${o}</option>`).join('')}</select></div>`; }
     if (tipo === 'check') return `<label class="check"><input id="${id}" type="checkbox" ${valor ? 'checked' : ''}/> ${etiqueta}</label>`;
     if (tipo === 'area') return `<div class="form-group"><label class="form-label">${etiqueta}</label><textarea id="${id}" class="form-control" rows="3">${valor ?? ''}</textarea></div>`;
     if (tipo === 'imagen') return `<div class="form-group"><label class="form-label">${etiqueta}</label><div class="input-row"><input id="${id}" class="form-control" value="${valor ?? ''}"/><button type="button" class="btn btn-secondary btn-sm" onclick="openImagePicker('${id}')"><i class="fa-solid fa-images"></i> Elegir</button></div></div>`;
