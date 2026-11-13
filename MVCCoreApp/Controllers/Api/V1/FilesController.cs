@@ -76,7 +76,17 @@ public class FilesController : ControllerBase
     [Authorize(AuthenticationSchemes = "Cookies,Basic,ApiKey")]
     public async Task<IActionResult> Delete(string publicId)
     {
-        var ok = await _files.DeleteAsync(publicId);
-        return ok ? Ok(new { message = "Eliminado" }) : NotFound(new { detail = "No encontrado" });
+        try
+        {
+            var resultado = await _files.DeleteAsync(publicId);
+            if (resultado == "ok") return Ok(new { message = "Eliminado" });
+            _log.LogWarning("Borrado Cloudinary devolvió {Resultado} para {PublicId}", resultado, publicId);
+            return NotFound(new { detail = $"Cloudinary dice: {resultado}" });
+        }
+        catch (Exception ex)
+        {
+            _log.LogWarning(ex, "Borrado falló para {PublicId}", publicId);
+            return StatusCode(500, new { detail = ex.Message });
+        }
     }
 }

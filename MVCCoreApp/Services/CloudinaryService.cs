@@ -78,11 +78,13 @@ public class CloudinaryService : IFileService
         return new MemoryStream(bytes);
     }
 
-    public async Task<bool> DeleteAsync(string publicId)
+    public async Task<string> DeleteAsync(string publicId)
     {
         var del = new DeletionParams(publicId);
         var res = await _cloudinary.DestroyAsync(del);
-        return res.Result == "ok";
+        if (res.Error != null) throw new Exception(res.Error.Message);
+        // shortcut: se devuelve el resultado crudo ("ok", "not found"...) para diagnosticar.
+        return res.Result ?? "desconocido";
     }
 
     public async Task<IEnumerable<FileListItem>> ListAsync(string prefix = "elrey", int max = 100)

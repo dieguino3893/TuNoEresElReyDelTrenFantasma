@@ -6,6 +6,6 @@ public interface IFileService
 {
     Task<(string Url, string PublicId)> UploadAsync(IFormFile file, string folder = "elrey");
     Task<Stream> DownloadAsync(string publicIdOrUrl);
-    Task<bool> DeleteAsync(string publicId);
+    Task<string> DeleteAsync(string publicId);
     Task<IEnumerable<FileListItem>> ListAsync(string prefix = "elrey", int max = 100);
 }

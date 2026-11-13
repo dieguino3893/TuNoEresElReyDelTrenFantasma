@@ -1,0 +1,8 @@
+@{
+  var accion = ViewContext.RouteData.Values["action"]?.ToString();
+}
+<nav class="tabs" aria-label="Contenido del sitio">
+  <a href="/admin/settings" class="@(accion == "Settings" ? "on" : "")"><i class="fa-solid fa-sliders"></i> Ajustes</a>
+  <a href="/admin/texts" class="@(accion == "Texts" ? "on" : "")"><i class="fa-solid fa-font"></i> Textos</a>
+  <a href="/admin/chips" class="@(accion == "Chips" ? "on" : "")"><i class="fa-solid fa-tag"></i> Chips</a>
+</nav>

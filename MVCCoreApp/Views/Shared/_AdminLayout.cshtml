@@ -12,27 +12,43 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400;1,9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
 <link rel="stylesheet" href="/css/tokens.css?v=11"/>
-<link rel="stylesheet" href="/css/admin.css?v=14"/>
+<link rel="stylesheet" href="/css/admin.css?v=15"/>
 </head>
 <body>
+@{
+  var accion = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+  var modulo = accion switch {
+    "Settings" or "Texts" or "Chips" or "ChipCreate" or "ChipEdit" => "contenido",
+    "Sitio" or "SitioLienzo" => "sitio",
+    "Members" or "MemberCreate" or "MemberEdit" => "miembros",
+    "Shows" or "ShowCreate" or "ShowEdit" => "shows",
+    "Setlists" or "SetlistCreate" or "SetlistEdit" or "SetlistPlay" => "setlists",
+    "Rehearsals" or "RehearsalCreate" or "RehearsalEdit" => "ensayos",
+    "News" or "NewsCreate" or "NewsEdit" => "noticias",
+    "Tracks" or "TrackCreate" or "TrackEdit" => "musica",
+    "Users" or "UserCreate" or "UserEdit" => "usuarios",
+    "Asistente" => "asistente",
+    "Files" => "archivos",
+    _ => "panel"
+  };
+  Func<string, string> on = (m)=> modulo == m ? "active" : "";
+}
 <header class="topbar">
   <div class="brand">El Rey <em>del Tren Fantasma</em></div>
-  <button class="hamburger" id="hamburger" aria-label="Abrir menú" onclick="document.getElementById('adminNav').classList.toggle('open'); this.classList.toggle('active')"><span></span></button>
+  <button class="hamburger" id="hamburger" aria-label="Abrir menú" aria-controls="adminNav" aria-expanded="false" onclick="document.getElementById('adminNav').classList.toggle('open'); this.classList.toggle('active'); this.setAttribute('aria-expanded', this.classList.contains('active'))"><span></span></button>
   <nav class="nav" id="adminNav">
-    <a href="/admin" class="@(ViewContext.RouteData.Values["action"]?.ToString()=="Index"?"active":"")"><i class="fa-solid fa-table-columns"></i> Panel</a>
-    <a href="/admin/sitio"><i class="fa-solid fa-pen-ruler"></i> Sitio</a>
-    <a href="/admin/settings"><i class="fa-solid fa-sliders"></i> Ajustes</a>
-    <a href="/admin/texts"><i class="fa-solid fa-font"></i> Textos</a>
-    <a href="/admin/chips"><i class="fa-solid fa-tag"></i> Chips</a>
-    <a href="/admin/members"><i class="fa-solid fa-user-group"></i> Miembros</a>
-    <a href="/admin/shows"><i class="fa-solid fa-location-dot"></i> Shows</a>
-    <a href="/admin/setlists"><i class="fa-solid fa-list-music"></i> Setlists</a>
-    <a href="/admin/rehearsals"><i class="fa-solid fa-drum"></i> Ensayos</a>
-    <a href="/admin/news"><i class="fa-solid fa-newspaper"></i> Noticias</a>
-    <a href="/admin/tracks"><i class="fa-solid fa-music"></i> Música</a>
-    <a href="/admin/users"><i class="fa-solid fa-user-shield"></i> Usuarios</a>
-    <a href="/admin/asistente"><i class="fa-solid fa-ghost"></i> Asistente</a>
-    <a href="/admin/files"><i class="fa-solid fa-cloud-arrow-up"></i> Archivos</a>
+    <a href="/admin" class="@on("panel")"><i class="fa-solid fa-table-columns"></i> Panel</a>
+    <a href="/admin/sitio" class="@on("sitio")"><i class="fa-solid fa-pen-ruler"></i> Sitio</a>
+    <a href="/admin/settings" class="@on("contenido")"><i class="fa-solid fa-layer-group"></i> Contenido</a>
+    <a href="/admin/members" class="@on("miembros")"><i class="fa-solid fa-user-group"></i> Miembros</a>
+    <a href="/admin/shows" class="@on("shows")"><i class="fa-solid fa-location-dot"></i> Shows</a>
+    <a href="/admin/setlists" class="@on("setlists")"><i class="fa-solid fa-list-music"></i> Setlists</a>
+    <a href="/admin/rehearsals" class="@on("ensayos")"><i class="fa-solid fa-drum"></i> Ensayos</a>
+    <a href="/admin/news" class="@on("noticias")"><i class="fa-solid fa-newspaper"></i> Noticias</a>
+    <a href="/admin/tracks" class="@on("musica")"><i class="fa-solid fa-music"></i> Música</a>
+    <a href="/admin/users" class="@on("usuarios")"><i class="fa-solid fa-user-shield"></i> Usuarios</a>
+    <a href="/admin/asistente" class="@on("asistente")"><i class="fa-solid fa-ghost"></i> Asistente</a>
+    <a href="/admin/files" class="@on("archivos")"><i class="fa-solid fa-cloud-arrow-up"></i> Archivos</a>
   </nav>
   <div class="user">
     <span class="avatar"><i class="fa-solid fa-user"></i></span>

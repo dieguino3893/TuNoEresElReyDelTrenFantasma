@@ -4,11 +4,12 @@
 
 <div class="welcome">
   <div>
-    <h2>Parte de arriba de tu sitio</h2>
-    <p>Estos textos aparecen en la portada que ve tu público.</p>
+    <h2>Ajustes del sitio</h2>
+    <p>Portada, banda, buscadores y redes sociales.</p>
   </div>
-  <div class="actions-row"><a href="/admin" class="btn btn-secondary btn-sm">← Volver al panel</a></div>
 </div>
+
+@await Html.PartialAsync("_TabsContenido")
 
 @if(TempData["ok"]!=null){<div class="alert alert-ok"><i class="fa-solid fa-check"></i> @TempData["ok"]</div>}
 @if(TempData["err"]!=null){<div class="alert alert-err"><i class="fa-solid fa-triangle-exclamation"></i> @TempData["err"]</div>}

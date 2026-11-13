@@ -4,8 +4,9 @@
 }
 <div class="welcome">
   <div><h2>Chips de portada</h2><p>Los sellos que aparecen bajo el slogan (En vivo, Estudio, Gira...). El orden de la lista es el que se muestra.</p></div>
-  <div class="actions-row"><a href="/admin/chips/create" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> Nuevo chip</a><a href="/admin" class="btn btn-secondary btn-sm">← Volver al panel</a></div>
+  <div class="actions-row"><a href="/admin/chips/create" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> Nuevo chip</a></div>
 </div>
+@await Html.PartialAsync("_TabsContenido")
 @if(TempData["ok"]!=null){<div class="alert alert-ok"><i class="fa-solid fa-check"></i> @TempData["ok"]</div>}
 @if(TempData["err"]!=null){<div class="alert alert-err"><i class="fa-solid fa-triangle-exclamation"></i> @TempData["err"]</div>}
 <div style="overflow:auto"><table class="tbl" id="tbl"><thead><tr><th>#</th><th>Chip</th><th>Icono</th><th>Estado</th><th>Editado</th><th>Acciones</th></tr></thead><tbody>

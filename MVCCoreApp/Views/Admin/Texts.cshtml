@@ -5,8 +5,8 @@
 }
 <div class="welcome">
   <div><h2>Textos del sitio</h2><p>Títulos, etiquetas y textos fijos de cada sección. Vacío = se usa el texto original.</p></div>
-  <div class="actions-row"><a href="/admin/chips" class="btn btn-secondary btn-sm"><i class="fa-solid fa-tag"></i> Chips de portada</a><a href="/admin" class="btn btn-secondary btn-sm">← Volver al panel</a></div>
 </div>
+@await Html.PartialAsync("_TabsContenido")
 @if(TempData["ok"]!=null){<div class="alert alert-ok"><i class="fa-solid fa-check"></i> @TempData["ok"]</div>}
 @if(TempData["err"]!=null){<div class="alert alert-err"><i class="fa-solid fa-triangle-exclamation"></i> @TempData["err"]</div>}
 <form method="post" action="/admin/texts">@Html.AntiForgeryToken()
