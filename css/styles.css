@@ -837,6 +837,38 @@ footer .social-icon:hover { background: var(--accent); border-color: var(--accen
   letter-spacing: .04em;
 }
 .blog-card .blog-date i { opacity: .8; }
+.blog-more-btn {
+  margin-top: .8rem; align-self: flex-start;
+  background: transparent; border: 1px solid var(--line-strong); border-radius: 999px;
+  color: var(--text); font-family: var(--font-mono); font-size: .72rem; letter-spacing: .08em; text-transform: uppercase;
+  padding: 8px 16px; cursor: pointer; transition: border-color .25s, background .25s;
+}
+.blog-more-btn:hover { border-color: #fff; background: rgba(255,255,255,.06); }
+
+/* ---------- MODAL NOTICIA ---------- */
+.modal-noticia {
+  position: fixed; inset: 0; z-index: 9000;
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+  background: rgba(0,0,0,.78); backdrop-filter: blur(8px);
+}
+.modal-noticia[hidden] { display: none; }
+.modal-noticia .modal-caja {
+  position: relative; width: min(640px, 100%); max-height: 86vh; overflow: auto;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 18px;
+}
+.modal-noticia .img-wrap { aspect-ratio: 16/9; overflow: hidden; }
+.modal-noticia .img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.modal-noticia .blog-body { padding: 22px 24px 26px; }
+.modal-noticia .blog-title { font-size: 1.3rem; display: block; overflow: visible; }
+.noticia-cuerpo { margin-top: .8rem; font-size: .92rem; color: var(--muted); line-height: 1.7; }
+.noticia-cuerpo p { margin: 0 0 .8em; }
+.modal-cerrar {
+  position: absolute; top: 10px; right: 10px; z-index: 2;
+  width: 36px; height: 36px; border-radius: 50%;
+  border: 1px solid var(--line-strong); background: rgba(0,0,0,.7); color: var(--text);
+  display: grid; place-items: center; cursor: pointer;
+}
+.modal-cerrar:hover { background: #fff; color: #000; }
 
 /* ---------- NEWSLETTER ---------- */
 #newsletter {
@@ -1437,9 +1469,6 @@ input, textarea { caret-color: var(--accent); accent-color: var(--accent); }
 }
 .shows-table .empty-ghost { padding: 1.6rem 0; }
 .blog-excerpt { font-size: .9rem; color: var(--muted); margin: .5rem 0 0; line-height: 1.6; }
-.blog-more { margin-top: .6rem; }
-.blog-more summary { cursor: pointer; font-family: var(--font-mono); font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; color: var(--text-soft); }
-.blog-more div { margin-top: .6rem; font-size: .9rem; color: var(--muted); line-height: 1.7; }
 /* fila de estado vacío dentro de la tabla de shows */
 .shows-table td.empty-ghost { text-align: center !important; border: none; }
 

@@ -197,13 +197,36 @@
         }
       }
 
-      // NEWS - esc title/tag
+      // NEWS - la tarjeta abre modal con el detalle completo
+      let noticias = [];
+      const abrirNoticia = (id)=>{
+        const n = noticias.find(x=>String(x.id)===String(id));
+        if(!n) return;
+        const modal = $('#noticiaModal');
+        if(!modal) return;
+        const img = $('#noticiaImg');
+        if(img){ img.src = n.imageUrl || ''; img.alt = n.imageAlt || n.title || ''; img.closest('.img-wrap').style.display = n.imageUrl ? '' : 'none'; }
+        const tag = $('#noticiaTag'); if(tag){ tag.innerHTML = `<i class="fa-solid fa-newspaper" style="font-size:9px;"></i> ${esc(n.tag)}`; tag.style.display = n.tag ? '' : 'none'; }
+        const tit = $('#noticiaTitulo'); if(tit) tit.textContent = n.title || '';
+        const fec = $('#noticiaFecha'); if(fec) fec.innerHTML = `<i class="fa-regular fa-calendar" style="margin-right:6px;"></i>${new Date(n.publishedAt).toLocaleDateString('es-MX')}`;
+        const cuerpo = $('#noticiaCuerpo'); if(cuerpo) cuerpo.innerHTML = n.contentHtml || '';
+        modal.hidden = false;
+        document.body.style.overflow = 'hidden';
+      };
+      const cerrarNoticia = ()=>{ const modal = $('#noticiaModal'); if(modal) modal.hidden = true; document.body.style.overflow = ''; };
+      document.addEventListener('click', (e)=>{
+        const btn = e.target.closest('[data-noticia]');
+        if(btn){ abrirNoticia(btn.dataset.noticia); return; }
+        if(e.target.closest('#noticiaCerrar') || e.target.id === 'noticiaModal') cerrarNoticia();
+      });
+      document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') cerrarNoticia(); });
       if(Array.isArray(data.news)){
         const grid = $('.blog-grid');
         if(grid){
           const pub = data.news.filter(n=>n.isPublished);
+          noticias = pub;
           grid.innerHTML = pub.length ? pub.map(n=>`
-            <article class="blog-card anim-y showed" data-entidad="news" data-id="${esc(n.id)}"><div class="img-wrap"><img class="blog-img" src="${esc(n.imageUrl)}" alt="${esc(n.imageAlt||n.title)}" loading="lazy"></div><div class="blog-body"><p class="blog-tag"><i class="fa-solid fa-newspaper" style="font-size:9px;"></i> ${esc(n.tag)}</p><h3 class="blog-title">${esc(n.title)}</h3><p class="blog-date"><i class="fa-regular fa-calendar" style="margin-right:6px;"></i>${new Date(n.publishedAt).toLocaleDateString('es-MX')} — ${esc(n.tag)}</p>${n.excerpt?`<p class="blog-excerpt">${esc(n.excerpt)}</p>`:''}${n.contentHtml?`<details class="blog-more"><summary>Leer más</summary><div>${n.contentHtml}</div></details>`:''}</div></article>
+            <article class="blog-card anim-y showed" data-entidad="news" data-id="${esc(n.id)}"><div class="img-wrap"><img class="blog-img" src="${esc(n.imageUrl)}" alt="${esc(n.imageAlt||n.title)}" loading="lazy"></div><div class="blog-body"><p class="blog-tag"><i class="fa-solid fa-newspaper" style="font-size:9px;"></i> ${esc(n.tag)}</p><h3 class="blog-title">${esc(n.title)}</h3><p class="blog-date"><i class="fa-regular fa-calendar" style="margin-right:6px;"></i>${new Date(n.publishedAt).toLocaleDateString('es-MX')} — ${esc(n.tag)}</p>${n.excerpt?`<p class="blog-excerpt">${esc(n.excerpt)}</p>`:''}${n.contentHtml?`<button class="blog-more-btn" data-noticia="${esc(n.id)}">Leer noticia</button>`:''}</div></article>
           `).join('') : `<p class="empty-ghost">${esc(vacio)}</p>`;
         }
       }
