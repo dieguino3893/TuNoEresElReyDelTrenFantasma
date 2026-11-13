@@ -16,8 +16,8 @@
       ['publishedAt','Publicada','fecha'], ['order','Orden','numero'], ['isPublished','Publicada','check']] },
     tracks: { titulo:'Canción', campos:[
       ['title','Título','texto'], ['trackNumber','Número','numero'], ['type','Tipo','texto'],
-      ['links.spotifyUrl','Spotify','texto'], ['links.spotifyEmbedUrl','Spotify (embed)','texto'],
-      ['links.appleMusicUrl','Apple Music','texto'], ['links.youTubeUrl','YouTube','texto'],
+      ['links.spotifyUrl','Spotify','texto'],
+      ['links.appleMusicUrl','Apple Music','texto'], ['links.youtubeUrl','YouTube','texto'],
       ['order','Orden','numero'], ['isVisible','Visible','check']] }
   };
 

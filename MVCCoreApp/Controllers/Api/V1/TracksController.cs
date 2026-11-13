@@ -55,8 +55,6 @@ public class TracksController : ControllerBase
             IsVisible = dto.IsVisible, Order = dto.Order,
             CreatedBy = user, UpdatedBy = user
         };
-        if (!string.IsNullOrEmpty(t.Links.SpotifyTrackId) && string.IsNullOrEmpty(t.Links.SpotifyEmbedUrl))
-            t.Links.SpotifyEmbedUrl = $"https://open.spotify.com/embed/track/{t.Links.SpotifyTrackId}?utm_source=generator&theme=0";
 
         await col.InsertOneAsync(t);
         return CreatedAtAction(nameof(GetById), new { id = t.Id }, Map(t));
@@ -70,8 +68,6 @@ public class TracksController : ControllerBase
         var t = await col.Find(x => x.Id == id && !x.IsDeleted).FirstOrDefaultAsync();
         if (t == null) return NotFound();
         t.Title = dto.Title; t.TrackNumber = dto.TrackNumber; t.Type = dto.Type; t.Links = dto.Links; t.ExternalId = dto.ExternalId; t.IsVisible = dto.IsVisible; t.Order = dto.Order;
-        if (!string.IsNullOrEmpty(t.Links.SpotifyTrackId) && string.IsNullOrEmpty(t.Links.SpotifyEmbedUrl))
-            t.Links.SpotifyEmbedUrl = $"https://open.spotify.com/embed/track/{t.Links.SpotifyTrackId}?utm_source=generator&theme=0";
         t.UpdatedAt = DateTime.UtcNow; t.UpdatedBy = User.Identity?.Name ?? "system";
         await col.ReplaceOneAsync(x => x.Id == id, t);
         return Ok(Map(t));

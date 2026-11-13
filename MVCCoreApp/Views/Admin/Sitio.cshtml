@@ -6,6 +6,24 @@
 <div class="editor-bar">
   <span class="editor-estado" id="estado"><i class="fa-solid fa-hand-pointer"></i> Haz clic en cualquier texto para editarlo</span>
   <button class="btn btn-primary btn-sm" id="btnGuardar" disabled><i class="fa-solid fa-floppy-disk"></i> Guardar</button>
+  <details class="panel-secciones" id="panel-editor">
+    <summary class="btn btn-secondary btn-sm"><i class="fa-solid fa-layer-group"></i> Secciones</summary>
+    <div class="panel-caja">
+      <label><input type="checkbox" data-seccion="next-show" data-prop="NextShowVisible" checked> Próximo show</label>
+      <label><input type="checkbox" data-seccion="band" data-prop="BandVisible" checked> Banda</label>
+      <label><input type="checkbox" data-seccion="dates" data-prop="ShowsVisible" checked> Shows</label>
+      <label><input type="checkbox" data-seccion="blog" data-prop="BlogVisible" checked> Noticias</label>
+      <label><input type="checkbox" data-seccion="music" data-prop="MusicVisible" checked> Música</label>
+      <label><input type="checkbox" data-seccion="contact" data-prop="ContactVisible" checked> Contacto</label>
+      <label><input type="checkbox" data-seccion="newsletter" data-prop="NewsletterVisible" checked> Newsletter</label>
+      <div class="panel-nuevos">
+        <button data-nuevo="members">＋ Integrante</button>
+        <button data-nuevo="shows">＋ Show</button>
+        <button data-nuevo="news">＋ Noticia</button>
+        <button data-nuevo="tracks">＋ Canción</button>
+      </div>
+    </div>
+  </details>
   <a class="btn btn-secondary btn-sm" href="@ViewBag.SiteUrl" target="_blank" rel="noopener"><i class="fa-solid fa-arrow-up-right-from-square"></i> Ver el sitio</a>
   <a class="btn btn-secondary btn-sm" href="/admin/settings"><i class="fa-solid fa-sliders"></i> Ajustes finos</a>
 </div>
@@ -34,14 +52,27 @@
   const lienzo = document.getElementById('lienzo');
   const estado = document.getElementById('estado');
   const btnGuardar = document.getElementById('btnGuardar');
+  const panel = document.getElementById('panel-editor');
   const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
   const enviar = (datos)=> lienzo.contentWindow.postMessage(datos, location.origin);
 
   lienzo.addEventListener('load', ()=> enviar({ tipo:'token', token }));
 
+  panel.addEventListener('change', (e)=>{
+    if (!e.target.dataset.prop) return;
+    enviar({ tipo:'seccion', id:e.target.dataset.seccion, prop:e.target.dataset.prop, checked:e.target.checked });
+  });
+
+  panel.querySelectorAll('[data-nuevo]').forEach((b)=> b.addEventListener('click', ()=>{
+    window.postMessage({ tipo:'crud', entidad:b.dataset.nuevo, accion:'nuevo' }, location.origin);
+  }));
+
   window.addEventListener('message', function(e){
     if (e.origin !== location.origin || !e.data) return;
     const d = e.data;
+    if (d.tipo === 'secciones'){
+      panel.querySelectorAll('input[data-prop]').forEach((c)=> c.checked = d.estados[c.dataset.prop] !== false);
+    }
     if (d.tipo === 'cambios'){
       btnGuardar.disabled = d.n === 0;
       estado.textContent = d.n ? d.n + ' cambio(s) sin guardar' : 'Todo guardado';

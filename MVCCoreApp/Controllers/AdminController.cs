@@ -484,8 +484,6 @@ public class AdminController : Controller
     {
         var user = User.Identity?.Name ?? "system";
         t.Id = ObjectId.GenerateNewId().ToString(); t.IsDeleted = false;
-        if (!string.IsNullOrEmpty(t.Links.SpotifyTrackId) && string.IsNullOrEmpty(t.Links.SpotifyEmbedUrl))
-            t.Links.SpotifyEmbedUrl = $"https://open.spotify.com/embed/track/{t.Links.SpotifyTrackId}?utm_source=generator&theme=0";
         t.Source = "Manual"; t.CreatedBy = user; t.UpdatedBy = user; t.CreatedAt = DateTime.UtcNow; t.UpdatedAt = DateTime.UtcNow;
         try{ await _mongo.GetCollection<Track>("tracks").InsertOneAsync(t); TempData["ok"] = $"Track {t.Title} creado"; } catch(Exception ex){ TempData["err"]="Mongo no disponible: "+ex.Message; return View("TrackForm", t); }
         return RedirectToAction("Tracks");
@@ -504,8 +502,6 @@ public class AdminController : Controller
         var col = _mongo.GetCollection<Track>("tracks");
         var m = await col.Find(x => x.Id == id && !x.IsDeleted).FirstOrDefaultAsync();
         if (m == null) return NotFound();
-        if (!string.IsNullOrEmpty(dto.Links.SpotifyTrackId) && string.IsNullOrEmpty(dto.Links.SpotifyEmbedUrl))
-            dto.Links.SpotifyEmbedUrl = $"https://open.spotify.com/embed/track/{dto.Links.SpotifyTrackId}?utm_source=generator&theme=0";
         m.Title = dto.Title; m.TrackNumber = dto.TrackNumber; m.Type = dto.Type; m.Links = dto.Links; m.ExternalId = dto.ExternalId; m.IsVisible = dto.IsVisible; m.Order = dto.Order;
         m.UpdatedAt = DateTime.UtcNow; m.UpdatedBy = User.Identity?.Name ?? "system";
         try{ await col.ReplaceOneAsync(x => x.Id == id, m); TempData["ok"] = "Track actualizado"; } catch(Exception ex){ TempData["err"]="Mongo no disponible: "+ex.Message; return View("TrackForm", dto); }

@@ -89,6 +89,25 @@ body { padding-bottom: 48px; }
 .wrap:has(#lienzo) { max-width: none; padding: 8px 20px 16px; }
 .editor-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 10px; }
 .editor-estado { font-size: .8rem; color: var(--muted); margin-right: auto; display: inline-flex; gap: 7px; align-items: center; }
+
+/* --- Panel de secciones del editor --- */
+.panel-secciones { position: relative; }
+.panel-secciones summary { list-style: none; }
+.panel-secciones summary::-webkit-details-marker { display: none; }
+.panel-caja {
+  position: absolute; right: 0; top: calc(100% + 8px); z-index: 40; min-width: 210px;
+  display: grid; gap: 6px; padding: 12px 14px;
+  background: var(--surf); border: 1px solid var(--line2); border-radius: 14px;
+  box-shadow: 0 20px 40px -18px rgba(0, 0, 0, .9);
+}
+.panel-caja label { display: flex; gap: 8px; align-items: center; font-size: .8rem; color: var(--text); cursor: pointer; }
+.panel-caja input { accent-color: var(--accent); }
+.panel-nuevos { display: grid; gap: 6px; margin-top: 6px; }
+.panel-nuevos button {
+  padding: 8px; border-radius: 10px; border: 1px dashed var(--line2); background: transparent;
+  color: var(--text); font: inherit; font-size: .78rem; cursor: pointer;
+}
+.panel-nuevos button:hover { border-color: var(--accent); }
 #lienzo { width: 100%; height: calc(100vh - 180px); min-height: 520px; display: block; background: #000; border: 1px solid var(--line); border-radius: 16px; }
 
 /* --- Modal del CRUD embebido --- */

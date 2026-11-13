@@ -32,13 +32,13 @@
   ];
 
   const SECCIONES = [
-    ['next-show','Próximo show','NextShowVisible'],
-    ['band','Banda','BandVisible'],
-    ['dates','Shows','ShowsVisible'],
-    ['blog','Noticias','BlogVisible'],
-    ['music','Música','MusicVisible'],
-    ['contact','Contacto','ContactVisible'],
-    ['newsletter','Newsletter','NewsletterVisible']
+    ['next-show','NextShowVisible'],
+    ['band','BandVisible'],
+    ['dates','ShowsVisible'],
+    ['blog','BlogVisible'],
+    ['music','MusicVisible'],
+    ['contact','ContactVisible'],
+    ['newsletter','NewsletterVisible']
   ];
 
   const cambios = { textos:{}, ajustes:{}, secciones:{} };
@@ -131,18 +131,13 @@
     }
   }
 
-  function montarPanel(){
+  function montarEstilos(){
     const estilo = document.createElement('style');
     estilo.textContent = `
       [data-editable]{ outline:1px dashed rgba(255,255,255,.22); outline-offset:4px; cursor:text; }
       [data-editable]:hover{ outline-color:#fff; }
       [data-editable]:empty{ display:inline-block; min-width:80px; min-height:1em; }
       .editando{ outline:2px solid #fff !important; background:rgba(255,255,255,.06); }
-      #panel-editor{ position:fixed; right:16px; bottom:16px; z-index:9999; background:#0d0d0d; border:1px solid rgba(255,255,255,.2);
-        border-radius:14px; padding:10px 14px; font:12px/1.6 system-ui; color:#fff; box-shadow:0 16px 40px rgba(0,0,0,.6); }
-      #panel-editor summary{ cursor:pointer; font-weight:600; letter-spacing:.02em; }
-      #panel-editor label{ display:flex; gap:8px; align-items:center; cursor:pointer; }
-      #panel-editor input{ accent-color:#fff; }
       .boton-crud{ position:absolute; z-index:9998; width:26px; height:26px; border-radius:50%; border:1px solid rgba(255,255,255,.35);
         background:rgba(0,0,0,.82); color:#fff; font-size:12px; line-height:1; cursor:pointer; display:grid; place-items:center; }
       .boton-crud:hover{ background:#fff; color:#000; }
@@ -150,39 +145,21 @@
       .boton-crud.borrar{ top:8px; right:40px; }
       [data-entidad]{ position:relative; }`;
     document.head.appendChild(estilo);
+  }
 
-    const panel = document.createElement('details');
-    panel.id = 'panel-editor';
-    panel.innerHTML = '<summary>Secciones</summary>' + SECCIONES.map(([id, etiqueta, prop])=>{
-      const visible = !document.getElementById(id)?.hidden;
-      return `<label><input type="checkbox" data-seccion="${id}" data-prop="${prop}" ${visible ? 'checked' : ''}/> ${etiqueta}</label>`;
-    }).join('') + '<div style="margin-top:8px;display:grid;gap:6px">'
-      + [['members','＋ Integrante'],['shows','＋ Show'],['news','＋ Noticia'],['tracks','＋ Canción']]
-        .map(([ent, txt])=>`<button data-nuevo="${ent}" style="padding:8px;border-radius:10px;border:1px dashed rgba(255,255,255,.4);background:transparent;color:#fff;cursor:pointer">${txt}</button>`).join('')
-      + '</div>';
-    document.body.appendChild(panel);
-
-    panel.addEventListener('change', (e)=>{
-      const casilla = e.target;
-      if (!casilla.dataset.seccion) return;
-      const seccion = document.getElementById(casilla.dataset.seccion);
-      if (seccion) seccion.hidden = !casilla.checked;
-      cambios.secciones[casilla.dataset.prop] = casilla.checked;
-      marcar('s:' + casilla.dataset.prop);
-    });
-
-    // El front publicado puede ir por detrás: el estado de las secciones lo manda Mongo.
+  // El front publicado puede ir por detrás: el estado de las secciones lo manda Mongo.
+  function aplicarSecciones(){
     fetch(location.origin + '/api/v1/home').then((r)=> r.ok ? r.json() : null).then((datos)=>{
       const ajustes = datos && datos.settings;
       if (!ajustes) return;
-      SECCIONES.forEach(([id, , prop])=>{
-        const clave = prop[0].toLowerCase() + prop.slice(1);
-        if (ajustes[clave] === undefined) return;
+      const estados = {};
+      SECCIONES.forEach(([id, prop])=>{
+        const visible = ajustes[prop[0].toLowerCase() + prop.slice(1)] !== false;
         const seccion = document.getElementById(id);
-        if (seccion) seccion.hidden = ajustes[clave] === false;
-        const casilla = panel.querySelector(`input[data-prop="${prop}"]`);
-        if (casilla) casilla.checked = ajustes[clave] !== false;
+        if (seccion) seccion.hidden = !visible;
+        estados[prop] = visible;
       });
+      parent.postMessage({ tipo:'secciones', estados }, location.origin);
     }).catch(()=>{});
   }
 
@@ -220,6 +197,12 @@
     if (e.origin !== location.origin || !e.data) return;
     if (e.data.tipo === 'token') token = e.data.token;
     if (e.data.tipo === 'guardar') guardarTodo();
+    if (e.data.tipo === 'seccion'){
+      const seccion = document.getElementById(e.data.id);
+      if (seccion) seccion.hidden = !e.data.checked;
+      cambios.secciones[e.data.prop] = e.data.checked;
+      marcar('s:' + e.data.prop);
+    }
   });
 
   Object.entries(TEXTOS).forEach(([sel, clave])=> activar(document.querySelector(sel), guardarTexto(clave)));
@@ -228,11 +211,7 @@
   const desc = document.getElementById('bandDesc');
   if (desc) desc.dataset.multilinea = '';
 
-  montarPanel();
+  montarEstilos();
+  aplicarSecciones();
   conectarCrud(document);
-
-  // Los botones ＋ del panel viven en el lienzo pero abren el modal del panel.
-  document.getElementById('panel-editor').querySelectorAll('[data-nuevo]').forEach((b)=> b.addEventListener('click', ()=>{
-    parent.postMessage({ tipo:'crud', entidad:b.dataset.nuevo, accion:'nuevo' }, location.origin);
-  }));
 })();

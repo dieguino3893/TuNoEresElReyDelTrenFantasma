@@ -27,7 +27,7 @@ public class SitioPreviewService
             "<script>window.__CONFIG__={API_URL:location.origin}</script>");
 
         // Con <base> las rutas relativas al host apuntan al sitio publicado, así que el editor va con URL absoluta.
-        return html.Replace("</body>", $"<script src=\"{adminBase}/js/admin-sitio-editor.js\"></script>\n</body>",
+        return html.Replace("</body>", $"<script src=\"{adminBase}/js/admin-sitio-editor.js?v=2\"></script>\n</body>",
             StringComparison.OrdinalIgnoreCase);
     }
 }

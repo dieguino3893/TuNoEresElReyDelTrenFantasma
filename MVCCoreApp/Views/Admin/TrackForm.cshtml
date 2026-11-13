@@ -11,8 +11,7 @@
     <div class="form-group"><label class="form-label">Tipo</label><input class="form-control" name="Type" value="@Model.Type" placeholder="Single / Álbum"/></div>
     <div class="form-group"><label class="form-label">Mostrar en el sitio</label><select name="IsVisible" class="form-control"><option value="true" selected="@(Model.IsVisible)">Sí, mostrar</option><option value="false" selected="@(!Model.IsVisible)">No, ocultar</option></select></div>
   </div>
-  <div class="form-group"><label class="form-label">Enlace de Spotify</label><input class="form-control" name="Links.SpotifyUrl" value="@Model.Links.SpotifyUrl" placeholder="https://open.spotify.com/..."/></div>
-  <div class="form-group"><label class="form-label">ID de la canción en Spotify</label><input class="form-control" name="Links.SpotifyTrackId" value="@Model.Links.SpotifyTrackId" placeholder="7i4JDI..."/><div class="form-hint">Si lo pegas, la canción se podrá reproducir directamente en tu sitio.</div></div>
+  <div class="form-group"><label class="form-label">Enlace de Spotify</label><input class="form-control" name="Links.SpotifyUrl" value="@Model.Links.SpotifyUrl" placeholder="https://open.spotify.com/..."/><div class="form-hint">Con el enlace basta: el reproductor se genera solo en el sitio.</div></div>
   <div class="grid2">
     <div class="form-group"><label class="form-label">Enlace de Apple Music</label><input class="form-control" name="Links.AppleMusicUrl" value="@Model.Links.AppleMusicUrl" placeholder="https://music.apple.com/..."/></div>
     <div class="form-group"><label class="form-label">Enlace de YouTube</label><input class="form-control" name="Links.YouTubeUrl" value="@Model.Links.YouTubeUrl" placeholder="https://youtube.com/..."/></div>
