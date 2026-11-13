@@ -10,6 +10,8 @@
     const el = $(sel); if(el && text) el.textContent = text;
   }
    function esc(s){ if(D.esc) return D.esc(s); return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+  // shortcut: embed Spotify sale solo del link (track/album/playlist/episodio)
+  function spotifyEmbed(u){ const m = String(u||'').match(/open\.spotify\.com\/(?:intl-[a-z-]+\/)?(track|album|playlist|episode)\/([A-Za-z0-9]+)/i); return m ? `https://open.spotify.com/embed/${m[1]}/${m[2]}?utm_source=generator&theme=0` : null; }
   function setHtml(sel, html){
     if(D.setHtml) return D.setHtml(sel, html);
     const el = $(sel); if(el && html) el.innerHTML = html;
@@ -219,15 +221,17 @@
         if(dotsEl) dotsEl.hidden = sinTracks;
         if(countEl) countEl.hidden = sinTracks;
         if(carouselTrack && track.length){
-          carouselTrack.innerHTML = track.map(t=>`
+          carouselTrack.innerHTML = track.map(t=>{
+            const embed = spotifyEmbed(t.links.spotifyUrl);
+            return `
             <div class="carousel-slide" data-entidad="tracks" data-id="${esc(t.id)}">
               <div class="spotify-card">
-                <div class="spotify-head"><span class="spotify-badge">${String(t.trackNumber).padStart(2,'0')}</span><span class="spotify-title">${t.title}</span></div>
-                ${t.links.spotifyEmbedUrl ? `<iframe style="border-radius:12px" src="${t.links.spotifyEmbedUrl}" width="100%" height="352" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" title="${t.title}"></iframe>` : (t.links.youtubeUrl ? `<div style="padding:12px"><a href="${t.links.youtubeUrl}" target="_blank" rel="noopener"><i class="fa-brands fa-youtube"></i> Ver en YouTube</a></div>` : '')}
-                <div class="carousel-actions"><a href="${t.links.spotifyUrl||t.links.youtubeUrl||'#'}" target="_blank" rel="noopener"><i class="fa-brands fa-spotify"></i> Abrir</a></div>
+                <div class="spotify-head"><span class="spotify-badge">${String(t.trackNumber).padStart(2,'0')}</span><span class="spotify-title">${esc(t.title)}</span></div>
+                ${embed ? `<iframe style="border-radius:12px" src="${embed}" width="100%" height="352" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" title="${esc(t.title)}"></iframe>` : (t.links.youtubeUrl ? `<div style="padding:12px"><a href="${esc(t.links.youtubeUrl)}" target="_blank" rel="noopener"><i class="fa-brands fa-youtube"></i> Ver en YouTube</a></div>` : '')}
+                <div class="carousel-actions"><a href="${esc(t.links.spotifyUrl||t.links.youtubeUrl||'#')}" target="_blank" rel="noopener"><i class="fa-brands fa-spotify"></i> Abrir</a></div>
               </div>
             </div>
-          `).join('');
+          `;}).join('');
           if(countEl) countEl.textContent = `1 / ${track.length}`;
           // re-inicializar carrusel con la nueva data (dots, flechas, scroll)
           if(window.initCarousel) setTimeout(window.initCarousel, 50);
