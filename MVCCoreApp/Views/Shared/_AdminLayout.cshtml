@@ -12,7 +12,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400;1,9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
 <link rel="stylesheet" href="/css/tokens.css?v=11"/>
-<link rel="stylesheet" href="/css/admin.css?v=16"/>
+<link rel="stylesheet" href="/css/admin.css?v=19"/>
+<script>try{ if(localStorage.getItem('adminSideMini')==='1') document.documentElement.classList.add('admin-mini'); }catch(e){}</script>
 </head>
 <body>
 @{
@@ -34,28 +35,31 @@
   Func<string, string> on = (m)=> modulo == m ? "active" : "";
 }
 <aside class="sidebar" id="sidebar">
-  <a class="brand" href="/admin">El Rey <em>del Tren Fantasma</em></a>
+  <div class="side-head">
+    <a class="brand" href="/admin">El Rey <em>del Tren Fantasma</em></a>
+    <button class="side-toggle" id="sideToggle" aria-label="Minimizar menú" aria-controls="sidebar" aria-expanded="true"><i class="fa-solid fa-bars"></i></button>
+  </div>
   <nav class="nav" id="adminNav">
     <span class="nav-label">Sitio</span>
-    <a href="/admin" class="@on("panel")"><i class="fa-solid fa-table-columns"></i> Panel</a>
-    <a href="/admin/sitio" class="@on("sitio")"><i class="fa-solid fa-pen-ruler"></i> Sitio</a>
-    <a href="/admin/settings" class="@on("contenido")"><i class="fa-solid fa-layer-group"></i> Contenido</a>
+    <a href="/admin" class="@on("panel")" title="Panel"><i class="fa-solid fa-table-columns"></i><span>Panel</span></a>
+    <a href="/admin/sitio" class="@on("sitio")" title="Sitio"><i class="fa-solid fa-pen-ruler"></i><span>Sitio</span></a>
+    <a href="/admin/settings" class="@on("contenido")" title="Contenido"><i class="fa-solid fa-layer-group"></i><span>Contenido</span></a>
     <span class="nav-label">Banda</span>
-    <a href="/admin/members" class="@on("miembros")"><i class="fa-solid fa-user-group"></i> Miembros</a>
-    <a href="/admin/shows" class="@on("shows")"><i class="fa-solid fa-location-dot"></i> Shows</a>
-    <a href="/admin/setlists" class="@on("setlists")"><i class="fa-solid fa-list-music"></i> Setlists</a>
-    <a href="/admin/rehearsals" class="@on("ensayos")"><i class="fa-solid fa-drum"></i> Ensayos</a>
-    <a href="/admin/news" class="@on("noticias")"><i class="fa-solid fa-newspaper"></i> Noticias</a>
-    <a href="/admin/tracks" class="@on("musica")"><i class="fa-solid fa-music"></i> Música</a>
+    <a href="/admin/members" class="@on("miembros")" title="Miembros"><i class="fa-solid fa-user-group"></i><span>Miembros</span></a>
+    <a href="/admin/shows" class="@on("shows")" title="Shows"><i class="fa-solid fa-location-dot"></i><span>Shows</span></a>
+    <a href="/admin/setlists" class="@on("setlists")" title="Setlists"><i class="fa-solid fa-list-music"></i><span>Setlists</span></a>
+    <a href="/admin/rehearsals" class="@on("ensayos")" title="Ensayos"><i class="fa-solid fa-drum"></i><span>Ensayos</span></a>
+    <a href="/admin/news" class="@on("noticias")" title="Noticias"><i class="fa-solid fa-newspaper"></i><span>Noticias</span></a>
+    <a href="/admin/tracks" class="@on("musica")" title="Música"><i class="fa-solid fa-music"></i><span>Música</span></a>
     <span class="nav-label">Sistema</span>
-    <a href="/admin/users" class="@on("usuarios")"><i class="fa-solid fa-user-shield"></i> Usuarios</a>
-    <a href="/admin/asistente" class="@on("asistente")"><i class="fa-solid fa-ghost"></i> Asistente</a>
-    <a href="/admin/files" class="@on("archivos")"><i class="fa-solid fa-cloud-arrow-up"></i> Archivos</a>
+    <a href="/admin/users" class="@on("usuarios")" title="Usuarios"><i class="fa-solid fa-user-shield"></i><span>Usuarios</span></a>
+    <a href="/admin/asistente" class="@on("asistente")" title="Asistente"><i class="fa-solid fa-ghost"></i><span>Asistente</span></a>
+    <a href="/admin/files" class="@on("archivos")" title="Archivos"><i class="fa-solid fa-cloud-arrow-up"></i><span>Archivos</span></a>
   </nav>
   <div class="user">
     <span class="avatar"><i class="fa-solid fa-user"></i></span>
     <span class="username">@User.Identity?.Name</span>
-    <form method="post" action="/auth/logout">@Html.AntiForgeryToken()<button class="btn btn-secondary btn-sm" type="submit"><i class="fa-solid fa-right-from-bracket"></i> Salir</button></form>
+    <form method="post" action="/auth/logout">@Html.AntiForgeryToken()<button class="btn btn-secondary btn-sm" type="submit" title="Salir"><i class="fa-solid fa-right-from-bracket"></i><span>Salir</span></button></form>
   </div>
 </aside>
 <div class="shell">
@@ -80,6 +84,16 @@
   boton.addEventListener('click', ()=> menu(!barra.classList.contains('open')));
   scrim.addEventListener('click', ()=> menu(false));
   document.addEventListener('keydown', (e)=>{ if (e.key === 'Escape') menu(false); });
+
+  const raiz = document.documentElement, alternar = document.getElementById('sideToggle');
+  const sincronizar = ()=> alternar.setAttribute('aria-expanded', String(!raiz.classList.contains('admin-mini')));
+  alternar.addEventListener('click', ()=>{
+    const minimo = !raiz.classList.contains('admin-mini');
+    raiz.classList.toggle('admin-mini', minimo);
+    try { localStorage.setItem('adminSideMini', minimo ? '1' : '0'); } catch(e){}
+    sincronizar();
+  });
+  sincronizar();
 })();
 </script>
 </body>

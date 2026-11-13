@@ -89,17 +89,24 @@ public class CloudinaryService : IFileService
 
     public async Task<IEnumerable<FileListItem>> ListAsync(string prefix = "elrey", int max = 100)
     {
-        var result = await _cloudinary.ListResourcesByPrefixAsync(prefix, "upload", null);
-        if (result.Error != null) throw new Exception(result.Error.Message);
-        var resources = result.Resources.Take(max);
-        return resources.Select(r => new FileListItem(
-            r.SecureUrl?.ToString() ?? r.Url?.ToString() ?? "",
-            r.PublicId,
-            r.Format,
-            r.Bytes,
-            DateTime.TryParse(r.CreatedAt, out var dt) ? dt : DateTime.UtcNow,
-            r.Width,
-            r.Height
-        ));
+        // shortcut: la API pagina de 10 en 10; se recorre el cursor hasta juntar el maximo.
+        var items = new List<FileListItem>();
+        string? cursor = null;
+        do
+        {
+            var result = await _cloudinary.ListResourcesByPrefixAsync(prefix, "upload", cursor);
+            if (result.Error != null) throw new Exception(result.Error.Message);
+            items.AddRange(result.Resources.Select(r => new FileListItem(
+                r.SecureUrl?.ToString() ?? r.Url?.ToString() ?? "",
+                r.PublicId,
+                r.Format,
+                r.Bytes,
+                DateTime.TryParse(r.CreatedAt, out var dt) ? dt : DateTime.UtcNow,
+                r.Width,
+                r.Height
+            )));
+            cursor = result.NextCursor;
+        } while (!string.IsNullOrEmpty(cursor) && items.Count < max);
+        return items.Take(Math.Min(max, 500));
     }
 }
