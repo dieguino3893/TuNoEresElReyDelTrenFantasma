@@ -95,7 +95,7 @@ h1 {
   text-transform: uppercase;
   font-weight: 400;
   color: var(--text);
-  text-shadow: 0 2px 30px rgba(8,12,28,.6);
+  text-shadow: 0 2px 30px rgba(0,0,0,.6);
 }
 h2 {
   font-family: var(--font-display);
@@ -260,7 +260,7 @@ section.alt { background: var(--bg-soft); }
   cursor: pointer;
   transition: all 280ms cubic-bezier(.16,1,.3,1);
   backdrop-filter: blur(12px);
-  background: rgba(22,33,58,.55);
+  background: rgba(18,18,18,.55);
   color: var(--text-soft);
   text-decoration: none;
 }
@@ -330,7 +330,7 @@ footer .social-icon:hover { background: var(--accent); border-color: var(--accen
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  background: rgba(22,33,58,.94);
+  background: rgba(18,18,18,.94);
   backdrop-filter: blur(16px);
   opacity: 0;
   z-index: -1;
@@ -639,7 +639,7 @@ footer .social-icon:hover { background: var(--accent); border-color: var(--accen
 .member-card:hover .img-wrap {
   border-color: rgba(255,255,255,.35);
   transform: translateY(-6px);
-  box-shadow: 0 18px 40px rgba(8,12,28,.45), 0 0 0 1px rgba(255,255,255,.08);
+  box-shadow: 0 18px 40px rgba(0,0,0,.45), 0 0 0 1px rgba(255,255,255,.08);
 }
 .member-card:hover img {
   filter: grayscale(.15) contrast(1.03);
@@ -651,7 +651,7 @@ footer .social-icon:hover { background: var(--accent); border-color: var(--accen
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(to top, rgba(8,12,28,.62) 0%, rgba(8,12,28,.18) 55%, transparent 100%);
+  background: linear-gradient(to top, rgba(0,0,0,.62) 0%, rgba(0,0,0,.18) 55%, transparent 100%);
   opacity: 0;
   transition: opacity 320ms;
 }
@@ -780,7 +780,7 @@ footer .social-icon:hover { background: var(--accent); border-color: var(--accen
 .blog-card:hover {
   transform: translateY(-6px);
   border-color: rgba(255,255,255,.22);
-  box-shadow: 0 20px 40px rgba(8,12,28,.35);
+  box-shadow: 0 20px 40px rgba(0,0,0,.35);
 }
 .blog-card .blog-img {
   width: 100%;
@@ -848,7 +848,6 @@ footer .social-icon:hover { background: var(--accent); border-color: var(--accen
   text-align: center;
   background: var(--surface);
   border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
   position: relative;
   overflow: hidden;
 }
@@ -879,11 +878,11 @@ footer .social-icon:hover { background: var(--accent); border-color: var(--accen
   border-radius: var(--radius-pill);
   padding: 6px;
   transition: border-color 280ms, box-shadow 280ms;
-  box-shadow: 0 8px 32px rgba(8,12,28,.28);
+  box-shadow: 0 8px 32px rgba(0,0,0,.28);
 }
 .newsletter-form:focus-within {
   border-color: rgba(255,255,255,.45);
-  box-shadow: 0 8px 32px rgba(8,12,28,.28), 0 0 0 4px var(--accent-soft);
+  box-shadow: 0 8px 32px rgba(0,0,0,.28), 0 0 0 4px var(--accent-soft);
 }
 .newsletter-form input[type="email"] {
   flex: 1;
@@ -900,7 +899,7 @@ footer .social-icon:hover { background: var(--accent); border-color: var(--accen
 .newsletter-form button {
   padding: 13px 24px;
   background: var(--accent);
-  color: #fff;
+  color: #000;
   border: none;
   font-family: var(--font-heading);
   font-weight: 700;
@@ -966,7 +965,7 @@ footer .social-icon:hover { background: var(--accent); border-color: var(--accen
 .spotify-card:hover {
   border-color: rgba(255,255,255,.20);
   transform: translateY(-4px);
-  box-shadow: 0 16px 36px rgba(8,12,28,.32);
+  box-shadow: 0 16px 36px rgba(0,0,0,.32);
 }
 .spotify-card:nth-child(2):hover { border-color: rgba(255,255,255,.22); }
 .spotify-card iframe {
@@ -992,7 +991,7 @@ footer .social-icon:hover { background: var(--accent); border-color: var(--accen
   font-size: .62rem;
   letter-spacing: .16em;
   text-transform: uppercase;
-  color: #fff;
+  color: #000;
   background: var(--accent);
   padding: 6px 10px;
   border-radius: 999px;
@@ -1062,13 +1061,13 @@ footer .social-icon:hover { background: var(--accent); border-color: var(--accen
   width:48px;height:48px;
   border-radius:50%;
   border:1px solid var(--line-strong);
-  background:rgba(22,33,58,.72);
+  background:rgba(20,20,20,.72);
   backdrop-filter:blur(12px);
   color:var(--text);
   display:flex;align-items:center;justify-content:center;
   cursor:pointer;
   transition:all 220ms;
-  box-shadow:0 6px 18px rgba(8,12,28,.22);
+  box-shadow:0 6px 18px rgba(0,0,0,.22);
 }
 .carousel-btn:hover{ background:var(--text); color:var(--bg); border-color:var(--text); transform:scale(1.06); }
 .carousel-btn:disabled{ opacity:.35; cursor:not-allowed; transform:none; }
@@ -1212,7 +1211,7 @@ footer .social-icon:hover { background: var(--accent); border-color: var(--accen
   border: 1px solid var(--line);
   border-radius: var(--radius);
   padding: clamp(24px, 4vw, 36px);
-  box-shadow: 0 20px 50px rgba(8,12,28,.32);
+  box-shadow: 0 20px 50px rgba(0,0,0,.32);
   gap: 2px;
 }
 .contact-form input,
@@ -1258,7 +1257,7 @@ footer .social-icon:hover { background: var(--accent); border-color: var(--accen
 .contact-form .btn-submit:hover {
   background: var(--accent);
   border-color: var(--accent);
-  color: #fff;
+  color: #000;
   transform: translateY(-2px);
   box-shadow: 0 10px 28px var(--accent-glow);
 }
@@ -1281,7 +1280,7 @@ footer .social-icon:hover { background: var(--accent); border-color: var(--accen
 
 /* ---------- FOOTER ---------- */
 footer {
-  background: #050507;
+  background: #000000;
   color: var(--muted);
   text-align: center;
   padding: 56px clamp(20px, 5vw, 40px) 40px;
@@ -1328,7 +1327,7 @@ footer a:hover { color: var(--text); border-color: var(--line-strong); }
   cursor: pointer;
   z-index: 50;
   border: 1px solid var(--text);
-  box-shadow: 0 8px 24px rgba(8,12,28,.35);
+  box-shadow: 0 8px 24px rgba(0,0,0,.35);
   transition: all 220ms;
 }
 #up-arrow:hover { background: var(--accent); border-color: var(--accent); color: #000; transform: translateY(-3px); box-shadow: 0 12px 32px var(--accent-glow); }
@@ -1428,3 +1427,52 @@ footer a:hover { color: var(--text); border-color: var(--line-strong); }
 /* refs */
 .hero-eyebrow { margin-bottom: 2.4rem; }
 input, textarea { caret-color: var(--accent); accent-color: var(--accent); }
+
+/* ---------- Estados vacíos y noticias ---------- */
+[hidden] { display: none !important; }
+.empty-ghost {
+  text-align: center; color: var(--faint); font-family: var(--font-mono);
+  font-size: .82rem; letter-spacing: .04em; padding: 2.4rem 1rem;
+  width: 100%; grid-column: 1 / -1;
+}
+.shows-table .empty-ghost { padding: 1.6rem 0; }
+.blog-excerpt { font-size: .9rem; color: var(--muted); margin: .5rem 0 0; line-height: 1.6; }
+.blog-more { margin-top: .6rem; }
+.blog-more summary { cursor: pointer; font-family: var(--font-mono); font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; color: var(--text-soft); }
+.blog-more div { margin-top: .6rem; font-size: .9rem; color: var(--muted); line-height: 1.7; }
+/* fila de estado vacío dentro de la tabla de shows */
+.shows-table td.empty-ghost { text-align: center !important; border: none; }
+
+/* ---------- Carga: velo general, esqueletos y spinner ---------- */
+#carga {
+  position: fixed; inset: 0; z-index: 9999;
+  display: flex; flex-direction: column; gap: 18px;
+  align-items: center; justify-content: center;
+  background: #000; color: var(--muted);
+  font-family: var(--font-mono); font-size: .75rem; letter-spacing: .22em; text-transform: uppercase;
+  transition: opacity .5s ease;
+}
+#carga i { font-size: 2rem; color: var(--text); }
+body.listo #carga { opacity: 0; pointer-events: none; }
+.spin {
+  width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+  border: 3px solid rgba(255,255,255,.15); border-top-color: #fff;
+  animation: girar .8s linear infinite;
+}
+.spin.chico { width: 16px; height: 16px; border-width: 2px; display: inline-block; vertical-align: -3px; margin-right: 8px; }
+@keyframes girar { to { transform: rotate(360deg); } }
+.skel {
+  position: relative; overflow: hidden; color: transparent !important;
+  background: rgba(255,255,255,.06); border-radius: 8px;
+  min-height: 1em; user-select: none; pointer-events: none;
+}
+.skel::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.09), transparent);
+  animation: brillo 1.3s infinite;
+}
+@keyframes brillo { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+.img-wrap.skel::after {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.09), transparent);
+  animation: brillo 1.3s infinite; opacity: 1;
+}

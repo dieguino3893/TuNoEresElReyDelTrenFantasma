@@ -28,7 +28,7 @@
     a.textContent = name + '@' + domain;
     mailBox.appendChild(a);
   }
-  document.querySelectorAll('.member-card').forEach((c) => {
+  document.querySelectorAll('.member-card[data-href]').forEach((c) => {
     if (c.dataset.bound) return;
     c.dataset.bound = '1';
     c.addEventListener('click', () => window.open(c.dataset.href || 'https://www.instagram.com/', '_blank'));

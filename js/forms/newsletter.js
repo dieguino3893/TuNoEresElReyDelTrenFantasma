@@ -13,7 +13,7 @@
     const email = input.value.trim();
     if (!email) return setMsg('Ingresa tu email.', 'error');
     btn.disabled = true;
-    btn.innerHTML = 'Enviando…';
+    btn.innerHTML = '<span class="spin chico"></span>Enviando…';
     setMsg('', '');
     try {
       const res = await fetch(`${API}/api/v1/subscribe`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, source: 'web' }) });
