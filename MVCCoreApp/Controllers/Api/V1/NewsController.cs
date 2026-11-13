@@ -59,11 +59,12 @@ public class NewsController : ControllerBase
     public async Task<ActionResult<NewsDto>> Create([FromBody] CreateNewsDto dto)
     {
         var col = _mongo.GetCollection<News>("news");
-        if (await col.Find(x => x.Slug == dto.Slug && !x.IsDeleted).AnyAsync())
-            return Conflict(new { message = $"Slug '{dto.Slug}' ya existe" });
+        var slug = string.IsNullOrWhiteSpace(dto.Slug) ? SanitizeService.GenerarSlug(dto.Title) : dto.Slug;
+        if (await col.Find(x => x.Slug == slug && !x.IsDeleted).AnyAsync())
+            return Conflict(new { message = $"Slug '{slug}' ya existe" });
 
         var user = User.Identity?.Name ?? "system";
-        var n = new News { Title = SanitizeService.Sanitize(dto.Title), Slug = dto.Slug, Tag = SanitizeService.SanitizeText(dto.Tag), ImageUrl = dto.ImageUrl, ImageAlt = SanitizeService.Sanitize(dto.ImageAlt), Excerpt = SanitizeService.Sanitize(dto.Excerpt), ContentHtml = SanitizeService.Sanitize(dto.ContentHtml), PublishedAt = dto.PublishedAt, IsPublished = dto.IsPublished, Order = dto.Order, CreatedBy = user, UpdatedBy = user };
+        var n = new News { Title = SanitizeService.Sanitize(dto.Title), Slug = slug, Tag = SanitizeService.SanitizeText(dto.Tag), ImageUrl = dto.ImageUrl, ImageAlt = SanitizeService.Sanitize(dto.ImageAlt), Excerpt = SanitizeService.Sanitize(dto.Excerpt), ContentHtml = SanitizeService.Sanitize(dto.ContentHtml), PublishedAt = dto.PublishedAt, IsPublished = dto.IsPublished, Order = dto.Order, CreatedBy = user, UpdatedBy = user };
         await col.InsertOneAsync(n);
         return CreatedAtAction(nameof(GetById), new { id = n.Id }, Map(n));
     }
@@ -76,10 +77,11 @@ public class NewsController : ControllerBase
         var n = await col.Find(x => x.Id == id && !x.IsDeleted).FirstOrDefaultAsync();
         if (n == null) return NotFound();
 
-        if (n.Slug != dto.Slug && await col.Find(x => x.Slug == dto.Slug && !x.IsDeleted).AnyAsync())
-            return Conflict(new { message = $"Slug '{dto.Slug}' ya existe" });
+        var slug = string.IsNullOrWhiteSpace(dto.Slug) ? SanitizeService.GenerarSlug(dto.Title) : dto.Slug;
+        if (n.Slug != slug && await col.Find(x => x.Slug == slug && !x.IsDeleted).AnyAsync())
+            return Conflict(new { message = $"Slug '{slug}' ya existe" });
 
-        n.Title = SanitizeService.Sanitize(dto.Title); n.Slug = dto.Slug; n.Tag = SanitizeService.SanitizeText(dto.Tag); n.ImageUrl = dto.ImageUrl; n.ImageAlt = SanitizeService.Sanitize(dto.ImageAlt); n.Excerpt = SanitizeService.Sanitize(dto.Excerpt); n.ContentHtml = SanitizeService.Sanitize(dto.ContentHtml); n.PublishedAt = dto.PublishedAt; n.IsPublished = dto.IsPublished; n.Order = dto.Order;
+        n.Title = SanitizeService.Sanitize(dto.Title); n.Slug = slug; n.Tag = SanitizeService.SanitizeText(dto.Tag); n.ImageUrl = dto.ImageUrl; n.ImageAlt = SanitizeService.Sanitize(dto.ImageAlt); n.Excerpt = SanitizeService.Sanitize(dto.Excerpt); n.ContentHtml = SanitizeService.Sanitize(dto.ContentHtml); n.PublishedAt = dto.PublishedAt; n.IsPublished = dto.IsPublished; n.Order = dto.Order;
         n.UpdatedAt = DateTime.UtcNow; n.UpdatedBy = User.Identity?.Name ?? "system";
         await col.ReplaceOneAsync(x => x.Id == id, n);
         return Ok(Map(n));
