@@ -40,17 +40,36 @@ async function loadMedia(){
     const filtered = q ? data.filter(m => (m.name||'').toLowerCase().includes(q)) : data;
     if(!filtered.length){ grid.innerHTML = '<div class="mono">No hay imágenes. Sube una nueva con nombre.</div>'; return; }
     grid.innerHTML = filtered.map(m => `
-      <div class="card-img" data-url="${m.url}" data-name="${m.name}" onclick="selectCard(this)">
+      <div class="card-img" data-url="${m.url}" data-name="${m.name}" data-id="${m.id || ''}" data-publicid="${m.publicId || ''}" onclick="selectCard(this)">
         <img src="${m.url}" alt="${m.name}" loading="lazy"/>
         <div style="padding:8px">
           <div style="font-size:.82rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.name}</div>
           <div class="mono" style="font-size:.62rem">${m.createdAt ? new Date(m.createdAt).toLocaleDateString() : ''}</div>
         </div>
+        <button class="card-del" title="Eliminar de la nube" aria-label="Eliminar ${m.name}">🗑</button>
       </div>
     `).join('');
     msg.textContent = filtered.length + ' imágenes disponibles';
   }catch(e){ grid.innerHTML = '<div style="color:#FB7185">Error: '+e.message+'</div>'; }
 }
+async function delImagen(btn){
+  const card = btn.closest('.card-img');
+  if(!card) return;
+  const nombre = card.dataset.name || 'esta imagen';
+  if(!confirm('¿Eliminar ' + nombre + ' de la nube? Las páginas que la usen quedarán sin foto.')) return;
+  btn.disabled = true;
+  try{
+    // Media tiene id propio; el fallback de files solo trae publicId.
+    const url = card.dataset.id ? '/api/v1/media/' + card.dataset.id : '/api/v1/files/' + encodeURIComponent(card.dataset.publicid);
+    const res = await fetch(url, { method:'DELETE', credentials:'include' });
+    if(!res.ok) throw new Error((await res.json().catch(()=>({}))).detail || 'Error ' + res.status);
+    loadMedia();
+  }catch(e){ alert('No se pudo eliminar: ' + e.message); btn.disabled = false; }
+}
+document.getElementById('mediaGrid').addEventListener('click', (e)=>{
+  const del = e.target.closest('.card-del');
+  if(del){ e.stopPropagation(); delImagen(del); }
+}, true);
 function selectCard(el){
   document.querySelectorAll('.card-img').forEach(c=>c.classList.remove('selected'));
   el.classList.add('selected');
