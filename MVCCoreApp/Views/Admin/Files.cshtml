@@ -92,8 +92,8 @@ async function loadAll(){
 function copyUrl(url){ navigator.clipboard.writeText(url); alert('Enlace copiado'); }
 async function delFile(publicId){
   if(!confirm('¿Eliminar '+publicId+'?')) return;
-  const res = await fetch('/api/v1/files/'+encodeURIComponent(publicId), { method:'DELETE', credentials:'include' });
-  if(res.ok) loadAll(); else alert('Error al eliminar');
+  const res = await fetch('/api/v1/files?publicId='+encodeURIComponent(publicId), { method:'DELETE', credentials:'include' });
+  if(res.ok) loadAll(); else { const d = await res.json().catch(()=>({})); alert('Error al eliminar: '+(d.detail||res.status)); }
 }
 loadAll();
 </script>

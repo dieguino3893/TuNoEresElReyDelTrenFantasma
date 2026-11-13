@@ -59,8 +59,8 @@ async function delImagen(btn){
   if(!confirm('¿Eliminar ' + nombre + ' de la nube? Las páginas que la usen quedarán sin foto.')) return;
   btn.disabled = true;
   try{
-    // Media tiene id propio; el fallback de files solo trae publicId.
-    const url = card.dataset.id ? '/api/v1/media/' + card.dataset.id : '/api/v1/files/' + encodeURIComponent(card.dataset.publicid);
+    // Media tiene id propio; el fallback de files solo trae publicId (por query: el %2F en ruta no se decodifica).
+    const url = card.dataset.id ? '/api/v1/media/' + card.dataset.id : '/api/v1/files?publicId=' + encodeURIComponent(card.dataset.publicid);
     const res = await fetch(url, { method:'DELETE', credentials:'include' });
     if(!res.ok) throw new Error((await res.json().catch(()=>({}))).detail || 'Error ' + res.status);
     loadMedia();

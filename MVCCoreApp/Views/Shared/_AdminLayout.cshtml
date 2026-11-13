@@ -12,7 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400;1,9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
 <link rel="stylesheet" href="/css/tokens.css?v=11"/>
-<link rel="stylesheet" href="/css/admin.css?v=15"/>
+<link rel="stylesheet" href="/css/admin.css?v=16"/>
 </head>
 <body>
 @{
@@ -33,19 +33,21 @@
   };
   Func<string, string> on = (m)=> modulo == m ? "active" : "";
 }
-<header class="topbar">
-  <div class="brand">El Rey <em>del Tren Fantasma</em></div>
-  <button class="hamburger" id="hamburger" aria-label="Abrir menú" aria-controls="adminNav" aria-expanded="false" onclick="document.getElementById('adminNav').classList.toggle('open'); this.classList.toggle('active'); this.setAttribute('aria-expanded', this.classList.contains('active'))"><span></span></button>
+<aside class="sidebar" id="sidebar">
+  <a class="brand" href="/admin">El Rey <em>del Tren Fantasma</em></a>
   <nav class="nav" id="adminNav">
+    <span class="nav-label">Sitio</span>
     <a href="/admin" class="@on("panel")"><i class="fa-solid fa-table-columns"></i> Panel</a>
     <a href="/admin/sitio" class="@on("sitio")"><i class="fa-solid fa-pen-ruler"></i> Sitio</a>
     <a href="/admin/settings" class="@on("contenido")"><i class="fa-solid fa-layer-group"></i> Contenido</a>
+    <span class="nav-label">Banda</span>
     <a href="/admin/members" class="@on("miembros")"><i class="fa-solid fa-user-group"></i> Miembros</a>
     <a href="/admin/shows" class="@on("shows")"><i class="fa-solid fa-location-dot"></i> Shows</a>
     <a href="/admin/setlists" class="@on("setlists")"><i class="fa-solid fa-list-music"></i> Setlists</a>
     <a href="/admin/rehearsals" class="@on("ensayos")"><i class="fa-solid fa-drum"></i> Ensayos</a>
     <a href="/admin/news" class="@on("noticias")"><i class="fa-solid fa-newspaper"></i> Noticias</a>
     <a href="/admin/tracks" class="@on("musica")"><i class="fa-solid fa-music"></i> Música</a>
+    <span class="nav-label">Sistema</span>
     <a href="/admin/users" class="@on("usuarios")"><i class="fa-solid fa-user-shield"></i> Usuarios</a>
     <a href="/admin/asistente" class="@on("asistente")"><i class="fa-solid fa-ghost"></i> Asistente</a>
     <a href="/admin/files" class="@on("archivos")"><i class="fa-solid fa-cloud-arrow-up"></i> Archivos</a>
@@ -53,11 +55,32 @@
   <div class="user">
     <span class="avatar"><i class="fa-solid fa-user"></i></span>
     <span class="username">@User.Identity?.Name</span>
-    <form method="post" action="/auth/logout" style="display:inline">@Html.AntiForgeryToken()<button class="btn btn-secondary btn-sm" type="submit"><i class="fa-solid fa-right-from-bracket"></i> Salir</button></form>
+    <form method="post" action="/auth/logout">@Html.AntiForgeryToken()<button class="btn btn-secondary btn-sm" type="submit"><i class="fa-solid fa-right-from-bracket"></i> Salir</button></form>
   </div>
-</header>
-<div class="wrap">
-  @RenderBody()
+</aside>
+<div class="shell">
+  <header class="mobilebar">
+    <div class="brand">El Rey <em>del Tren Fantasma</em></div>
+    <button class="hamburger" id="hamburger" aria-label="Abrir menú" aria-controls="sidebar" aria-expanded="false"><span></span></button>
+  </header>
+  <div class="wrap">
+    @RenderBody()
+  </div>
 </div>
+<div class="scrim" id="scrim" hidden></div>
+<script>
+(function(){
+  const barra = document.getElementById('sidebar'), scrim = document.getElementById('scrim'), boton = document.getElementById('hamburger');
+  function menu(abrir){
+    barra.classList.toggle('open', abrir);
+    boton.classList.toggle('active', abrir);
+    boton.setAttribute('aria-expanded', abrir);
+    scrim.hidden = !abrir;
+  }
+  boton.addEventListener('click', ()=> menu(!barra.classList.contains('open')));
+  scrim.addEventListener('click', ()=> menu(false));
+  document.addEventListener('keydown', (e)=>{ if (e.key === 'Escape') menu(false); });
+})();
+</script>
 </body>
 </html>

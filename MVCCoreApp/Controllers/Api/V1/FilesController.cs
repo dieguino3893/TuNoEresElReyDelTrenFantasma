@@ -72,10 +72,13 @@ public class FilesController : ControllerBase
         catch (Exception ex) { _log.LogWarning(ex, "Lista falló"); return StatusCode(500, new { detail = "No se pudo listar." }); }
     }
 
-    [HttpDelete("{*publicId}")]
+    // shortcut: el publicId viaja por query (?publicId=) porque en ruta el %2F
+    // de la carpeta llegaba sin decodificar y Cloudinary respondía "not found".
+    [HttpDelete]
     [Authorize(AuthenticationSchemes = "Cookies,Basic,ApiKey")]
-    public async Task<IActionResult> Delete(string publicId)
+    public async Task<IActionResult> Delete([FromQuery] string publicId)
     {
+        if (string.IsNullOrWhiteSpace(publicId)) return BadRequest(new { detail = "Falta ?publicId=" });
         try
         {
             var resultado = await _files.DeleteAsync(publicId);
