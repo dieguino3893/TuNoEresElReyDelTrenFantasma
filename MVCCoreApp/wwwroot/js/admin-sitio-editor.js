@@ -143,6 +143,10 @@
       .boton-crud:hover{ background:#fff; color:#000; }
       .boton-crud.editar{ top:8px; right:8px; }
       .boton-crud.borrar{ top:8px; right:40px; }
+      .boton-nuevo{ display:block; margin:14px auto 0; padding:9px 18px; border-radius:10px;
+        border:1px dashed rgba(255,255,255,.45); background:transparent; color:#fff;
+        font:12px/1.4 system-ui; letter-spacing:.04em; cursor:pointer; position:static; width:auto; height:auto; }
+      .boton-nuevo:hover{ border-color:#fff; background:rgba(255,255,255,.08); }
       [data-entidad]{ position:relative; }`;
     document.head.appendChild(estilo);
   }
@@ -163,8 +167,10 @@
     }).catch(()=>{});
   }
 
-  // CRUD embebido: lápiz y papelera sobre cada tarjeta/fila con data-entidad+data-id.
-  // La hidratación del front reemplaza el HTML, así que se reconecta con un observador.
+  // CRUD embebido: lápiz y papelera sobre cada tarjeta/fila con data-entidad+data-id,
+  // más un botón ＋ al pie de cada sección para agregar.
+  // La hidratación del front reemplaza el HTML interno, así que el ＋ va de hermano
+  // (después del contenedor) para que sobreviva a los innerHTML.
   function ponerBotones(nodo){
     if (!nodo.dataset || !nodo.dataset.entidad || !nodo.dataset.id) return;
     if (nodo.querySelector(':scope > .boton-crud')) return;
@@ -183,6 +189,26 @@
 
   function conectarCrud(raiz){
     (raiz || document).querySelectorAll('[data-entidad][data-id]').forEach(ponerBotones);
+  }
+
+  const NUEVOS = [
+    ['.member-grid','members','＋ Integrante'],
+    ['.shows-table','shows','＋ Show'],
+    ['.blog-grid','news','＋ Noticia'],
+    ['#songCarousel','tracks','＋ Canción']
+  ];
+  function ponerNuevos(){
+    NUEVOS.forEach(([sel, entidad, texto])=>{
+      const cont = document.querySelector(sel);
+      if (!cont || cont.parentNode.querySelector(':scope > .boton-nuevo')) return;
+      const b = document.createElement('button');
+      b.className = 'boton-nuevo'; b.textContent = texto; b.title = texto;
+      b.addEventListener('click', (e)=>{
+        e.preventDefault(); e.stopPropagation();
+        parent.postMessage({ tipo:'crud', entidad, accion:'nuevo' }, location.origin);
+      });
+      cont.after(b);
+    });
   }
 
   new MutationObserver((cambios)=>{
@@ -214,4 +240,5 @@
   montarEstilos();
   aplicarSecciones();
   conectarCrud(document);
+  ponerNuevos();
 })();

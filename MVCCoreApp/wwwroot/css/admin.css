@@ -102,12 +102,6 @@ body { padding-bottom: 48px; }
 }
 .panel-caja label { display: flex; gap: 8px; align-items: center; font-size: .8rem; color: var(--text); cursor: pointer; }
 .panel-caja input { accent-color: var(--accent); }
-.panel-nuevos { display: grid; gap: 6px; margin-top: 6px; }
-.panel-nuevos button {
-  padding: 8px; border-radius: 10px; border: 1px dashed var(--line2); background: transparent;
-  color: var(--text); font: inherit; font-size: .78rem; cursor: pointer;
-}
-.panel-nuevos button:hover { border-color: var(--accent); }
 #lienzo { width: 100%; height: calc(100vh - 180px); min-height: 520px; display: block; background: #000; border: 1px solid var(--line); border-radius: 16px; }
 
 /* --- Modal del CRUD embebido --- */

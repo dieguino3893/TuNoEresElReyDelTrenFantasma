@@ -16,12 +16,6 @@
       <label><input type="checkbox" data-seccion="music" data-prop="MusicVisible" checked> Música</label>
       <label><input type="checkbox" data-seccion="contact" data-prop="ContactVisible" checked> Contacto</label>
       <label><input type="checkbox" data-seccion="newsletter" data-prop="NewsletterVisible" checked> Newsletter</label>
-      <div class="panel-nuevos">
-        <button data-nuevo="members">＋ Integrante</button>
-        <button data-nuevo="shows">＋ Show</button>
-        <button data-nuevo="news">＋ Noticia</button>
-        <button data-nuevo="tracks">＋ Canción</button>
-      </div>
     </div>
   </details>
   <a class="btn btn-secondary btn-sm" href="@ViewBag.SiteUrl" target="_blank" rel="noopener"><i class="fa-solid fa-arrow-up-right-from-square"></i> Ver el sitio</a>
@@ -62,10 +56,6 @@
     if (!e.target.dataset.prop) return;
     enviar({ tipo:'seccion', id:e.target.dataset.seccion, prop:e.target.dataset.prop, checked:e.target.checked });
   });
-
-  panel.querySelectorAll('[data-nuevo]').forEach((b)=> b.addEventListener('click', ()=>{
-    window.postMessage({ tipo:'crud', entidad:b.dataset.nuevo, accion:'nuevo' }, location.origin);
-  }));
 
   window.addEventListener('message', function(e){
     if (e.origin !== location.origin || !e.data) return;
