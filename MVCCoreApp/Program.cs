@@ -2,6 +2,7 @@ using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.OpenApi;
+using MongoDB.Bson.Serialization.Conventions;
 using MVCCoreApp.Models;
 using MVCCoreApp.Services;
 using MVCCoreApp.Services.Asistente;
@@ -32,6 +33,10 @@ if (File.Exists(envPath))
 var builder = WebApplication.CreateBuilder(args);
 
 // Configuración MongoDB
+// shortcut: los documentos viejos pueden traer campos ya eliminados del código;
+// se ignoran en vez de romper la lectura (el driver por defecto lanza error).
+ConventionRegistry.Register("IgnorarCamposViejos",
+    new ConventionPack { new IgnoreExtraElementsConvention(true) }, _ => true);
 builder.Services.Configure<MongoDbSettings>(
     builder.Configuration.GetSection("MongoDbSettings"));
 builder.Services.AddSingleton<MongoDbService>();
