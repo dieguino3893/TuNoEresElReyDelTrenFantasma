@@ -80,7 +80,8 @@ jobs:
               },
               Asistente: {
                 ApiKey: $asistente,
-                Modelo: "deepseek-v4.1-flash",
+                Modelo: "muse-spark-1.3-contributor",
+                MaxTokens: 131072,
                 BaseUrl: "https://opencode.ai/zen/go/v1"
               }
             }' > publicacion/appsettings.Production.json

@@ -33,8 +33,8 @@ public class AsistenteCliente(HttpClient http, IConfiguration configuracion, ILo
         }
 
         var baseUrl = (configuracion["Asistente:BaseUrl"] ?? "https://opencode.ai/zen/go/v1").TrimEnd('/');
-        var modelo = configuracion["Asistente:Modelo"] ?? "deepseek-v4.1-flash";
-        var maxTokens = int.TryParse(configuracion["Asistente:MaxTokens"], out var mt) ? mt : 64000;
+        var modelo = configuracion["Asistente:Modelo"] ?? "muse-spark-1.3-contributor";
+        var maxTokens = int.TryParse(configuracion["Asistente:MaxTokens"], out var mt) ? mt : 131072;
 
         var mensajes = new JsonArray { new JsonObject { ["role"] = "system", ["content"] = instrucciones } };
         foreach (var (rol, texto) in historial)
@@ -47,7 +47,7 @@ public class AsistenteCliente(HttpClient http, IConfiguration configuracion, ILo
             ["model"] = modelo,
             ["messages"] = mensajes,
             ["max_tokens"] = maxTokens,
-            ["reasoning_effort"] = "max",
+            ["reasoning_effort"] = "xhigh",
         };
 
         if (herramientas.Count > 0)

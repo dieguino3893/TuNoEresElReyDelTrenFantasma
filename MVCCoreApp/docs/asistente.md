@@ -21,7 +21,7 @@ Asistente__ApiKey=<key de OpenCode Go>
 
 Opcionales en `appsettings.json`: `Asistente:BaseUrl`, `Asistente:Modelo`, `Asistente:MaxTokens`.
 
-Modelo actual: `deepseek-v4.1-flash` (variante max, salida hasta 64000 tokens, historial de 200 mensajes).
+Modelo actual: `muse-spark-1.3-contributor` (esfuerzo xhigh, salida hasta 131072 tokens, historial de 200 mensajes).
 
 ## Límites
 
