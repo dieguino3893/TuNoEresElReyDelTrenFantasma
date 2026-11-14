@@ -19,7 +19,9 @@ Sin `Asistente:ApiKey` el chat muestra aviso y no responde (mismo esquema que pe
 Asistente__ApiKey=<key de OpenCode Go>
 ```
 
-Opcionales en `appsettings.json`: `Asistente:BaseUrl`, `Asistente:Modelo`.
+Opcionales en `appsettings.json`: `Asistente:BaseUrl`, `Asistente:Modelo`, `Asistente:MaxTokens`.
+
+Modelo actual: `muse-spark-1.3-low` (variante low, salida hasta 16000 tokens).
 
 ## Límites
 

@@ -1,0 +1,26 @@
+@* Burbuja flotante del asistente: disponible en todo el panel. Arrastrable por su cabecera. *@
+<div id="fantasmaBurbuja" class="fantasma-burbuja" hidden>
+  <div id="fantasmaCabeza" class="fantasma-cabeza">
+    <span><i class="fa-solid fa-ghost"></i> Fantasma</span>
+    <div class="fantasma-cabeza-btns">
+      <button type="button" id="fantasmaMinim" title="Minimizar" aria-label="Minimizar">—</button>
+      <button type="button" id="fantasmaCerrar" title="Cerrar" aria-label="Cerrar">✕</button>
+    </div>
+  </div>
+  <div id="fantasmaCuerpo" class="fantasma-cuerpo">
+    <div class="fantasma-hilos">
+      <select id="fantasmaHilos" class="form-control" title="Chats"></select>
+      <button type="button" id="fantasmaNuevo" class="btn btn-secondary btn-sm" title="Nuevo chat"><i class="fa-solid fa-plus"></i></button>
+    </div>
+    <div id="fantasmaMensajes" class="fantasma-mensajes"></div>
+    <div id="fantasmaAviso" class="alert alert-err" style="display:none"></div>
+    <form id="fantasmaForm" class="fantasma-form">
+      @Html.AntiForgeryToken()
+      <input class="form-control" id="fantasmaInput" placeholder="Ej. ¿qué shows hay en diciembre?" maxlength="2000" autocomplete="off"/>
+      <button class="btn btn-primary btn-sm" type="submit" title="Enviar"><i class="fa-solid fa-paper-plane"></i></button>
+    </form>
+  </div>
+</div>
+<button id="fantasmaFab" class="fantasma-fab" title="Abrir asistente" aria-label="Abrir asistente">
+  <i class="fa-solid fa-ghost"></i>
+</button>
