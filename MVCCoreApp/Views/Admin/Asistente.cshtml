@@ -6,13 +6,17 @@
   <div class="actions-row"><a href="/admin" class="btn btn-secondary btn-sm">← Volver al panel</a></div>
 </div>
 @if(ViewBag.Configurado==false){<div class="alert alert-err"><i class="fa-solid fa-triangle-exclamation"></i> Asistente sin configurar: falta <span class="mono">Asistente:ApiKey</span> en el servidor.</div>}
-<div class="card">
-  <div class="chat-wrap">
-    <aside class="chat-hilos">
+<div class="card chat-card">
+  <div class="chat-wrap" id="chatWrap">
+    <aside class="chat-hilos" id="chatHilos">
       <button class="btn btn-secondary btn-sm" id="btnNuevoChat" type="button"><i class="fa-solid fa-plus"></i> Nuevo chat</button>
       <div id="listaHilos" class="chat-hilos-lista"></div>
     </aside>
     <section class="chat-main">
+      <div class="chat-bar">
+        <button class="chat-hamb" id="btnHilos" type="button" title="Historial" aria-label="Historial"><span></span><span></span><span></span></button>
+        <span class="muted">Fantasma</span>
+      </div>
       <div id="mensajes" class="chat-mensajes"></div>
       <div id="aviso" class="alert alert-err" style="display:none;margin-top:8px"></div>
       <form id="formChat" class="chat-form">
@@ -25,20 +29,43 @@
   </div>
 </div>
 <style>
-.chat-wrap{display:flex;gap:14px;min-height:60vh}
-.chat-hilos{width:230px;flex-shrink:0;display:flex;flex-direction:column;gap:8px}
-.chat-hilos-lista{overflow-y:auto;display:flex;flex-direction:column;gap:4px}
-.chat-hilo{display:flex;align-items:center;gap:6px;padding:8px;border:1px solid #e2e2e2;border-radius:8px;background:#fff;cursor:pointer;text-align:left;width:100%}
-.chat-hilo.active{border-color:#c2410c;background:#fff7ed}
+.chat-card{padding:0;overflow:hidden}
+.chat-wrap{display:flex;gap:0;min-height:62vh}
+.chat-hilos{width:250px;flex-shrink:0;display:flex;flex-direction:column;gap:8px;padding:14px;
+  background:rgba(255,255,255,.03);border-right:1px solid var(--line2)}
+.chat-hilos-lista{overflow-y:auto;display:flex;flex-direction:column;gap:6px}
+.chat-hilo{display:flex;align-items:center;gap:6px;padding:9px 10px;border:1px solid var(--line2);
+  border-radius:10px;background:rgba(255,255,255,.04);color:var(--text);cursor:pointer;text-align:left;width:100%}
+.chat-hilo:hover{border-color:var(--accent)}
+.chat-hilo.active{border-color:var(--accent);background:rgba(255,255,255,.08)}
 .chat-hilo span{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px}
-.chat-hilo button{border:none;background:none;cursor:pointer;color:#999}
-.chat-main{flex:1;display:flex;flex-direction:column;min-width:0}
-.chat-mensajes{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;min-height:300px;max-height:60vh}
-.burbuja{max-width:85%;padding:10px 12px;border-radius:10px;white-space:pre-wrap;font-size:14px}
-.burbuja.usuario{align-self:flex-end;background:#c2410c;color:#fff}
-.burbuja.asistente{align-self:flex-start;background:#f3f3f3;color:#222}
+.chat-hilo button{border:none;background:none;cursor:pointer;color:var(--muted)}
+.chat-hilo button:hover{color:var(--text)}
+.chat-main{flex:1;display:flex;flex-direction:column;min-width:0;padding:14px}
+.chat-bar{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.chat-hamb{width:34px;height:30px;border-radius:8px;border:1px solid var(--line2);background:transparent;
+  cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.chat-hamb span{display:block;width:16px;height:2px;background:var(--text);border-radius:2px}
+.chat-mensajes{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;min-height:300px;max-height:60vh;padding:4px 2px}
+.burbuja{max-width:85%;padding:10px 14px;border-radius:14px;white-space:pre-wrap;font-size:14px;line-height:1.5}
+.burbuja.usuario{align-self:flex-end;background:var(--accent);color:#fff;border-bottom-right-radius:4px}
+.burbuja.asistente{align-self:flex-start;background:rgba(255,255,255,.07);color:var(--text);
+  border:1px solid var(--line2);border-bottom-left-radius:4px}
 .burbuja .prop-btns{margin-top:8px;display:flex;gap:8px}
 .chat-form{display:flex;gap:8px;margin-top:10px}
-@@media(max-width:720px){.chat-wrap{flex-direction:column}.chat-hilos{width:100%}}
+.chat-wrap.sin-hilos .chat-hilos{display:none}
+@@media(max-width:720px){
+  .chat-hilos{position:absolute;z-index:5;min-height:62vh;background:rgba(16,14,22,.98)}
+  .chat-wrap{position:relative}
+  .chat-wrap.sin-hilos .chat-hilos{display:none}
+}
 </style>
-<script src="/js/asistente.js?v=1"></script>
+<script>
+document.getElementById('btnHilos').addEventListener('click', function(){
+  var w = document.getElementById('chatWrap');
+  w.classList.toggle('sin-hilos');
+  try{ localStorage.setItem('fantasmaHilos', w.classList.contains('sin-hilos') ? '0' : '1'); }catch(e){}
+});
+try{ if(localStorage.getItem('fantasmaHilos')==='0') document.getElementById('chatWrap').classList.add('sin-hilos'); }catch(e){}
+</script>
+<script src="/js/asistente.js?v=2"></script>
