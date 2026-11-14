@@ -111,7 +111,7 @@
   (function () {
     var x0 = 0, y0 = 0, l0 = 0, t0 = 0, moviendo = false;
     cabeza.addEventListener("pointerdown", function (e) {
-      if (e.target.closest("button")) return;
+      if (e.target.closest("button,a")) return;
       moviendo = true;
       var r = burbuja.getBoundingClientRect();
       x0 = e.clientX; y0 = e.clientY; l0 = r.left; t0 = r.top;

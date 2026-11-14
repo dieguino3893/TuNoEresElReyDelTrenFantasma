@@ -12,7 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400;1,9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
 <link rel="stylesheet" href="/css/tokens.css?v=11"/>
-<link rel="stylesheet" href="/css/admin.css?v=20"/>
+<link rel="stylesheet" href="/css/admin.css?v=21"/>
 <script>try{ if(localStorage.getItem('adminSideMini')==='1') document.documentElement.classList.add('admin-mini'); }catch(e){}</script>
 </head>
 <body>
@@ -72,8 +72,14 @@
   </div>
 </div>
 <div class="scrim" id="scrim" hidden></div>
-@await Html.PartialAsync("~/Views/Admin/_AsistenteBurbuja.cshtml")
-<script src="/js/asistente-burbuja.js?v=1"></script>
+@{
+  var controlador = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+  var enAsistente = controlador.Equals("Asistente", System.StringComparison.OrdinalIgnoreCase);
+}
+@if(!enAsistente){
+  @await Html.PartialAsync("~/Views/Admin/_AsistenteBurbuja.cshtml")
+  <script src="/js/asistente-burbuja.js?v=2"></script>
+}
 <script>
 (function(){
   const barra = document.getElementById('sidebar'), scrim = document.getElementById('scrim'), boton = document.getElementById('hamburger');

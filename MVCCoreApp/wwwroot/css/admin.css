@@ -438,6 +438,9 @@ select.form-control { appearance: none; cursor: pointer; }
 .fantasma-cabeza-btns{ display:flex; gap:6px; }
 .fantasma-cabeza-btns button{ width:26px; height:26px; border-radius:8px; border:1px solid var(--line2);
   background:transparent; color:var(--text); cursor:pointer; }
+.fantasma-btn-link{ width:26px; height:26px; border-radius:8px; border:1px solid var(--line2); display:grid;
+  place-items:center; color:var(--text); font-size:12px; }
+.fantasma-btn-link:hover{ background:rgba(255,255,255,.12); }
 .fantasma-cuerpo{ display:flex; flex-direction:column; gap:8px; padding:10px; }
 .fantasma-hilos{ display:flex; gap:6px; }
 .fantasma-hilos select{ flex:1; min-width:0; }
