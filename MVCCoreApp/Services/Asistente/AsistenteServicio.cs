@@ -14,7 +14,7 @@ public class AsistenteServicio(
     AuditoriaService auditoria,
     ILogger<AsistenteServicio> bitacora)
 {
-    private const int MaximoHistorial = 40;
+    private const int MaximoHistorial = 200;
     private const int MaximoPasos = 8;
 
     private static string Instrucciones(string usuario, string catalogos) => $"""
