@@ -449,6 +449,6 @@ select.form-control { appearance: none; cursor: pointer; }
 
 /* Burbujas chat (modulo + burbuja flotante) */
 .fantasma-mensajes .burbuja,.chat-mensajes .burbuja{max-width:88%;padding:10px 14px;border-radius:14px;white-space:pre-wrap;font-size:14px;line-height:1.5}
-.burbuja.usuario{align-self:flex-end;background:var(--accent);color:#fff;margin-left:auto}
+.burbuja.usuario{align-self:flex-end;background:#f2f2f2;color:#111;margin-left:auto}
 .burbuja.asistente{align-self:flex-start;background:rgba(255,255,255,.07);color:var(--text);border:1px solid var(--line2);margin-right:auto}
 .burbuja .prop-btns{margin-top:8px;display:flex;gap:8px}
