@@ -28,7 +28,20 @@
   function burbujaMsg(m) {
     var div = document.createElement("div");
     div.className = "burbuja " + (m.rol === "usuario" ? "usuario" : "asistente");
-    div.textContent = m.contenido;
+    var texto = document.createElement("span");
+    texto.textContent = m.contenido;
+    div.appendChild(texto);
+    if (m.rol !== "usuario" && m.pensamiento) {
+      var det = document.createElement("details");
+      det.className = "pensamiento";
+      var sum = document.createElement("summary");
+      sum.textContent = "Pensamiento";
+      var p = document.createElement("p");
+      p.textContent = m.pensamiento;
+      det.appendChild(sum);
+      det.appendChild(p);
+      div.appendChild(det);
+    }
     if (m.propuesta) {
       var btns = document.createElement("div");
       btns.className = "prop-btns";
@@ -41,6 +54,15 @@
       btns.appendChild(ok); btns.appendChild(no); div.appendChild(btns);
     }
     caja.appendChild(div); caja.scrollTop = caja.scrollHeight;
+    return div;
+  }
+
+  function escribiendo() {
+    var div = document.createElement("div");
+    div.className = "burbuja asistente escribiendo";
+    div.innerHTML = '<span class="punto"></span><span class="punto"></span><span class="punto"></span>';
+    caja.appendChild(div);
+    caja.scrollTop = caja.scrollHeight;
     return div;
   }
 
@@ -79,6 +101,7 @@
     if (!navigator.onLine) { mostrarAviso("Sin conexión: el asistente necesita internet."); return; }
     enviando = true; input.value = ""; limpiarAviso();
     burbujaMsg({ rol: "usuario", contenido: texto });
+    var tecleando = escribiendo();
     try {
       var res = await fetch("/admin/asistente/mensaje", {
         method: "POST", headers: headers(), credentials: "same-origin",
@@ -88,12 +111,13 @@
       burbujaMsg(await res.json());
       cargarHilos();
     } catch (err) { mostrarAviso("No se pudo contactar al asistente. Intenta de nuevo."); }
-    finally { enviando = false; }
+    finally { tecleando.remove(); enviando = false; }
   }
 
   async function confirmar(mensajeId, valor, div) {
     var btns = div.querySelectorAll("button");
     btns.forEach(function (b) { b.disabled = true; });
+    var tecleando = escribiendo();
     try {
       var res = await fetch("/admin/asistente/confirmar", {
         method: "POST", headers: headers(), credentials: "same-origin",
@@ -104,7 +128,7 @@
       burbujaMsg({ rol: "usuario", contenido: valor ? "Sí, confirma la propuesta." : "No, cancela la propuesta." });
       burbujaMsg(await res.json());
     } catch (e) { mostrarAviso("No se pudo confirmar. Intenta de nuevo."); }
-    finally { btns.forEach(function (b) { b.disabled = false; }); }
+    finally { tecleando.remove(); btns.forEach(function (b) { b.disabled = false; }); }
   }
 
   // Arrastre por cabecera (mouse + táctil).

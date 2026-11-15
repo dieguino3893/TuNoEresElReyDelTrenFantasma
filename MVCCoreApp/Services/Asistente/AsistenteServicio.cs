@@ -167,6 +167,7 @@ public class AsistenteServicio(
                 HiloId = hilo.Id,
                 Rol = RolMensaje.Asistente,
                 Contenido = textoFinal,
+                Pensamiento = PensamientoDe(herramientasUsadas),
                 CreatedBy = usuario,
                 UpdatedBy = usuario,
             };
@@ -212,6 +213,7 @@ public class AsistenteServicio(
             HiloId = hilo.Id,
             Rol = RolMensaje.Asistente,
             Contenido = textoFinal,
+            Pensamiento = PensamientoDe(herramientasUsadas),
             CreatedBy = usuario,
             UpdatedBy = usuario,
         };
@@ -429,6 +431,11 @@ public class AsistenteServicio(
             $"Tracks:\n{string.Join("\n", tracks.Select(t => $"- {t.TrackNumber}. {t.Title} ({t.Type})"))}";
     }
 
+    private static string? PensamientoDe(List<string> herramientasUsadas) =>
+        herramientasUsadas.Count == 0
+            ? null
+            : $"Antes de responder consulté: {string.Join(", ", herramientasUsadas.Distinct())}.";
+
     private MensajeChatDto ADto(MensajeChat mensaje)
     {
         PropuestaDto? propuesta = null;
@@ -454,6 +461,7 @@ public class AsistenteServicio(
             mensaje.Rol.ToString().ToLowerInvariant(),
             mensaje.Contenido,
             propuesta,
-            mensaje.CreatedAt);
+            mensaje.CreatedAt,
+            mensaje.Pensamiento);
     }
 }

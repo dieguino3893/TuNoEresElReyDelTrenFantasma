@@ -39,7 +39,20 @@
   function burbuja(mensaje) {
     var div = document.createElement("div");
     div.className = "burbuja " + (mensaje.rol === "usuario" ? "usuario" : "asistente");
-    div.textContent = mensaje.contenido;
+    var texto = document.createElement("span");
+    texto.textContent = mensaje.contenido;
+    div.appendChild(texto);
+    if (mensaje.rol !== "usuario" && mensaje.pensamiento) {
+      var det = document.createElement("details");
+      det.className = "pensamiento";
+      var sum = document.createElement("summary");
+      sum.textContent = "Pensamiento";
+      var p = document.createElement("p");
+      p.textContent = mensaje.pensamiento;
+      det.appendChild(sum);
+      det.appendChild(p);
+      div.appendChild(det);
+    }
     if (mensaje.propuesta) {
       var btns = document.createElement("div");
       btns.className = "prop-btns";
@@ -57,6 +70,15 @@
       btns.appendChild(no);
       div.appendChild(btns);
     }
+    caja.appendChild(div);
+    caja.scrollTop = caja.scrollHeight;
+    return div;
+  }
+
+  function escribiendo() {
+    var div = document.createElement("div");
+    div.className = "burbuja asistente escribiendo";
+    div.innerHTML = '<span class="punto"></span><span class="punto"></span><span class="punto"></span>';
     caja.appendChild(div);
     caja.scrollTop = caja.scrollHeight;
     return div;
@@ -142,6 +164,7 @@
     input.value = "";
     limpiarAviso();
     burbuja({ rol: "usuario", contenido: texto });
+    var tecleando = escribiendo();
     try {
       var res = await fetch("/admin/asistente/mensaje", {
         method: "POST",
@@ -165,6 +188,7 @@
     } catch (err) {
       mostrarAviso("No se pudo contactar al asistente. Intenta de nuevo.");
     } finally {
+      tecleando.remove();
       enviando = false;
     }
   }
@@ -172,6 +196,7 @@
   async function confirmar(mensajeId, valor, div) {
     var btns = div.querySelectorAll("button");
     btns.forEach(function (b) { b.disabled = true; });
+    var tecleando = escribiendo();
     try {
       var res = await fetch("/admin/asistente/confirmar", {
         method: "POST",
@@ -186,6 +211,7 @@
     } catch (e) {
       mostrarAviso("No se pudo confirmar. Intenta de nuevo.");
     } finally {
+      tecleando.remove();
       btns.forEach(function (b) { b.disabled = false; });
     }
   }

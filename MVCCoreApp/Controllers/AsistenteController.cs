@@ -114,5 +114,6 @@ public class AsistenteController(
         mensaje.PropuestaEstado == EstadoPropuesta.Pendiente
             ? new PropuestaDto(mensaje.Id, "", mensaje.Contenido, "pendiente")
             : null,
-        mensaje.CreatedAt);
+        mensaje.CreatedAt,
+        mensaje.Pensamiento);
 }

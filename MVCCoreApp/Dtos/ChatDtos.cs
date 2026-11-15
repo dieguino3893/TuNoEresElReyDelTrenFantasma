@@ -9,7 +9,8 @@ public record MensajeChatDto(
     string Rol,
     string Contenido,
     PropuestaDto? Propuesta,
-    DateTime CreadoEn);
+    DateTime CreadoEn,
+    string? Pensamiento);
 
 public record PropuestaDto(
     string MensajeId,

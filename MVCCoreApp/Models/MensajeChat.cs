@@ -39,4 +39,8 @@ public class MensajeChat : AuditableDocument
 
     [BsonElement("propuestaExpira")]
     public DateTime? PropuestaExpira { get; set; }
+
+    /// <summary>Herramientas consultadas antes de responder, en lenguaje legible. Se muestra como "pensamiento".</summary>
+    [BsonElement("pensamiento")]
+    public string? Pensamiento { get; set; }
 }

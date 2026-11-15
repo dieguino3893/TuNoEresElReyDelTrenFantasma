@@ -23,6 +23,10 @@ Opcionales en `appsettings.json`: `Asistente:BaseUrl`, `Asistente:Modelo`, `Asis
 
 Modelo actual: `muse-spark-1.3-contributor` (esfuerzo xhigh, salida hasta 131072 tokens, historial de 200 mensajes).
 
+Chat con animaciones (entrada de burbujas, indicador de "escribiendo") y "Pensamiento" plegable:
+el backend guarda en cada respuesta las herramientas consultadas (`pensamiento`) y el frontend
+lo muestra en un desplegable bajo la burbuja, en el módulo y en la burbuja flotante.
+
 ## Límites
 
 30/min por usuario (RateLimiter `asistente`) + 3/seg y 300/hora (`LimiteAsistente`).
