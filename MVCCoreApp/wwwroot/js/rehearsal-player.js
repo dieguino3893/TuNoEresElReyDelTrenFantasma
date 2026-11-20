@@ -40,8 +40,12 @@
       const vol = document.getElementById("rp-vol");
       const seek = document.getElementById("rp-seek");
 
-      if (vol) vol.addEventListener("input", () => { this.audio.volume = vol.value; });
+      if (vol) vol.addEventListener("input", () => {
+        if (this.usingEmbed()) { try { this.player.unMute(); this.player.setVolume(Math.round(vol.value * 100)); } catch { /* aún no listo */ } return; }
+        this.audio.volume = vol.value;
+      });
       if (seek) seek.addEventListener("input", () => {
+        if (this.usingEmbed()) { try { const d = this.player.getDuration(); if (d) this.player.seekTo(seek.value * d, true); } catch { /* aún no listo */ } return; }
         if (this.audio.duration) this.audio.currentTime = seek.value * this.audio.duration;
       });
       this.audio.addEventListener("timeupdate", () => {
@@ -61,9 +65,11 @@
       });
 
       document.getElementById("rp-play").onclick = () => {
-        if (this.player && !this.embedWrap.hidden) {
-          const state = this.player.getPlayerState();
-          state === 1 ? this.player.pauseVideo() : this.player.playVideo();
+        if (this.usingEmbed()) {
+          try {
+            const state = this.player.getPlayerState();
+            state === 1 ? this.player.pauseVideo() : this.player.playVideo();
+          } catch { /* aún no listo */ }
           return;
         }
         this.audio.paused ? this.audio.play() : this.audio.pause();
@@ -105,6 +111,7 @@
         : "q=" + encodeURIComponent(it.title);
       try {
         const track = await api("/api/v1/playback/resolve?" + key);
+        this.stopTick();
         this.player?.stopVideo();
         if (this.embedWrap) this.embedWrap.hidden = true;
         this.audio.hidden = false;
@@ -120,6 +127,7 @@
         if (it.videoId) {
           try {
             const alt = await api("/api/v1/playback/resolve?q=" + encodeURIComponent(it.title));
+            this.stopTick();
             this.player?.stopVideo();
             if (this.embedWrap) this.embedWrap.hidden = true;
             this.audio.hidden = false;
@@ -152,17 +160,60 @@
         el.classList.toggle("active", j === i));
     },
 
+    usingEmbed() { return !!(this.player && this.embedWrap && !this.embedWrap.hidden); },
+
+    setPlayIcon(playing) {
+      const btn = document.getElementById("rp-play");
+      if (btn) btn.innerHTML = playing
+        ? '<i class="fa-solid fa-pause"></i>'
+        : '<i class="fa-solid fa-play"></i>';
+    },
+
+    startTick() {
+      this.stopTick();
+      // El embed no emite timeupdate: se sondea posición y estado.
+      this.tickTimer = setInterval(() => {
+        if (!this.usingEmbed()) return;
+        try {
+          const d = this.player.getDuration() || 0;
+          const c = this.player.getCurrentTime() || 0;
+          const seek = document.getElementById("rp-seek");
+          const t = document.getElementById("rp-time");
+          if (seek && d) seek.value = c / d;
+          if (t) t.textContent = fmt(c) + " / " + fmt(d);
+          this.setPlayIcon(this.player.getPlayerState() === 1);
+        } catch { /* aún no listo */ }
+      }, 500);
+    },
+
+    stopTick() { if (this.tickTimer) { clearInterval(this.tickTimer); this.tickTimer = null; } },
+
     playEmbed(videoId) {
+      this.stopTick();
       this.audio.pause();
       this.audio.removeAttribute("src");
       this.audio.hidden = true;
       this.embedWrap.hidden = false;
+      this.setPlayIcon(true);
       const boot = () => {
-        if (this.player) { this.player.loadVideoById(videoId); return; }
+        if (this.player) { try { this.player.loadVideoById(videoId); } catch { /* aún no listo */ } return; }
         this.player = new YT.Player("rp-embed", {
           videoId,
-          playerVars: { autoplay: 1, rel: 0 },
-          events: { onStateChange: (e) => { if (e.data === 0) this.next(); } }
+          playerVars: { autoplay: 1, controls: 0, disablekb: 1, fs: 0, rel: 0, modestbranding: 1, iv_load_policy: 3, playsinline: 1 },
+          events: {
+            onReady: (e) => {
+              try {
+                const vol = document.getElementById("rp-vol");
+                if (vol) { e.target.unMute(); e.target.setVolume(Math.round(vol.value * 100)); }
+                e.target.playVideo();
+              } catch { /* aún no listo */ }
+            },
+            onStateChange: (e) => {
+              if (e.data === 0) this.next();
+              else if (e.data === 1) this.setPlayIcon(true);
+              else if (e.data === 2) this.setPlayIcon(false);
+            }
+          }
         });
       };
       if (window.YT?.Player) boot();
@@ -175,7 +226,8 @@
           document.head.appendChild(s);
         }
       }
-      this.setStatus("Reproduciendo en YouTube (embed).");
+      this.startTick();
+      this.setStatus("Reproduciendo en YouTube (embed, puede mostrar anuncios).");
     },
 
     async search() {

@@ -14,7 +14,7 @@
 <div class="card">
   <h3 id="rp-now">♪ Elige un tema</h3>
   <audio id="rp-audio" controls preload="none" style="width:100%"></audio>
-  <div id="rp-embed-wrap" hidden style="margin-top:10px;aspect-ratio:16/9;max-width:640px">
+  <div id="rp-embed-wrap" class="rp-embed-wrap" hidden>
     <div id="rp-embed"></div>
   </div>
   <div class="input-row" style="margin-top:10px">
@@ -47,6 +47,9 @@
 <style>
 .rp-item { margin:6px 0; }
 .rp-item.active strong { color: var(--accent, #f97316); }
+/* Embed responsivo 16:9 sin controles de YouTube: solo lo maneja la botonera propia. */
+.rp-embed-wrap { position:relative; width:100%; max-width:720px; aspect-ratio:16/9; margin-top:10px; background:#000; border-radius:8px; overflow:hidden; }
+.rp-embed-wrap iframe { position:absolute; inset:0; width:100% !important; height:100% !important; pointer-events:none; }
 </style>
 <script src="/js/rehearsal-player.js?v=4"></script>
 <script>
