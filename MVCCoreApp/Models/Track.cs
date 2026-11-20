@@ -17,10 +17,6 @@ public class Track : AuditableDocument
     [BsonElement("links")]
     public TrackPlatformLinks Links { get; set; } = new();
 
-    /// <summary>Audio propio en Cloudinary (mp3/m4a). Se usa en el reproductor de ensayo sin anuncios.</summary>
-    [BsonElement("audioUrl")]
-    public string? AudioUrl { get; set; }
-
     [BsonElement("source")]
     public string Source { get; set; } = "Manual"; // Manual | SpotifyApi | YouTubeApi
 

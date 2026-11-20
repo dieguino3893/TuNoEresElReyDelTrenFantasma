@@ -23,38 +23,18 @@ public class CloudinaryService : IFileService
     public async Task<(string Url, string PublicId)> UploadAsync(IFormFile file, string folder = "elrey")
     {
         if (file == null || file.Length == 0) throw new ArgumentException("Archivo vacío");
-        var images = new[] { ".jpg", ".jpeg", ".png", ".webp", ".gif" };
-        var audios = new[] { ".mp3", ".m4a", ".wav", ".ogg", ".flac" };
+        var allowed = new[] { ".jpg", ".jpeg", ".png", ".webp", ".gif" };
         var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
-        var esAudio = audios.Contains(ext);
-        if (!images.Contains(ext) && !esAudio)
-            throw new ArgumentException("Formato no permitido. Usa jpg, png, webp, gif, mp3, m4a, wav, ogg o flac");
+        if (!allowed.Contains(ext)) throw new ArgumentException("Formato no permitido. Usa jpg, png, webp, gif");
 
-        var maximo = esAudio ? 25L * 1024 * 1024 : 10L * 1024 * 1024;
-        if (file.Length > maximo) throw new ArgumentException(esAudio ? "Máx 25MB" : "Máx 10MB");
+        if (file.Length > 10 * 1024 * 1024) throw new ArgumentException("Máx 10MB");
 
         await using var stream = file.OpenReadStream();
-        var publicId = $"{Path.GetFileNameWithoutExtension(file.FileName)}_{Guid.NewGuid().ToString()[..8]}";
-
-        if (esAudio)
-        {
-            var audioParams = new VideoUploadParams
-            {
-                File = new FileDescription(file.FileName, stream),
-                Folder = folder,
-                PublicId = publicId,
-                Overwrite = false
-            };
-            var audioResult = await _cloudinary.UploadAsync(audioParams);
-            if (audioResult.Error != null) throw new Exception(audioResult.Error.Message);
-            return (audioResult.SecureUrl.ToString(), audioResult.PublicId);
-        }
-
         var uploadParams = new ImageUploadParams
         {
             File = new FileDescription(file.FileName, stream),
             Folder = folder,
-            PublicId = publicId,
+            PublicId = $"{Path.GetFileNameWithoutExtension(file.FileName)}_{Guid.NewGuid().ToString()[..8]}",
             Overwrite = false,
             Transformation = new Transformation().Quality("auto").FetchFormat("auto")
         };

@@ -15,7 +15,7 @@ public class FilesController : ControllerBase
     // drag & drop upload — cliente → servidor (Cloudinary)
     [HttpPost("upload")]
     [Authorize(AuthenticationSchemes = "Cookies,Basic,ApiKey")]
-    [RequestSizeLimit(25 * 1024 * 1024)]
+    [RequestSizeLimit(10 * 1024 * 1024)]
     [Consumes("multipart/form-data")]
     [ApiExplorerSettings(IgnoreApi = true)]
     public async Task<IActionResult> Upload([FromForm] IFormFile file, [FromQuery] string folder = "elrey")

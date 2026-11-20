@@ -86,15 +86,12 @@ public class PlaybackController : ControllerBase
 
         var items = setlist.Items.Select((it, idx) =>
         {
-            string? videoId = null, audioUrl = null, artist = null, cover = null;
+            string? videoId = null, artist = null, cover = null;
             if (it.TrackId != null && byId.TryGetValue(it.TrackId, out var t))
-            {
                 videoId = YouTubeIdParser.TryExtract(t.Links?.YouTubeUrl);
-                audioUrl = t.AudioUrl;
-            }
             return new PlayableSetlistItemDto(
-                idx + 1, it.Source, it.TrackId, it.Title, videoId, audioUrl, artist, cover,
-                Resolvable: audioUrl != null || videoId != null || !string.IsNullOrWhiteSpace(it.Title));
+                idx + 1, it.Source, it.TrackId, it.Title, videoId, artist, cover,
+                Resolvable: videoId != null || !string.IsNullOrWhiteSpace(it.Title));
         }).ToList();
 
         return Ok(new PlayableSetlistDto(setlist.Id, setlist.Name, items));
