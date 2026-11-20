@@ -14,4 +14,10 @@ public class PlaybackOptions
 
     /// <summary>Máximo de resultados de búsqueda por request.</summary>
     public int MaxSearchResults { get; set; } = 10;
+
+    /// <summary>
+    /// Proxy HTTP para resolver audio de YouTube desde una IP no bloqueada.
+    /// Formato: http://usuario:clave@host:puerto. Vacío = sin proxy.
+    /// </summary>
+    public string? ProxyUrl { get; set; }
 }

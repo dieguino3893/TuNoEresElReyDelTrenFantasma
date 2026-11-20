@@ -69,7 +69,21 @@ builder.Services.AddScoped<AsistenteServicio>();
 // Aislado tras IAudioResolver para que un cambio en la API no oficial no rompa setlists.
 builder.Services.AddMemoryCache();
 builder.Services.Configure<PlaybackOptions>(builder.Configuration.GetSection("Playback"));
-builder.Services.AddSingleton<YoutubeClient>(_ => new YoutubeClient());
+builder.Services.AddSingleton<YoutubeClient>(_ =>
+{
+    // Playback:ProxyUrl permite resolver el audio desde una IP no bloqueada por YouTube.
+    var proxyUrl = builder.Configuration["Playback:ProxyUrl"];
+    if (string.IsNullOrWhiteSpace(proxyUrl)) return new YoutubeClient();
+
+    var proxy = new System.Net.WebProxy(proxyUrl);
+    if (Uri.TryCreate(proxyUrl, UriKind.Absolute, out var uri) && !string.IsNullOrEmpty(uri.UserInfo))
+    {
+        var parts = uri.UserInfo.Split(':', 2);
+        proxy.Credentials = new System.Net.NetworkCredential(parts[0], parts.Length > 1 ? parts[1] : "");
+    }
+    var http = new HttpClient(new SocketsHttpHandler { Proxy = proxy, UseProxy = true });
+    return new YoutubeClient(http);
+});
 builder.Services.AddHttpClient("Saavn", c => c.Timeout = TimeSpan.FromSeconds(10));
 builder.Services.AddHttpClient<SitioPreviewService>(c => c.Timeout = TimeSpan.FromSeconds(10));
 builder.Services.AddSingleton<YoutubeExplodeResolver>();

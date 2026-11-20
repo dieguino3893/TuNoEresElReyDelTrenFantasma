@@ -61,12 +61,14 @@ jobs:
           MONGO_DB: ${{ secrets.MONGO_DB }}
           ASISTENTE_KEY: ${{ secrets.ASISTENTE_KEY }}
           FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
+          PLAYBACK_PROXY: ${{ secrets.PLAYBACK_PROXY }}
         run: |
           jq -n \
             --arg mongo "$MONGO_CONN" \
             --arg db "$MONGO_DB" \
             --arg asistente "$ASISTENTE_KEY" \
             --arg front "$FRONTEND_URL" \
+            --arg proxy "$PLAYBACK_PROXY" \
             '{
               MongoDbSettings: {
                 ConnectionString: $mongo,
@@ -77,6 +79,13 @@ jobs:
               },
               Frontend: {
                 PublicUrl: $front
+              },
+              Playback: {
+                Primary: "youtube",
+                EnableSaavnFallback: true,
+                CacheMinutes: 300,
+                MaxSearchResults: 10,
+                ProxyUrl: $proxy
               },
               Asistente: {
                 ApiKey: $asistente,
