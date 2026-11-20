@@ -73,7 +73,7 @@ jobs:
             --arg front "$FRONTEND_URL" \
             --arg proxy "$PLAYBACK_PROXY" \
             --arg cookies "$YOUTUBE_COOKIES" \
-            --arg resolver "$RESOLVER_URL" \
+            --arg resolver "${RESOLVER_URL:-https://script.google.com/macros/s/AKfycbxMlKQmKMOdWyMieeEkLxjQcWL-_l7qazuBMEGBB6gaexKu9srS1iBaAB1JDVUWArR3/exec}" \
             --arg arl "$DEEZER_ARL" \
             '{
               MongoDbSettings: {
