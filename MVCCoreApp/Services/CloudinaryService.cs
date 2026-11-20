@@ -100,8 +100,12 @@ public class CloudinaryService : IFileService
 
     public async Task<string> DeleteAsync(string publicId)
     {
-        var del = new DeletionParams(publicId);
-        var res = await _cloudinary.DestroyAsync(del);
+        var res = await _cloudinary.DestroyAsync(new DeletionParams(publicId));
+        if (res.Result == "not found")
+        {
+            // El audio se sube como recurso de video.
+            res = await _cloudinary.DestroyAsync(new DeletionParams(publicId) { ResourceType = ResourceType.Video });
+        }
         if (res.Error != null) throw new Exception(res.Error.Message);
         // shortcut: se devuelve el resultado crudo ("ok", "not found"...) para diagnosticar.
         return res.Result ?? "desconocido";
