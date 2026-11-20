@@ -104,7 +104,9 @@ public sealed class AudioResolverFactory
             try
             {
                 var dh = await _deezer.SearchAsync(idOrUrl, 3, ct);
-                var d = dh.FirstOrDefault();
+                // Solo aceptar coincidencia exacta de título: evita tocar otra canción.
+                static string Norm(string s) => new(s.ToLowerInvariant().Where(char.IsLetterOrDigit).ToArray());
+                var d = dh.FirstOrDefault(h => Norm(h.Title) == Norm(idOrUrl));
                 if (d != null)
                 {
                     return new ResolvedAudioDto(
