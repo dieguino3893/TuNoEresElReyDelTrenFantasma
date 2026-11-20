@@ -85,24 +85,44 @@ builder.Services.AddSingleton<YoutubeClient>(_ =>
         http = new HttpClient(new SocketsHttpHandler { Proxy = proxy, UseProxy = true });
     }
 
-    // Playback:YouTubeCookies (header "SID=...; HSID=...") evita el bot-check de YouTube.
+    // Playback:YouTubeCookies acepta cookies.txt (Netscape) o un header "SID=...; HSID=...".
     var cookies = new List<System.Net.Cookie>();
-    var cookieHeader = builder.Configuration["Playback:YouTubeCookies"];
-    if (!string.IsNullOrWhiteSpace(cookieHeader))
+    var cookieRaw = builder.Configuration["Playback:YouTubeCookies"];
+    if (!string.IsNullOrWhiteSpace(cookieRaw))
     {
-        foreach (var part in cookieHeader.Split(';'))
+        foreach (var linea in cookieRaw.Split('\n', StringSplitOptions.RemoveEmptyEntries))
         {
-            var kv = part.Trim();
-            var idx = kv.IndexOf('=');
-            if (idx <= 0) continue;
-            var nombre = kv[..idx].Trim();
-            if (nombre.Equals("Path", StringComparison.OrdinalIgnoreCase) ||
-                nombre.Equals("Domain", StringComparison.OrdinalIgnoreCase) ||
-                nombre.Equals("Expires", StringComparison.OrdinalIgnoreCase) ||
-                nombre.Equals("Secure", StringComparison.OrdinalIgnoreCase) ||
-                nombre.Equals("HttpOnly", StringComparison.OrdinalIgnoreCase) ||
-                nombre.Equals("SameSite", StringComparison.OrdinalIgnoreCase)) continue;
-            cookies.Add(new System.Net.Cookie(nombre, kv[(idx + 1)..].Trim(), "/", ".youtube.com"));
+            var l = linea.TrimEnd('\r').Trim();
+            if (l.Length == 0) continue;
+            if (l.StartsWith("#HttpOnly_", StringComparison.Ordinal)) l = l["#HttpOnly_".Length..];
+            else if (l.StartsWith("#")) continue;
+
+            var campos = l.Split('\t');
+            if (campos.Length >= 7)
+            {
+                var dominio = campos[0].Trim();
+                if (!dominio.StartsWith('.')) dominio = "." + dominio;
+                var ruta = string.IsNullOrWhiteSpace(campos[2]) ? "/" : campos[2];
+                try { cookies.Add(new System.Net.Cookie(campos[5].Trim(), campos[6].Trim(), ruta, dominio)); }
+                catch { /* cookie inválida, se omite */ }
+                continue;
+            }
+
+            foreach (var part in l.Split(';'))
+            {
+                var kv = part.Trim();
+                var idx = kv.IndexOf('=');
+                if (idx <= 0) continue;
+                var nombre = kv[..idx].Trim();
+                if (nombre.Equals("Path", StringComparison.OrdinalIgnoreCase) ||
+                    nombre.Equals("Domain", StringComparison.OrdinalIgnoreCase) ||
+                    nombre.Equals("Expires", StringComparison.OrdinalIgnoreCase) ||
+                    nombre.Equals("Secure", StringComparison.OrdinalIgnoreCase) ||
+                    nombre.Equals("HttpOnly", StringComparison.OrdinalIgnoreCase) ||
+                    nombre.Equals("SameSite", StringComparison.OrdinalIgnoreCase)) continue;
+                try { cookies.Add(new System.Net.Cookie(nombre, kv[(idx + 1)..].Trim(), "/", ".youtube.com")); }
+                catch { /* cookie inválida, se omite */ }
+            }
         }
     }
 
