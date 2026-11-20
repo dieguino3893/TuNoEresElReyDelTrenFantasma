@@ -62,6 +62,7 @@ jobs:
           ASISTENTE_KEY: ${{ secrets.ASISTENTE_KEY }}
           FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
           PLAYBACK_PROXY: ${{ secrets.PLAYBACK_PROXY }}
+          YOUTUBE_COOKIES: ${{ secrets.YOUTUBE_COOKIES }}
         run: |
           jq -n \
             --arg mongo "$MONGO_CONN" \
@@ -69,6 +70,7 @@ jobs:
             --arg asistente "$ASISTENTE_KEY" \
             --arg front "$FRONTEND_URL" \
             --arg proxy "$PLAYBACK_PROXY" \
+            --arg cookies "$YOUTUBE_COOKIES" \
             '{
               MongoDbSettings: {
                 ConnectionString: $mongo,
@@ -85,7 +87,8 @@ jobs:
                 EnableSaavnFallback: true,
                 CacheMinutes: 300,
                 MaxSearchResults: 10,
-                ProxyUrl: $proxy
+                ProxyUrl: $proxy,
+                YouTubeCookies: $cookies
               },
               Asistente: {
                 ApiKey: $asistente,

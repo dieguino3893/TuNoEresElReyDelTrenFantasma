@@ -73,16 +73,40 @@ builder.Services.AddSingleton<YoutubeClient>(_ =>
 {
     // Playback:ProxyUrl permite resolver el audio desde una IP no bloqueada por YouTube.
     var proxyUrl = builder.Configuration["Playback:ProxyUrl"];
-    if (string.IsNullOrWhiteSpace(proxyUrl)) return new YoutubeClient();
-
-    var proxy = new System.Net.WebProxy(proxyUrl);
-    if (Uri.TryCreate(proxyUrl, UriKind.Absolute, out var uri) && !string.IsNullOrEmpty(uri.UserInfo))
+    HttpClient http = new();
+    if (!string.IsNullOrWhiteSpace(proxyUrl))
     {
-        var parts = uri.UserInfo.Split(':', 2);
-        proxy.Credentials = new System.Net.NetworkCredential(parts[0], parts.Length > 1 ? parts[1] : "");
+        var proxy = new System.Net.WebProxy(proxyUrl);
+        if (Uri.TryCreate(proxyUrl, UriKind.Absolute, out var uri) && !string.IsNullOrEmpty(uri.UserInfo))
+        {
+            var parts = uri.UserInfo.Split(':', 2);
+            proxy.Credentials = new System.Net.NetworkCredential(parts[0], parts.Length > 1 ? parts[1] : "");
+        }
+        http = new HttpClient(new SocketsHttpHandler { Proxy = proxy, UseProxy = true });
     }
-    var http = new HttpClient(new SocketsHttpHandler { Proxy = proxy, UseProxy = true });
-    return new YoutubeClient(http);
+
+    // Playback:YouTubeCookies (header "SID=...; HSID=...") evita el bot-check de YouTube.
+    var cookies = new List<System.Net.Cookie>();
+    var cookieHeader = builder.Configuration["Playback:YouTubeCookies"];
+    if (!string.IsNullOrWhiteSpace(cookieHeader))
+    {
+        foreach (var part in cookieHeader.Split(';'))
+        {
+            var kv = part.Trim();
+            var idx = kv.IndexOf('=');
+            if (idx <= 0) continue;
+            var nombre = kv[..idx].Trim();
+            if (nombre.Equals("Path", StringComparison.OrdinalIgnoreCase) ||
+                nombre.Equals("Domain", StringComparison.OrdinalIgnoreCase) ||
+                nombre.Equals("Expires", StringComparison.OrdinalIgnoreCase) ||
+                nombre.Equals("Secure", StringComparison.OrdinalIgnoreCase) ||
+                nombre.Equals("HttpOnly", StringComparison.OrdinalIgnoreCase) ||
+                nombre.Equals("SameSite", StringComparison.OrdinalIgnoreCase)) continue;
+            cookies.Add(new System.Net.Cookie(nombre, kv[(idx + 1)..].Trim(), "/", ".youtube.com"));
+        }
+    }
+
+    return cookies.Count > 0 ? new YoutubeClient(http, cookies) : new YoutubeClient(http);
 });
 builder.Services.AddHttpClient("Saavn", c => c.Timeout = TimeSpan.FromSeconds(10));
 builder.Services.AddHttpClient<SitioPreviewService>(c => c.Timeout = TimeSpan.FromSeconds(10));

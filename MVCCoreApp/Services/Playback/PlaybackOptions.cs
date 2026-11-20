@@ -20,4 +20,10 @@ public class PlaybackOptions
     /// Formato: http://usuario:clave@host:puerto. Vacío = sin proxy.
     /// </summary>
     public string? ProxyUrl { get; set; }
+
+    /// <summary>
+    /// Header de cookies de una sesión de YouTube ("SID=...; HSID=...; ...").
+    /// Evita el bot-check desde IPs de datacenter. Vacío = sin cookies.
+    /// </summary>
+    public string? YouTubeCookies { get; set; }
 }
