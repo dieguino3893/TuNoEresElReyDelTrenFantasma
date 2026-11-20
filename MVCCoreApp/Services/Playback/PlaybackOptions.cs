@@ -26,4 +26,14 @@ public class PlaybackOptions
     /// Evita el bot-check desde IPs de datacenter. Vacío = sin cookies.
     /// </summary>
     public string? YouTubeCookies { get; set; }
+
+    /// <summary>
+    /// URL de un resolver externo (ej. Google Apps Script) que devuelve
+    /// {url,title,author,duration}. Se consulta antes que YoutubeExplode.
+    /// Vacío = desactivado.
+    /// </summary>
+    public string? ResolverUrl { get; set; }
+
+    /// <summary>Token opcional para el resolver externo (header Authorization: Bearer).</summary>
+    public string? ResolverKey { get; set; }
 }

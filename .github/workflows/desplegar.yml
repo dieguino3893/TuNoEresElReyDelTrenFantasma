@@ -63,6 +63,7 @@ jobs:
           FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
           PLAYBACK_PROXY: ${{ secrets.PLAYBACK_PROXY }}
           YOUTUBE_COOKIES: ${{ secrets.YOUTUBE_COOKIES }}
+          RESOLVER_URL: ${{ secrets.RESOLVER_URL }}
         run: |
           jq -n \
             --arg mongo "$MONGO_CONN" \
@@ -71,6 +72,7 @@ jobs:
             --arg front "$FRONTEND_URL" \
             --arg proxy "$PLAYBACK_PROXY" \
             --arg cookies "$YOUTUBE_COOKIES" \
+            --arg resolver "$RESOLVER_URL" \
             '{
               MongoDbSettings: {
                 ConnectionString: $mongo,
@@ -88,7 +90,8 @@ jobs:
                 CacheMinutes: 300,
                 MaxSearchResults: 10,
                 ProxyUrl: $proxy,
-                YouTubeCookies: $cookies
+                YouTubeCookies: $cookies,
+                ResolverUrl: $resolver
               },
               Asistente: {
                 ApiKey: $asistente,

@@ -129,6 +129,7 @@ builder.Services.AddSingleton<YoutubeClient>(_ =>
     return cookies.Count > 0 ? new YoutubeClient(http, cookies) : new YoutubeClient(http);
 });
 builder.Services.AddHttpClient("Saavn", c => c.Timeout = TimeSpan.FromSeconds(10));
+builder.Services.AddHttpClient("PlaybackRemote", c => c.Timeout = TimeSpan.FromSeconds(20));
 builder.Services.AddHttpClient<SitioPreviewService>(c => c.Timeout = TimeSpan.FromSeconds(10));
 builder.Services.AddSingleton<YoutubeExplodeResolver>();
 builder.Services.AddSingleton<SaavnFallbackResolver>();
