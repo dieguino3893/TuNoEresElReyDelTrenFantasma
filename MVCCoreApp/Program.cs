@@ -241,7 +241,7 @@ app.Use(async (ctx, next) =>
     ctx.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
     ctx.Response.Headers["Content-Security-Policy"] = esLienzo
         ? "default-src 'self' http: https: data: 'unsafe-inline'; frame-src https://open.spotify.com https://www.youtube.com;"
-        : "default-src 'self'; img-src 'self' https: data:; media-src 'self' https: blob:; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; connect-src 'self' https://res.cloudinary.com https://*.googlevideo.com https://*.youtube.com https://*.saavncdn.com https://www.jiosaavn.com; frame-src 'self' https://open.spotify.com;";
+        : "default-src 'self'; img-src 'self' https: data:; media-src 'self' https: blob:; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://www.youtube.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; connect-src 'self' https://res.cloudinary.com https://*.googlevideo.com https://*.youtube.com https://*.saavncdn.com https://www.jiosaavn.com; frame-src 'self' https://open.spotify.com https://www.youtube.com https://www.youtube-nocookie.com;";
     if (ctx.Request.Path.StartsWithSegments("/api"))
     {
         ctx.Response.Headers.CacheControl = "no-store";

@@ -14,6 +14,9 @@
 <div class="card">
   <h3 id="rp-now">♪ Elige un tema</h3>
   <audio id="rp-audio" controls preload="none" style="width:100%"></audio>
+  <div id="rp-embed-wrap" hidden style="margin-top:10px;aspect-ratio:16/9;max-width:640px">
+    <div id="rp-embed"></div>
+  </div>
   <div class="input-row" style="margin-top:10px">
     <button id="rp-prev" class="btn btn-secondary btn-sm" title="Anterior"><i class="fa-solid fa-backward-step"></i></button>
     <button id="rp-play" class="btn btn-primary btn-sm" title="Play/Pause"><i class="fa-solid fa-play"></i> / <i class="fa-solid fa-pause"></i></button>
@@ -45,7 +48,7 @@
 .rp-item { margin:6px 0; }
 .rp-item.active strong { color: var(--accent, #f97316); }
 </style>
-<script src="/js/rehearsal-player.js"></script>
+<script src="/js/rehearsal-player.js?v=2"></script>
 <script>
 window.__SETLIST_ID__ = "@Model.Id";
 RehearsalPlayer.init(window.__SETLIST_ID__).catch(e => {

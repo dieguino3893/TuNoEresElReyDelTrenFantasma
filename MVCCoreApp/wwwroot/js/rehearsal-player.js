@@ -24,11 +24,13 @@
 
   window.RehearsalPlayer = {
     items: [], idx: -1, audio: null, statusEl: null, titleEl: null,
+    embedWrap: null, player: null, ytLoading: false, serverBroken: false,
 
     async init(setlistId) {
       this.audio = document.getElementById("rp-audio");
       this.statusEl = document.getElementById("rp-status");
       this.titleEl = document.getElementById("rp-now");
+      this.embedWrap = document.getElementById("rp-embed-wrap");
       const list = document.getElementById("rp-list");
       const vol = document.getElementById("rp-vol");
       const seek = document.getElementById("rp-seek");
@@ -53,7 +55,14 @@
         }
       });
 
-      document.getElementById("rp-play").onclick = () => this.audio.paused ? this.audio.play() : this.audio.pause();
+      document.getElementById("rp-play").onclick = () => {
+        if (this.player && !this.embedWrap.hidden) {
+          const state = this.player.getPlayerState();
+          state === 1 ? this.player.pauseVideo() : this.player.playVideo();
+          return;
+        }
+        this.audio.paused ? this.audio.play() : this.audio.pause();
+      };
       document.getElementById("rp-prev").onclick = () => this.prev();
       document.getElementById("rp-next").onclick = () => this.next();
 
@@ -81,21 +90,60 @@
       const it = this.items[i];
       if (!it) return;
       this.idx = i;
-      this.setStatus("Resolviendo: " + it.title + "…");
       this.titleEl.textContent = "♪ " + it.title;
+      if (this.serverBroken && it.videoId) return this.playEmbed(it.videoId);
+
+      this.setStatus("Resolviendo: " + it.title + "…");
       // resolve acepta videoId o texto libre (título del setlist → primer hit de YouTube).
       const key = it.videoId
         ? "videoId=" + encodeURIComponent(it.videoId)
         : "q=" + encodeURIComponent(it.title);
-      const track = await api("/api/v1/playback/resolve?" + key);
-      this.audio.src = track.streamUrl;
-      this.titleEl.textContent = "♪ " + track.title + (track.artist ? " — " + track.artist : "") +
-        " [" + track.provider + "]";
-      await this.audio.play();
-      this.setStatus("Sonando (" + track.provider + ", expira " +
-        new Date(track.expiresAt).toLocaleTimeString() + ")");
+      try {
+        const track = await api("/api/v1/playback/resolve?" + key);
+        this.player?.stopVideo();
+        if (this.embedWrap) this.embedWrap.hidden = true;
+        this.audio.hidden = false;
+        this.audio.src = track.streamUrl;
+        this.titleEl.textContent = "♪ " + track.title + (track.artist ? " — " + track.artist : "") +
+          " [" + track.provider + "]";
+        await this.audio.play();
+        this.setStatus("Sonando (" + track.provider + ", expira " +
+          new Date(track.expiresAt).toLocaleTimeString() + ")");
+      } catch (e) {
+        // El servidor de producción está en un hosting que YouTube bloquea: el navegador sí puede.
+        if (!it.videoId) { this.setStatus("Sin audio: " + e.message); return; }
+        this.serverBroken = true;
+        this.setStatus("YouTube bloquea al servidor; usando reproductor embed.");
+        this.playEmbed(it.videoId);
+      }
       document.querySelectorAll(".rp-item").forEach((el, j) =>
         el.classList.toggle("active", j === i));
+    },
+
+    playEmbed(videoId) {
+      this.audio.pause();
+      this.audio.removeAttribute("src");
+      this.audio.hidden = true;
+      this.embedWrap.hidden = false;
+      const boot = () => {
+        if (this.player) { this.player.loadVideoById(videoId); return; }
+        this.player = new YT.Player("rp-embed", {
+          videoId,
+          playerVars: { autoplay: 1, rel: 0 },
+          events: { onStateChange: (e) => { if (e.data === 0) this.next(); } }
+        });
+      };
+      if (window.YT?.Player) boot();
+      else {
+        window.onYouTubeIframeAPIReady = boot;
+        if (!this.ytLoading) {
+          this.ytLoading = true;
+          const s = document.createElement("script");
+          s.src = "https://www.youtube.com/iframe_api";
+          document.head.appendChild(s);
+        }
+      }
+      this.setStatus("Reproduciendo en YouTube (embed).");
     },
 
     async search() {
