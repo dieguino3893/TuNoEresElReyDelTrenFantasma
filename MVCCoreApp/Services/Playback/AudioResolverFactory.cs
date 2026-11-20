@@ -73,6 +73,14 @@ public sealed class AudioResolverFactory
         var hits = await SearchAsync(idOrUrl, 1, ct);
         var first = hits.FirstOrDefault()
             ?? throw new StreamNotAvailableException($"Sin resultados para '{idOrUrl}'", null, errors);
-        return await ResolveAsync(first.VideoId, ct);
+        try
+        {
+            return await ResolveAsync(first.VideoId, ct);
+        }
+        catch (StreamNotAvailableException ex)
+        {
+            // El videoId sí existe (la búsqueda funcionó): el cliente puede reproducirlo en embed.
+            throw new StreamNotAvailableException(ex.Message, ex.Provider, ex.ProviderErrors, first.VideoId);
+        }
     }
 }

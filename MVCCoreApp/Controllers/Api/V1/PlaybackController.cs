@@ -61,7 +61,7 @@ public class PlaybackController : ControllerBase
         }
         catch (StreamNotAvailableException ex)
         {
-            return StatusCode(424, new { error = ex.Message, providerErrors = ex.ProviderErrors });
+            return StatusCode(424, new { error = ex.Message, providerErrors = ex.ProviderErrors, videoId = ex.VideoId });
         }
     }
 

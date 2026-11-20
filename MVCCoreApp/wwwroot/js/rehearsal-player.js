@@ -9,9 +9,11 @@
   async function api(path) {
     const r = await fetch(path, { credentials: "same-origin" });
     if (!r.ok) {
-      let msg = "Error " + r.status;
-      try { const j = await r.json(); msg = j.error || msg; } catch { /* texto */ }
-      throw new Error(msg);
+      let msg = "Error " + r.status, payload = null;
+      try { payload = await r.json(); msg = payload.error || msg; } catch { /* texto */ }
+      const err = new Error(msg);
+      err.payload = payload;
+      throw err;
     }
     return r.json();
   }
@@ -91,7 +93,7 @@
       if (!it) return;
       this.idx = i;
       this.titleEl.textContent = "♪ " + it.title;
-      if (this.serverBroken && it.videoId) return this.playEmbed(it.videoId);
+      if (this.serverBroken && it.videoId && !it.videoId.startsWith("saavn:")) return this.playEmbed(it.videoId);
 
       this.setStatus("Resolviendo: " + it.title + "…");
       // resolve acepta videoId o texto libre (título del setlist → primer hit de YouTube).
@@ -111,6 +113,16 @@
           new Date(track.expiresAt).toLocaleTimeString() + ")");
       } catch (e) {
         // El servidor de producción está en un hosting que YouTube bloquea: el navegador sí puede.
+        if (!it.videoId || it.videoId.startsWith("saavn:")) {
+          // El servidor encontró el video pero no pudo resolver audio: usa ese videoId en el embed.
+          it.videoId = e.payload?.videoId || null;
+        }
+        if (!it.videoId) {
+          try {
+            const hits = await api("/api/v1/playback/search?q=" + encodeURIComponent(it.title));
+            if (hits[0]?.provider === "youtube") it.videoId = hits[0].videoId;
+          } catch { /* sin búsqueda disponible */ }
+        }
         if (!it.videoId) { this.setStatus("Sin audio: " + e.message); return; }
         this.serverBroken = true;
         this.setStatus("YouTube bloquea al servidor; usando reproductor embed.");
