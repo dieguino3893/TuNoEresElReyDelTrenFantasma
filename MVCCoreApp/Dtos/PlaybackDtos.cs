@@ -31,6 +31,7 @@ public record PlayableSetlistItemDto(
     string? TrackId,
     string Title,
     string? VideoId,
+    string? AudioUrl,
     string? Artist,
     string? CoverUrl,
     bool Resolvable);

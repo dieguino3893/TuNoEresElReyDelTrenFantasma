@@ -17,5 +17,19 @@
     <div class="form-group"><label class="form-label">Enlace de YouTube</label><input class="form-control" name="Links.YouTubeUrl" value="@Model.Links.YouTubeUrl" placeholder="https://youtube.com/..."/></div>
   </div>
   <div class="form-group"><label class="form-label">ID externo (avanzado)</label><input class="form-control" name="ExternalId" value="@Model.ExternalId"/><div class="form-hint">Sueles dejar esto vacío a menos que sepas para qué sirve.</div></div>
+  <div class="form-group"><label class="form-label">Audio propio (reproductor sin anuncios)</label><input class="form-control" name="AudioUrl" id="audioUrl" value="@Model.AudioUrl" placeholder="https://res.cloudinary.com/..."/><input id="audioFile" type="file" accept="audio/*" style="margin-top:6px"/><div class="form-hint" id="audioStatus">Sube un mp3/m4a (máx 25MB) o pega la URL de Cloudinary.</div></div>
   <div class="form-actions"><button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Guardar canción</button><a href="/admin/tracks" class="btn btn-secondary">Cancelar</a></div>
 </form>
+<script>
+document.getElementById("audioFile")?.addEventListener("change", async (e) => {
+  const f = e.target.files[0]; if (!f) return;
+  const st = document.getElementById("audioStatus");
+  st.textContent = "Subiendo…";
+  const fd = new FormData(); fd.append("file", f);
+  const r = await fetch("/api/v1/files/upload", { method: "POST", body: fd, credentials: "same-origin" });
+  if (!r.ok) { st.textContent = "No se pudo subir."; return; }
+  const j = await r.json();
+  document.getElementById("audioUrl").value = j.url;
+  st.textContent = "Audio subido. Guarda la canción.";
+});
+</script>

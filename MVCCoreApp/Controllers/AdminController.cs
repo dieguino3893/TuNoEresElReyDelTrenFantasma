@@ -502,7 +502,7 @@ public class AdminController : Controller
         var col = _mongo.GetCollection<Track>("tracks");
         var m = await col.Find(x => x.Id == id && !x.IsDeleted).FirstOrDefaultAsync();
         if (m == null) return NotFound();
-        m.Title = dto.Title; m.TrackNumber = dto.TrackNumber; m.Type = dto.Type; m.Links = dto.Links; m.ExternalId = dto.ExternalId; m.IsVisible = dto.IsVisible; m.Order = dto.Order;
+        m.Title = dto.Title; m.TrackNumber = dto.TrackNumber; m.Type = dto.Type; m.Links = dto.Links; m.AudioUrl = dto.AudioUrl; m.ExternalId = dto.ExternalId; m.IsVisible = dto.IsVisible; m.Order = dto.Order;
         m.UpdatedAt = DateTime.UtcNow; m.UpdatedBy = User.Identity?.Name ?? "system";
         try{ await col.ReplaceOneAsync(x => x.Id == id, m); TempData["ok"] = "Track actualizado"; } catch(Exception ex){ TempData["err"]="Mongo no disponible: "+ex.Message; return View("TrackForm", dto); }
         return RedirectToAction("Tracks");

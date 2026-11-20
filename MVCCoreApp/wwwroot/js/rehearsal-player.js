@@ -81,7 +81,7 @@
         li.innerHTML = "<button class='btn btn-secondary btn-sm'>▶</button> " +
           "<strong></strong> <small></small>";
         li.querySelector("strong").textContent = (it.position || (i + 1)) + ". " + it.title;
-        li.querySelector("small").textContent = it.videoId ? "YouTube ✓" : "buscar al reproducir";
+        li.querySelector("small").textContent = it.audioUrl ? "Audio propio ✓" : it.videoId ? "YouTube ✓" : "buscar al reproducir";
         li.querySelector("button").onclick = () => this.playAt(i);
         list.appendChild(li);
       });
@@ -93,6 +93,18 @@
       if (!it) return;
       this.idx = i;
       this.titleEl.textContent = "♪ " + it.title;
+      // Audio propio en Cloudinary: reproduce directo, sin anuncios ni bloqueo de YouTube.
+      if (it.audioUrl) {
+        this.player?.stopVideo();
+        if (this.embedWrap) this.embedWrap.hidden = true;
+        this.audio.hidden = false;
+        this.audio.src = it.audioUrl;
+        await this.audio.play();
+        this.setStatus("Audio propio (sin anuncios).");
+        document.querySelectorAll(".rp-item").forEach((el, j) =>
+          el.classList.toggle("active", j === i));
+        return;
+      }
       if (this.serverBroken && it.videoId && !it.videoId.startsWith("saavn:")) return this.playEmbed(it.videoId);
 
       this.setStatus("Resolviendo: " + it.title + "…");

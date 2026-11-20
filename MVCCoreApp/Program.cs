@@ -177,7 +177,7 @@ builder.Services.AddRateLimiter(opciones =>
             new { mensaje = "Demasiados intentos. Espera un momento." }, cancelacion);
     };
 });
-builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(o => o.MultipartBodyLengthLimit = 10 * 1024 * 1024);
+builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(o => o.MultipartBodyLengthLimit = 25 * 1024 * 1024);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
