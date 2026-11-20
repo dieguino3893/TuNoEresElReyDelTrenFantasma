@@ -171,12 +171,13 @@ builder.Services.AddAuthentication(options =>
     opt.Cookie.SameSite = SameSiteMode.Lax;
 })
 .AddScheme<AuthenticationSchemeOptions, BasicAuthHandler>("Basic", null)
-.AddScheme<AuthenticationSchemeOptions, ApiKeyAuthHandler>("ApiKey", null);
+.AddScheme<AuthenticationSchemeOptions, ApiKeyAuthHandler>("ApiKey", null)
+.AddScheme<AuthenticationSchemeOptions, ShareKeyAuthHandler>("ShareKey", null);
 
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("BasicOrCookie", policy =>
-        policy.AddAuthenticationSchemes("Cookies", "Basic", "ApiKey").RequireAuthenticatedUser());
+        policy.AddAuthenticationSchemes("Cookies", "Basic", "ApiKey", "ShareKey").RequireAuthenticatedUser());
 });
 
 builder.Services.AddAntiforgery(o => o.HeaderName = "X-XSRF-TOKEN");

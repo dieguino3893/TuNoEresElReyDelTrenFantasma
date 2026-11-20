@@ -65,6 +65,7 @@ jobs:
           YOUTUBE_COOKIES: ${{ secrets.YOUTUBE_COOKIES }}
           RESOLVER_URL: ${{ secrets.RESOLVER_URL }}
           DEEZER_ARL: ${{ secrets.DEEZER_ARL }}
+          ENSAYO_KEY: ${{ secrets.ENSAYO_KEY }}
         run: |
           jq -n \
             --arg mongo "$MONGO_CONN" \
@@ -75,6 +76,7 @@ jobs:
             --arg cookies "$YOUTUBE_COOKIES" \
             --arg resolver "${RESOLVER_URL:-https://script.google.com/macros/s/AKfycbxMlKQmKMOdWyMieeEkLxjQcWL-_l7qazuBMEGBB6gaexKu9srS1iBaAB1JDVUWArR3/exec}" \
             --arg arl "$DEEZER_ARL" \
+            --arg share "${ENSAYO_KEY:-}" \
             '{
               MongoDbSettings: {
                 ConnectionString: $mongo,
@@ -94,7 +96,8 @@ jobs:
                 ProxyUrl: $proxy,
                 YouTubeCookies: $cookies,
                 ResolverUrl: $resolver,
-                DeezerArl: $arl
+                DeezerArl: $arl,
+                ShareKey: $share
               },
               Asistente: {
                 ApiKey: $asistente,

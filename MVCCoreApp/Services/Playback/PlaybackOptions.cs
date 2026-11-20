@@ -38,6 +38,12 @@ public class PlaybackOptions
     public string? ResolverKey { get; set; }
 
     /// <summary>
+    /// Llave del link público de ensayo (/ensayo/play/{id}?key=... y ?key= en la API de playback).
+    /// Vacía = sin acceso compartido.
+    /// </summary>
+    public string? ShareKey { get; set; }
+
+    /// <summary>
     /// Cookie ARL de una cuenta Deezer. Si está puesta, el resolve por texto cae a Deezer
     /// (audio completo, sin anuncios) cuando YouTube falla.
     /// </summary>

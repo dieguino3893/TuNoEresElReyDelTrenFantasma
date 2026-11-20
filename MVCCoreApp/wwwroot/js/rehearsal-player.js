@@ -7,6 +7,9 @@
   "use strict";
 
   async function api(path) {
+    // Propaga la llave del link de ensayo (?key=...) a la API.
+    const key = new URLSearchParams(location.search).get("key");
+    if (key && !/[?&]key=/.test(path)) path += (path.includes("?") ? "&" : "?") + "key=" + encodeURIComponent(key);
     const r = await fetch(path, { credentials: "same-origin" });
     if (!r.ok) {
       let msg = "Error " + r.status, payload = null;
