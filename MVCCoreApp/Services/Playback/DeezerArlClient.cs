@@ -41,7 +41,7 @@ public sealed class DeezerArlClient
 
     public async Task<IReadOnlyList<SongHitDto>> SearchAsync(string query, int limit, CancellationToken ct)
     {
-        if (!Enabled || string.IsNullOrWhiteSpace(query)) return Array.Empty<SongHitDto>();
+        if (string.IsNullOrWhiteSpace(query)) return Array.Empty<SongHitDto>();
         query = query.Trim();
         limit = Math.Clamp(limit, 1, 10);
         try

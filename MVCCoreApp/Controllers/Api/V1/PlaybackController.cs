@@ -84,7 +84,6 @@ public class PlaybackController : ControllerBase
     [HttpGet("deezer/search")]
     public async Task<ActionResult<IReadOnlyList<SongHitDto>>> DeezerSearch([FromQuery] string q, CancellationToken ct = default)
     {
-        if (!_deezer.Enabled) return NotFound(new { error = "Deezer no configurado." });
         if (string.IsNullOrWhiteSpace(q) || q.Trim().Length < 2)
             return BadRequest(new { error = "Parámetro 'q' requerido." });
         return Ok(await _deezer.SearchAsync(q.Trim(), 5, ct));
