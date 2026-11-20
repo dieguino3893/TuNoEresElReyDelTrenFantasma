@@ -64,6 +64,7 @@ jobs:
           PLAYBACK_PROXY: ${{ secrets.PLAYBACK_PROXY }}
           YOUTUBE_COOKIES: ${{ secrets.YOUTUBE_COOKIES }}
           RESOLVER_URL: ${{ secrets.RESOLVER_URL }}
+          DEEZER_ARL: ${{ secrets.DEEZER_ARL }}
         run: |
           jq -n \
             --arg mongo "$MONGO_CONN" \
@@ -73,6 +74,7 @@ jobs:
             --arg proxy "$PLAYBACK_PROXY" \
             --arg cookies "$YOUTUBE_COOKIES" \
             --arg resolver "$RESOLVER_URL" \
+            --arg arl "$DEEZER_ARL" \
             '{
               MongoDbSettings: {
                 ConnectionString: $mongo,
@@ -91,7 +93,8 @@ jobs:
                 MaxSearchResults: 10,
                 ProxyUrl: $proxy,
                 YouTubeCookies: $cookies,
-                ResolverUrl: $resolver
+                ResolverUrl: $resolver,
+                DeezerArl: $arl
               },
               Asistente: {
                 ApiKey: $asistente,

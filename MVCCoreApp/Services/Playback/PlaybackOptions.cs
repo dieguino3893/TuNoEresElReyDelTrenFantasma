@@ -36,4 +36,10 @@ public class PlaybackOptions
 
     /// <summary>Token opcional para el resolver externo (header Authorization: Bearer).</summary>
     public string? ResolverKey { get; set; }
+
+    /// <summary>
+    /// Cookie ARL de una cuenta Deezer. Si está puesta, el resolve por texto cae a Deezer
+    /// (audio completo, sin anuncios) cuando YouTube falla.
+    /// </summary>
+    public string? DeezerArl { get; set; }
 }

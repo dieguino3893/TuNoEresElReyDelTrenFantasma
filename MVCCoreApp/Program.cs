@@ -130,9 +130,11 @@ builder.Services.AddSingleton<YoutubeClient>(_ =>
 });
 builder.Services.AddHttpClient("Saavn", c => c.Timeout = TimeSpan.FromSeconds(10));
 builder.Services.AddHttpClient("PlaybackRemote", c => c.Timeout = TimeSpan.FromSeconds(20));
+builder.Services.AddHttpClient("Deezer", c => c.Timeout = TimeSpan.FromSeconds(30));
 builder.Services.AddHttpClient<SitioPreviewService>(c => c.Timeout = TimeSpan.FromSeconds(10));
 builder.Services.AddSingleton<YoutubeExplodeResolver>();
 builder.Services.AddSingleton<SaavnFallbackResolver>();
+builder.Services.AddSingleton<DeezerArlClient>();
 builder.Services.AddSingleton<AudioResolverFactory>();
 
 // CORS para front desacoplado (GitHub Pages)

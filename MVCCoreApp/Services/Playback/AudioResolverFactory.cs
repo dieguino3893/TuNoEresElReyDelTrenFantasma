@@ -12,17 +12,20 @@ public sealed class AudioResolverFactory
 {
     private readonly YoutubeExplodeResolver _youtube;
     private readonly SaavnFallbackResolver _saavn;
+    private readonly DeezerArlClient _deezer;
     private readonly PlaybackOptions _opt;
     private readonly ILogger<AudioResolverFactory> _logger;
 
     public AudioResolverFactory(
         YoutubeExplodeResolver youtube,
         SaavnFallbackResolver saavn,
+        DeezerArlClient deezer,
         IOptions<PlaybackOptions> opt,
         ILogger<AudioResolverFactory> logger)
     {
         _youtube = youtube;
         _saavn = saavn;
+        _deezer = deezer;
         _opt = opt.Value;
         _logger = logger;
     }
@@ -70,17 +73,53 @@ public sealed class AudioResolverFactory
         }
 
         // Texto libre: buscar en YouTube y resolver el primer hit (flujo "título del setlist → audio").
-        var hits = await SearchAsync(idOrUrl, 1, ct);
-        var first = hits.FirstOrDefault()
-            ?? throw new StreamNotAvailableException($"Sin resultados para '{idOrUrl}'", null, errors);
+        SongHitDto? first = null;
         try
         {
-            return await ResolveAsync(first.VideoId, ct);
+            first = (await SearchAsync(idOrUrl, 1, ct)).FirstOrDefault();
         }
         catch (StreamNotAvailableException ex)
         {
-            // El videoId sí existe (la búsqueda funcionó): el cliente puede reproducirlo en embed.
-            throw new StreamNotAvailableException(ex.Message, ex.Provider, ex.ProviderErrors, first.VideoId);
+            errors.Add(ex.Message);
         }
+
+        if (first != null)
+        {
+            try
+            {
+                return await ResolveAsync(first.VideoId, ct);
+            }
+            catch (StreamNotAvailableException ex)
+            {
+                errors.Add(ex.Message);
+                // El videoId sí existe (la búsqueda funcionó): el cliente puede reproducirlo en embed.
+                if (!_deezer.Enabled)
+                    throw new StreamNotAvailableException(ex.Message, ex.Provider, ex.ProviderErrors, first.VideoId);
+            }
+        }
+
+        // Deezer con ARL: audio completo sin anuncios cuando YouTube no entrega stream.
+        if (_deezer.Enabled)
+        {
+            try
+            {
+                var dh = await _deezer.SearchAsync(idOrUrl, 3, ct);
+                var d = dh.FirstOrDefault();
+                if (d != null)
+                {
+                    return new ResolvedAudioDto(
+                        d.VideoId, d.Title, d.Artist, d.DurationSeconds, d.CoverUrl,
+                        $"/api/v1/playback/deezer/stream?trackId={d.VideoId}",
+                        DateTimeOffset.UtcNow.AddMinutes(45), "deezer", "mp3");
+                }
+            }
+            catch (Exception ex)
+            {
+                errors.Add($"deezer: {ex.Message}");
+            }
+        }
+
+        throw new StreamNotAvailableException(
+            $"Audio no disponible para '{idOrUrl}'", null, errors, first?.VideoId);
     }
 }

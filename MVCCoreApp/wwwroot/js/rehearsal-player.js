@@ -113,6 +113,23 @@
           new Date(track.expiresAt).toLocaleTimeString() + ")");
       } catch (e) {
         // El servidor de producción está en un hosting que YouTube bloquea: el navegador sí puede.
+        // Segundo intento por título: deja que el backend use Deezer u otro fallback.
+        if (it.videoId) {
+          try {
+            const alt = await api("/api/v1/playback/resolve?q=" + encodeURIComponent(it.title));
+            this.player?.stopVideo();
+            if (this.embedWrap) this.embedWrap.hidden = true;
+            this.audio.hidden = false;
+            this.audio.src = alt.streamUrl;
+            this.titleEl.textContent = "♪ " + alt.title + (alt.artist ? " — " + alt.artist : "") +
+              " [" + alt.provider + "]";
+            await this.audio.play();
+            this.setStatus("Sonando (" + alt.provider + ").");
+            document.querySelectorAll(".rp-item").forEach((el, j) =>
+              el.classList.toggle("active", j === i));
+            return;
+          } catch { /* sin fallback alterno */ }
+        }
         if (!it.videoId || it.videoId.startsWith("saavn:")) {
           // El servidor encontró el video pero no pudo resolver audio: usa ese videoId en el embed.
           it.videoId = e.payload?.videoId || null;
