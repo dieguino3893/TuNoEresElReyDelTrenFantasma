@@ -71,6 +71,8 @@
 
       const speed = document.getElementById("rp-speed");
       if (speed) speed.onchange = () => this.applySpeed();
+      const quality = document.getElementById("rp-quality");
+      if (quality) quality.onchange = () => this.applyQuality();
       const back10 = document.getElementById("rp-back10");
       if (back10) back10.onclick = () => this.nudge(-10);
       const fwd10 = document.getElementById("rp-fwd10");
@@ -154,6 +156,7 @@
                 e.target.unMute();
                 e.target.setVolume(vol ? Math.round(Number(vol.value) * 100) : 100);
                 this.applySpeed();
+                this.applyQuality();
                 try { e.target.setLoop(this.loopTrack); } catch { /* opcional */ }
                 e.target.playVideo();
               } catch { /* aún no listo */ }
@@ -215,6 +218,16 @@
       const sel = document.getElementById("rp-speed");
       const v = sel ? Number(sel.value) : 1;
       try { this.player.setPlaybackRate(v); } catch { /* aún no listo */ }
+    },
+
+    applyQuality() {
+      if (!this.player) return;
+      const sel = document.getElementById("rp-quality");
+      const v = sel ? sel.value : "auto";
+      try {
+        if (v === "auto") this.player.setPlaybackQuality("default");
+        else this.player.setPlaybackQuality(v);
+      } catch { /* aún no listo */ }
     },
 
     nudge(sec) {
