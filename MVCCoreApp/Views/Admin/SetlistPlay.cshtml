@@ -34,13 +34,42 @@
     <ol id="rp-list" style="padding-left:20px"></ol>
   </div>
   <div class="card">
+    <h3>Herramientas de ensayo</h3>
+    <div class="input-row">
+      <label class="mono" for="rp-speed">Velocidad</label>
+      <select id="rp-speed" class="form-control" style="max-width:110px">
+        <option value="0.5">0.5×</option>
+        <option value="0.75">0.75×</option>
+        <option value="1" selected>1×</option>
+        <option value="1.25">1.25×</option>
+        <option value="1.5">1.5×</option>
+        <option value="2">2×</option>
+      </select>
+      <button id="rp-back10" class="btn btn-secondary btn-sm" title="Atrás 10s">−10s</button>
+      <button id="rp-fwd10" class="btn btn-secondary btn-sm" title="Adelante 10s">+10s</button>
+      <button id="rp-loop-track" class="btn btn-secondary btn-sm" title="Repetir tema">🔁 Tema</button>
+    </div>
+    <div class="input-row" style="margin-top:8px">
+      <button id="rp-set-a" class="btn btn-secondary btn-sm" title="Inicio del loop">Poner A</button>
+      <button id="rp-set-b" class="btn btn-secondary btn-sm" title="Fin del loop">Poner B</button>
+      <button id="rp-clear-ab" class="btn btn-secondary btn-sm" title="Quitar loop">Quitar A–B</button>
+      <span id="rp-ab-label" class="mono">A–B: —</span>
+    </div>
+    <div class="input-row" style="margin-top:8px">
+      <input id="rp-mark-label" class="form-control" placeholder="Nombre de la sección (verso, coro…)" />
+      <button id="rp-mark-add" class="btn btn-secondary btn-sm"><i class="fa-solid fa-flag"></i> Bandera</button>
+    </div>
+    <ul id="rp-marks" style="list-style:none;padding:0;margin-top:8px"></ul>
+    <p class="form-hint">YouTube conserva el tono al cambiar velocidad. Las banderas se guardan en este navegador por video.</p>
+  </div>
+  <div class="card">
     <h3>Buscar tema suelto</h3>
     <div class="input-row">
       <input id="rp-q" class="form-control" placeholder="Título + artista…" />
       <button id="rp-search-btn" class="btn btn-secondary btn-sm"><i class="fa-solid fa-magnifying-glass"></i> Buscar</button>
     </div>
     <ul id="rp-hits" style="list-style:none;padding:0;margin-top:10px"></ul>
-    <p class="form-hint">Primero YouTube; si falla, Saavn. Si ambos fallan verás el motivo (424).</p>
+    <p class="form-hint">Solo YouTube; el resultado se reproduce en el iframe.</p>
   </div>
 </div>
 
