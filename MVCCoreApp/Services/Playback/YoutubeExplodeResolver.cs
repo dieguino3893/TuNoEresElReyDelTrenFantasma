@@ -1,5 +1,3 @@
-using System.Net.Http.Json;
-using System.Text.Json;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using MVCCoreApp.Dtos;
@@ -22,20 +20,17 @@ public sealed class YoutubeExplodeResolver : IAudioResolver
     private readonly YoutubeClient _client;
     private readonly IMemoryCache _cache;
     private readonly PlaybackOptions _opt;
-    private readonly IHttpClientFactory _http;
     private readonly ILogger<YoutubeExplodeResolver> _logger;
 
     public YoutubeExplodeResolver(
         YoutubeClient client,
         IMemoryCache cache,
         IOptions<PlaybackOptions> opt,
-        IHttpClientFactory http,
         ILogger<YoutubeExplodeResolver> logger)
     {
         _client = client;
         _cache = cache;
         _opt = opt.Value;
-        _http = http;
         _logger = logger;
     }
 
@@ -77,13 +72,6 @@ public sealed class YoutubeExplodeResolver : IAudioResolver
         if (_cache.TryGetValue<ResolvedAudioDto>(cacheKey, out var cached) && cached != null)
             return cached;
 
-        // Resolver externo (Apps Script en IPs de Google): evita el bot-check del datacenter.
-        if (!string.IsNullOrWhiteSpace(_opt.ResolverUrl))
-        {
-            var remoto = await TryRemoteAsync(videoId, cacheKey, ct);
-            if (remoto != null) return remoto;
-        }
-
         try
         {
             // Reintentos solo para errores transitorios de red (2 intentos, backoff simple).
@@ -111,61 +99,6 @@ public sealed class YoutubeExplodeResolver : IAudioResolver
         {
             throw new StreamNotAvailableException($"Video no reproducible ({videoId}): {ex.Message}", ProviderName);
         }
-    }
-
-    private async Task<ResolvedAudioDto?> TryRemoteAsync(string videoId, string cacheKey, CancellationToken ct)
-    {
-        try
-        {
-            var cliente = _http.CreateClient("PlaybackRemote");
-            var sep = _opt.ResolverUrl!.Contains('?') ? '&' : '?';
-            var url = $"{_opt.ResolverUrl}{sep}id={Uri.EscapeDataString(videoId)}";
-            using var req = new HttpRequestMessage(HttpMethod.Get, url);
-            if (!string.IsNullOrWhiteSpace(_opt.ResolverKey))
-                req.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _opt.ResolverKey);
-
-            using var res = await cliente.SendAsync(req, ct);
-            if (!res.IsSuccessStatusCode)
-            {
-                _logger.LogWarning("Resolver externo devolvió {Status} para {VideoId}", (int)res.StatusCode, videoId);
-                return null;
-            }
-
-            var data = await res.Content.ReadFromJsonAsync<RemoteAudio>(cancellationToken: ct);
-            if (string.IsNullOrWhiteSpace(data?.Url))
-            {
-                _logger.LogWarning("Resolver externo sin URL para {VideoId}: {Error}", videoId, data?.Error);
-                return null;
-            }
-
-            var ttl = TimeSpan.FromMinutes(Math.Clamp(_opt.CacheMinutes, 30, 360));
-            var dto = new ResolvedAudioDto(
-                videoId,
-                data.Title ?? videoId,
-                data.Author,
-                data.Duration,
-                null,
-                data.Url,
-                DateTimeOffset.UtcNow.Add(ttl),
-                "remote",
-                "mp3");
-            _cache.Set(cacheKey, dto, ttl);
-            return dto;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Resolver externo falló para {VideoId}", videoId);
-            return null;
-        }
-    }
-
-    private sealed class RemoteAudio
-    {
-        public string? Url { get; set; }
-        public string? Title { get; set; }
-        public string? Author { get; set; }
-        public int? Duration { get; set; }
-        public string? Error { get; set; }
     }
 
     private async Task<ResolvedAudioDto> ResolveUncachedAsync(string videoId, string cacheKey, CancellationToken ct)

@@ -1,6 +1,6 @@
 /* Player de ensayo interno — El Rey del Tren Fantasma.
- * La API (/api/v1/playback) resuelve metadatos + URL firmada; este <audio> reproduce.
- * Controles: play, pause, anterior/siguiente, seek, volumen. Sin anuncios (stream directo).
+ * Reproduce con el iframe de YouTube y controles propios (tiempo, volumen, seek).
+ * Modo "solo audio": oculta el video y deja sonando el iframe.
  * Uso: SetlistPlay.cshtml lo inicializa con window.__SETLIST_ID__.
  */
 (function () {
@@ -28,11 +28,10 @@
   }
 
   window.RehearsalPlayer = {
-    items: [], idx: -1, audio: null, statusEl: null, titleEl: null,
-    embedWrap: null, player: null, ytLoading: false, serverBroken: false,
+    items: [], idx: -1, statusEl: null, titleEl: null,
+    embedWrap: null, player: null, ytLoading: false, tickTimer: null, audioOnly: false,
 
     async init(setlistId) {
-      this.audio = document.getElementById("rp-audio");
       this.statusEl = document.getElementById("rp-status");
       this.titleEl = document.getElementById("rp-now");
       this.embedWrap = document.getElementById("rp-embed-wrap");
@@ -41,41 +40,30 @@
       const seek = document.getElementById("rp-seek");
 
       if (vol) vol.addEventListener("input", () => {
-        if (this.usingEmbed()) { try { this.player.unMute(); this.player.setVolume(Math.round(vol.value * 100)); } catch { /* aún no listo */ } return; }
-        this.audio.volume = vol.value;
+        if (!this.player) return;
+        try { this.player.unMute(); this.player.setVolume(Math.round(Number(vol.value) * 100)); } catch { /* aún no listo */ }
       });
       if (seek) seek.addEventListener("input", () => {
-        if (this.usingEmbed()) { try { const d = this.player.getDuration(); if (d) this.player.seekTo(seek.value * d, true); } catch { /* aún no listo */ } return; }
-        if (this.audio.duration) this.audio.currentTime = seek.value * this.audio.duration;
-      });
-      this.audio.addEventListener("timeupdate", () => {
-        if (seek && this.audio.duration) seek.value = this.audio.currentTime / this.audio.duration;
-        const t = document.getElementById("rp-time");
-        if (t) t.textContent = fmt(this.audio.currentTime) + " / " + fmt(this.audio.duration);
-      });
-      this.audio.addEventListener("ended", () => this.next());
-      // Si la URL firmada expiró (403 a mitad de pista), re-resolver una vez.
-      this.audio.addEventListener("error", async () => {
-        const cur = this.items[this.idx];
-        if (cur && !cur._retried) {
-          cur._retried = true;
-          this.setStatus("URL expirada, reintentando…");
-          try { await this.playAt(this.idx); } catch (e) { this.setStatus("Sin audio: " + e.message); }
-        }
+        if (!this.player) return;
+        try { const d = this.player.getDuration(); if (d) this.player.seekTo(Number(seek.value) * d, true); } catch { /* aún no listo */ }
       });
 
       document.getElementById("rp-play").onclick = () => {
-        if (this.usingEmbed()) {
-          try {
-            const state = this.player.getPlayerState();
-            state === 1 ? this.player.pauseVideo() : this.player.playVideo();
-          } catch { /* aún no listo */ }
-          return;
-        }
-        this.audio.paused ? this.audio.play() : this.audio.pause();
+        if (!this.player) return;
+        try {
+          const state = this.player.getPlayerState();
+          state === 1 ? this.player.pauseVideo() : this.player.playVideo();
+        } catch { /* aún no listo */ }
       };
       document.getElementById("rp-prev").onclick = () => this.prev();
       document.getElementById("rp-next").onclick = () => this.next();
+
+      const toggle = document.getElementById("rp-video-toggle");
+      if (toggle) toggle.onclick = () => {
+        this.audioOnly = !this.audioOnly;
+        this.embedWrap.classList.toggle("audio-only", this.audioOnly);
+        toggle.textContent = this.audioOnly ? "Mostrar video" : "Solo audio";
+      };
 
       const searchBtn = document.getElementById("rp-search-btn");
       if (searchBtn) searchBtn.onclick = () => this.search();
@@ -90,7 +78,7 @@
         li.innerHTML = "<button class='btn btn-secondary btn-sm'>▶</button> " +
           "<strong></strong> <small></small>";
         li.querySelector("strong").textContent = (it.position || (i + 1)) + ". " + it.title;
-        li.querySelector("small").textContent = it.videoId ? "YouTube ✓" : "buscar al reproducir";
+        li.querySelector("small").textContent = it.videoId ? "YouTube" : "buscar al reproducir";
         li.querySelector("button").onclick = () => this.playAt(i);
         list.appendChild(li);
       });
@@ -102,65 +90,68 @@
       if (!it) return;
       this.idx = i;
       this.titleEl.textContent = "♪ " + it.title;
-      if (this.serverBroken && it.videoId && !it.videoId.startsWith("saavn:")) return this.playEmbed(it.videoId);
+      this.setStatus("Buscando: " + it.title + "…");
 
-      this.setStatus("Resolviendo: " + it.title + "…");
-      // resolve acepta videoId o texto libre (título del setlist → primer hit de YouTube).
-      const key = it.videoId
-        ? "videoId=" + encodeURIComponent(it.videoId)
-        : "q=" + encodeURIComponent(it.title);
-      try {
-        const track = await api("/api/v1/playback/resolve?" + key);
-        this.stopTick();
-        this.player?.stopVideo();
-        if (this.embedWrap) this.embedWrap.hidden = true;
-        this.audio.hidden = false;
-        this.audio.src = track.streamUrl;
-        this.titleEl.textContent = "♪ " + track.title + (track.artist ? " — " + track.artist : "") +
-          " [" + track.provider + "]";
-        await this.audio.play();
-        this.setStatus("Sonando (" + track.provider + ", expira " +
-          new Date(track.expiresAt).toLocaleTimeString() + ")");
-      } catch (e) {
-        // El servidor de producción está en un hosting que YouTube bloquea: el navegador sí puede.
-        // Segundo intento por título: deja que el backend use Deezer u otro fallback.
-        if (it.videoId) {
-          try {
-            const alt = await api("/api/v1/playback/resolve?q=" + encodeURIComponent(it.title));
-            this.stopTick();
-            this.player?.stopVideo();
-            if (this.embedWrap) this.embedWrap.hidden = true;
-            this.audio.hidden = false;
-            this.audio.src = alt.streamUrl;
-            this.titleEl.textContent = "♪ " + alt.title + (alt.artist ? " — " + alt.artist : "") +
-              " [" + alt.provider + "]";
-            await this.audio.play();
-            this.setStatus("Sonando (" + alt.provider + ").");
-            document.querySelectorAll(".rp-item").forEach((el, j) =>
-              el.classList.toggle("active", j === i));
-            return;
-          } catch { /* sin fallback alterno */ }
-        }
-        if (!it.videoId || it.videoId.startsWith("saavn:")) {
-          // El servidor encontró el video pero no pudo resolver audio: usa ese videoId en el embed.
-          it.videoId = e.payload?.videoId || null;
-        }
-        if (!it.videoId) {
-          try {
-            const hits = await api("/api/v1/playback/search?q=" + encodeURIComponent(it.title));
-            if (hits[0]?.provider === "youtube") it.videoId = hits[0].videoId;
-          } catch { /* sin búsqueda disponible */ }
-        }
-        if (!it.videoId) { this.setStatus("Sin audio: " + e.message); return; }
-        this.serverBroken = true;
-        this.setStatus("YouTube bloquea al servidor; usando reproductor embed.");
-        this.playEmbed(it.videoId);
+      let videoId = it.videoId && !it.videoId.startsWith("saavn:") ? it.videoId : null;
+      if (!videoId) {
+        try {
+          const hits = await api("/api/v1/playback/search?q=" + encodeURIComponent(it.title));
+          const yt = hits.find(h => h.provider === "youtube");
+          videoId = yt ? yt.videoId : null;
+        } catch { /* sin búsqueda */ }
       }
+      if (!videoId) { this.setStatus("Sin video para " + it.title); return; }
+
+      it.videoId = videoId;
+      this.playEmbed(videoId);
       document.querySelectorAll(".rp-item").forEach((el, j) =>
         el.classList.toggle("active", j === i));
     },
 
-    usingEmbed() { return !!(this.player && this.embedWrap && !this.embedWrap.hidden); },
+    playEmbed(videoId) {
+      const boot = () => {
+        if (this.player) {
+          try { this.player.loadVideoById(videoId); this.player.playVideo(); } catch { /* aún no listo */ }
+          return;
+        }
+        this.player = new YT.Player("rp-embed", {
+          videoId,
+          playerVars: {
+            autoplay: 1, controls: 0, disablekb: 1, fs: 0, rel: 0,
+            modestbranding: 1, iv_load_policy: 3, playsinline: 1
+          },
+          events: {
+            onReady: (e) => {
+              try {
+                const vol = document.getElementById("rp-vol");
+                e.target.unMute();
+                e.target.setVolume(vol ? Math.round(Number(vol.value) * 100) : 100);
+                e.target.playVideo();
+              } catch { /* aún no listo */ }
+            },
+            onStateChange: (e) => {
+              if (e.data === 0) this.next();
+              else if (e.data === 1) this.setPlayIcon(true);
+              else if (e.data === 2) this.setPlayIcon(false);
+            }
+          }
+        });
+      };
+
+      if (window.YT && window.YT.Player) boot();
+      else {
+        window.onYouTubeIframeAPIReady = boot;
+        if (!this.ytLoading) {
+          this.ytLoading = true;
+          const s = document.createElement("script");
+          s.src = "https://www.youtube.com/iframe_api";
+          document.head.appendChild(s);
+        }
+      }
+      this.startTick();
+      this.setStatus("Sonando en YouTube.");
+      this.setPlayIcon(true);
+    },
 
     setPlayIcon(playing) {
       const btn = document.getElementById("rp-play");
@@ -171,9 +162,8 @@
 
     startTick() {
       this.stopTick();
-      // El embed no emite timeupdate: se sondea posición y estado.
       this.tickTimer = setInterval(() => {
-        if (!this.usingEmbed()) return;
+        if (!this.player) return;
         try {
           const d = this.player.getDuration() || 0;
           const c = this.player.getCurrentTime() || 0;
@@ -188,48 +178,6 @@
 
     stopTick() { if (this.tickTimer) { clearInterval(this.tickTimer); this.tickTimer = null; } },
 
-    playEmbed(videoId) {
-      this.stopTick();
-      this.audio.pause();
-      this.audio.removeAttribute("src");
-      this.audio.hidden = true;
-      this.embedWrap.hidden = false;
-      this.setPlayIcon(true);
-      const boot = () => {
-        if (this.player) { try { this.player.loadVideoById(videoId); } catch { /* aún no listo */ } return; }
-        this.player = new YT.Player("rp-embed", {
-          videoId,
-          playerVars: { autoplay: 1, controls: 0, disablekb: 1, fs: 0, rel: 0, modestbranding: 1, iv_load_policy: 3, playsinline: 1 },
-          events: {
-            onReady: (e) => {
-              try {
-                const vol = document.getElementById("rp-vol");
-                if (vol) { e.target.unMute(); e.target.setVolume(Math.round(vol.value * 100)); }
-                e.target.playVideo();
-              } catch { /* aún no listo */ }
-            },
-            onStateChange: (e) => {
-              if (e.data === 0) this.next();
-              else if (e.data === 1) this.setPlayIcon(true);
-              else if (e.data === 2) this.setPlayIcon(false);
-            }
-          }
-        });
-      };
-      if (window.YT?.Player) boot();
-      else {
-        window.onYouTubeIframeAPIReady = boot;
-        if (!this.ytLoading) {
-          this.ytLoading = true;
-          const s = document.createElement("script");
-          s.src = "https://www.youtube.com/iframe_api";
-          document.head.appendChild(s);
-        }
-      }
-      this.startTick();
-      this.setStatus("Reproduciendo en YouTube (embed, puede mostrar anuncios).");
-    },
-
     async search() {
       const q = document.getElementById("rp-q").value.trim();
       if (q.length < 2) return;
@@ -237,24 +185,25 @@
       const hits = await api("/api/v1/playback/search?q=" + encodeURIComponent(q));
       const box = document.getElementById("rp-hits");
       box.innerHTML = "";
-      hits.forEach(h => {
+      const ytHits = hits.filter(h => h.provider === "youtube");
+      ytHits.forEach(h => {
         const li = document.createElement("li");
         li.innerHTML = "<button class='btn btn-secondary btn-sm'>▶</button> <strong></strong> <small></small>";
         li.querySelector("strong").textContent = h.title;
-        li.querySelector("small").textContent = (h.artist || "") + " · " + fmt(h.durationSeconds) + " [" + h.provider + "]";
+        li.querySelector("small").textContent = (h.artist || "") + " · " + fmt(h.durationSeconds);
         li.querySelector("button").onclick = async () => {
           this.items.splice(this.idx + 1, 0, { title: h.title, videoId: h.videoId });
           await this.playAt(this.idx + 1);
         };
         box.appendChild(li);
       });
-      this.setStatus(hits.length ? hits.length + " resultados." : "Sin resultados.");
+      this.setStatus(ytHits.length ? ytHits.length + " resultados." : "Sin resultados.");
     },
 
-    prev() { if (this.idx > 0) this.playAt(this.idx - 1).catch(e => this.setStatus("Sin audio: " + e.message)); },
+    prev() { if (this.idx > 0) this.playAt(this.idx - 1).catch(e => this.setStatus("Error: " + e.message)); },
     next() {
       if (this.idx + 1 < this.items.length)
-        this.playAt(this.idx + 1).catch(e => this.setStatus("Sin audio: " + e.message));
+        this.playAt(this.idx + 1).catch(e => this.setStatus("Error: " + e.message));
     },
     setStatus(t) { if (this.statusEl) this.statusEl.textContent = t; }
   };

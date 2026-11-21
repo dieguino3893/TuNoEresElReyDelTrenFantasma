@@ -20,13 +20,11 @@ public class PlaybackController : ControllerBase
 {
     private readonly AudioResolverFactory _factory;
     private readonly MongoDbService _mongo;
-    private readonly DeezerArlClient _deezer;
 
-    public PlaybackController(AudioResolverFactory factory, MongoDbService mongo, DeezerArlClient deezer)
+    public PlaybackController(AudioResolverFactory factory, MongoDbService mongo)
     {
         _factory = factory;
         _mongo = mongo;
-        _deezer = deezer;
     }
 
     /// <summary>Busca canciones (YouTube primario, Saavn fallback). Ej: ?q=luna rosa&amp;limit=8</summary>
@@ -65,28 +63,6 @@ public class PlaybackController : ControllerBase
         {
             return StatusCode(424, new { error = ex.Message, providerErrors = ex.ProviderErrors, videoId = ex.VideoId });
         }
-    }
-
-    /// <summary>Stream de Deezer descifrado (audio/mpeg, soporta rangos para buscar).</summary>
-    [HttpGet("deezer/stream")]
-    public async Task<IActionResult> DeezerStream([FromQuery] string trackId, CancellationToken ct = default)
-    {
-        if (!_deezer.Enabled) return NotFound(new { error = "Deezer no configurado." });
-        if (string.IsNullOrWhiteSpace(trackId) || !trackId.All(char.IsDigit))
-            return BadRequest(new { error = "trackId inválido." });
-
-        var path = await _deezer.GetDecryptedFileAsync(trackId, ct);
-        if (path == null) return StatusCode(424, new { error = "Deezer no pudo resolver el audio." });
-        return PhysicalFile(path, "audio/mpeg", enableRangeProcessing: true);
-    }
-
-    /// <summary>Prueba de búsqueda Deezer desde el servidor.</summary>
-    [HttpGet("deezer/search")]
-    public async Task<ActionResult<IReadOnlyList<SongHitDto>>> DeezerSearch([FromQuery] string q, CancellationToken ct = default)
-    {
-        if (string.IsNullOrWhiteSpace(q) || q.Trim().Length < 2)
-            return BadRequest(new { error = "Parámetro 'q' requerido." });
-        return Ok(await _deezer.SearchAsync(q.Trim(), 5, ct));
     }
 
     /// <summary>

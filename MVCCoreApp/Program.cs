@@ -69,72 +69,11 @@ builder.Services.AddScoped<AsistenteServicio>();
 // Aislado tras IAudioResolver para que un cambio en la API no oficial no rompa setlists.
 builder.Services.AddMemoryCache();
 builder.Services.Configure<PlaybackOptions>(builder.Configuration.GetSection("Playback"));
-builder.Services.AddSingleton<YoutubeClient>(_ =>
-{
-    // Playback:ProxyUrl permite resolver el audio desde una IP no bloqueada por YouTube.
-    var proxyUrl = builder.Configuration["Playback:ProxyUrl"];
-    HttpClient http = new();
-    if (!string.IsNullOrWhiteSpace(proxyUrl))
-    {
-        var proxy = new System.Net.WebProxy(proxyUrl);
-        if (Uri.TryCreate(proxyUrl, UriKind.Absolute, out var uri) && !string.IsNullOrEmpty(uri.UserInfo))
-        {
-            var parts = uri.UserInfo.Split(':', 2);
-            proxy.Credentials = new System.Net.NetworkCredential(parts[0], parts.Length > 1 ? parts[1] : "");
-        }
-        http = new HttpClient(new SocketsHttpHandler { Proxy = proxy, UseProxy = true });
-    }
-
-    // Playback:YouTubeCookies acepta cookies.txt (Netscape) o un header "SID=...; HSID=...".
-    var cookies = new List<System.Net.Cookie>();
-    var cookieRaw = builder.Configuration["Playback:YouTubeCookies"];
-    if (!string.IsNullOrWhiteSpace(cookieRaw))
-    {
-        foreach (var linea in cookieRaw.Split('\n', StringSplitOptions.RemoveEmptyEntries))
-        {
-            var l = linea.TrimEnd('\r').Trim();
-            if (l.Length == 0) continue;
-            if (l.StartsWith("#HttpOnly_", StringComparison.Ordinal)) l = l["#HttpOnly_".Length..];
-            else if (l.StartsWith("#")) continue;
-
-            var campos = l.Split('\t');
-            if (campos.Length >= 7)
-            {
-                var dominio = campos[0].Trim();
-                if (!dominio.StartsWith('.')) dominio = "." + dominio;
-                var ruta = string.IsNullOrWhiteSpace(campos[2]) ? "/" : campos[2];
-                try { cookies.Add(new System.Net.Cookie(campos[5].Trim(), campos[6].Trim(), ruta, dominio)); }
-                catch { /* cookie inválida, se omite */ }
-                continue;
-            }
-
-            foreach (var part in l.Split(';'))
-            {
-                var kv = part.Trim();
-                var idx = kv.IndexOf('=');
-                if (idx <= 0) continue;
-                var nombre = kv[..idx].Trim();
-                if (nombre.Equals("Path", StringComparison.OrdinalIgnoreCase) ||
-                    nombre.Equals("Domain", StringComparison.OrdinalIgnoreCase) ||
-                    nombre.Equals("Expires", StringComparison.OrdinalIgnoreCase) ||
-                    nombre.Equals("Secure", StringComparison.OrdinalIgnoreCase) ||
-                    nombre.Equals("HttpOnly", StringComparison.OrdinalIgnoreCase) ||
-                    nombre.Equals("SameSite", StringComparison.OrdinalIgnoreCase)) continue;
-                try { cookies.Add(new System.Net.Cookie(nombre, kv[(idx + 1)..].Trim(), "/", ".youtube.com")); }
-                catch { /* cookie inválida, se omite */ }
-            }
-        }
-    }
-
-    return cookies.Count > 0 ? new YoutubeClient(http, cookies) : new YoutubeClient(http);
-});
+builder.Services.AddSingleton<YoutubeClient>(_ => new YoutubeClient());
 builder.Services.AddHttpClient("Saavn", c => c.Timeout = TimeSpan.FromSeconds(10));
-builder.Services.AddHttpClient("PlaybackRemote", c => c.Timeout = TimeSpan.FromSeconds(20));
-builder.Services.AddHttpClient("Deezer", c => c.Timeout = TimeSpan.FromSeconds(30));
 builder.Services.AddHttpClient<SitioPreviewService>(c => c.Timeout = TimeSpan.FromSeconds(10));
 builder.Services.AddSingleton<YoutubeExplodeResolver>();
 builder.Services.AddSingleton<SaavnFallbackResolver>();
-builder.Services.AddSingleton<DeezerArlClient>();
 builder.Services.AddSingleton<AudioResolverFactory>();
 
 // CORS para front desacoplado (GitHub Pages)

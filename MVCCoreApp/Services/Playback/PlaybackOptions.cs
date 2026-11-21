@@ -16,36 +16,8 @@ public class PlaybackOptions
     public int MaxSearchResults { get; set; } = 10;
 
     /// <summary>
-    /// Proxy HTTP para resolver audio de YouTube desde una IP no bloqueada.
-    /// Formato: http://usuario:clave@host:puerto. Vacío = sin proxy.
-    /// </summary>
-    public string? ProxyUrl { get; set; }
-
-    /// <summary>
-    /// Header de cookies de una sesión de YouTube ("SID=...; HSID=...; ...").
-    /// Evita el bot-check desde IPs de datacenter. Vacío = sin cookies.
-    /// </summary>
-    public string? YouTubeCookies { get; set; }
-
-    /// <summary>
-    /// URL de un resolver externo (ej. Google Apps Script) que devuelve
-    /// {url,title,author,duration}. Se consulta antes que YoutubeExplode.
-    /// Vacío = desactivado.
-    /// </summary>
-    public string? ResolverUrl { get; set; }
-
-    /// <summary>Token opcional para el resolver externo (header Authorization: Bearer).</summary>
-    public string? ResolverKey { get; set; }
-
-    /// <summary>
     /// Llave del link público de ensayo (/ensayo/play/{id}?key=... y ?key= en la API de playback).
     /// Vacía = sin acceso compartido.
     /// </summary>
     public string? ShareKey { get; set; }
-
-    /// <summary>
-    /// Cookie ARL de una cuenta Deezer. Si está puesta, el resolve por texto cae a Deezer
-    /// (audio completo, sin anuncios) cuando YouTube falla.
-    /// </summary>
-    public string? DeezerArl { get; set; }
 }
