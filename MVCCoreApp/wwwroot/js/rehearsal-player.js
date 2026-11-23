@@ -29,8 +29,8 @@
 
   window.RehearsalPlayer = {
     items: [], idx: -1, statusEl: null, titleEl: null,
-    embedWrap: null, player: null, ytLoading: false, tickTimer: null, audioOnly: false,
-    loopFlags: false, loopTrack: false, videoId: null, lastDuration: 0,
+    embedWrap: null, player: null, ytLoading: false, tickTimer: null, audioOnly: true,
+    loopFlags: false, loopPair: null, loopTrack: false, videoId: null, lastDuration: 0,
 
     async init(setlistId) {
       this.statusEl = document.getElementById("rp-status");
@@ -46,25 +46,44 @@
       });
       if (seek) seek.addEventListener("input", () => {
         if (!this.player) return;
+        this.loopPair = null;
         try { const d = this.player.getDuration(); if (d) this.player.seekTo(Number(seek.value) * d, true); } catch { /* aún no listo */ }
       });
 
       document.getElementById("rp-play").onclick = () => {
         if (!this.player) return;
         try {
-          const state = this.player.getPlayerState();
-          state === 1 ? this.player.pauseVideo() : this.player.playVideo();
+          this.player.getPlayerState() === 1 ? this.player.pauseVideo() : this.player.playVideo();
         } catch { /* aún no listo */ }
       };
       document.getElementById("rp-prev").onclick = () => this.prev();
       document.getElementById("rp-next").onclick = () => this.next();
 
+      document.addEventListener("keydown", (e) => {
+        const t = e.target;
+        if (t && (t.tagName === "INPUT" || t.tagName === "SELECT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
+        const k = e.key;
+        if (k === " " || k === "k" || k === "K") { e.preventDefault(); this.pause(); }
+        else if (k === "j" || k === "J") { e.preventDefault(); this.nudge(-10); }
+        else if (k === "l" || k === "L") { e.preventDefault(); this.nudge(10); }
+        else if (k === "ArrowLeft") { e.preventDefault(); this.nudge(-5); }
+        else if (k === "ArrowRight") { e.preventDefault(); this.nudge(5); }
+        else if (k === "f" || k === "F") { e.preventDefault(); this.addMark(); }
+        else if (k === "r" || k === "R") { e.preventDefault(); this.toggleLoopFlags(); }
+        else if (k === "n" || k === "N") { e.preventDefault(); this.next(); }
+        else if (k === "b" || k === "B") { e.preventDefault(); this.prev(); }
+      });
+
       const toggle = document.getElementById("rp-video-toggle");
-      if (toggle) toggle.onclick = () => {
-        this.audioOnly = !this.audioOnly;
-        this.embedWrap.classList.toggle("audio-only", this.audioOnly);
+      if (this.embedWrap) this.embedWrap.classList.toggle("audio-only", this.audioOnly);
+      if (toggle) {
         toggle.textContent = this.audioOnly ? "Mostrar video" : "Solo audio";
-      };
+        toggle.onclick = () => {
+          this.audioOnly = !this.audioOnly;
+          this.embedWrap.classList.toggle("audio-only", this.audioOnly);
+          toggle.textContent = this.audioOnly ? "Mostrar video" : "Solo audio";
+        };
+      }
 
       const searchBtn = document.getElementById("rp-search-btn");
       if (searchBtn) searchBtn.onclick = () => this.search();
@@ -89,12 +108,7 @@
       const clearMarks = document.getElementById("rp-clear-marks");
       if (clearMarks) clearMarks.onclick = () => this.clearMarks();
       const loopFlags = document.getElementById("rp-loop-flags");
-      if (loopFlags) loopFlags.onclick = () => {
-        this.loopFlags = !this.loopFlags;
-        loopFlags.classList.toggle("btn-primary", this.loopFlags);
-        loopFlags.classList.toggle("btn-secondary", !this.loopFlags);
-        this.renderMarks();
-      };
+      if (loopFlags) loopFlags.onclick = () => this.toggleLoopFlags();
 
       this.setStatus("Cargando setlist…");
       const data = await api("/api/v1/playback/setlist/" + encodeURIComponent(setlistId));
@@ -116,6 +130,7 @@
     async playAt(i) {
       const it = this.items[i];
       if (!it) return;
+      const cambioPista = i !== this.idx;
       this.idx = i;
       this.titleEl.textContent = "♪ " + it.title;
       this.setStatus("Buscando: " + it.title + "…");
@@ -131,6 +146,10 @@
       if (!videoId) { this.setStatus("Sin video para " + it.title); return; }
 
       it.videoId = videoId;
+      this.videoId = videoId;
+      this.loopPair = null;
+      // Al cambiar de pista se borran todas las banderas.
+      if (cambioPista) this.clearMarks();
       this.playEmbed(videoId);
       document.querySelectorAll(".rp-item").forEach((el, j) =>
         el.classList.toggle("active", j === i));
@@ -204,15 +223,9 @@
 
           // Loop entre las dos banderas que rodean la reproducción actual.
           if (this.loopFlags && d > 0) {
-            const marks = this.getMarks();
-            if (marks.length >= 2) {
-              let prev = null, next = null;
-              for (const m of marks) {
-                if (m.t <= c + 0.3) prev = m;
-                else { next = m; break; }
-              }
-              if (prev && next && c >= next.t - 0.25) this.player.seekTo(prev.t, true);
-            }
+            if (!this.loopPair) this.loopPair = this.findLoopPair(c);
+            if (this.loopPair && c >= this.loopPair.b - 0.15)
+              this.player.seekTo(this.loopPair.a, true);
           }
 
           const seek = document.getElementById("rp-seek");
@@ -252,6 +265,7 @@
       try {
         const c = this.player.getCurrentTime() || 0;
         const d = this.player.getDuration() || 0;
+        this.loopPair = null;
         this.player.seekTo(Math.min(Math.max(0, c + sec), d), true);
       } catch { /* aún no listo */ }
     },
@@ -259,6 +273,30 @@
     now() {
       try { return this.player ? (this.player.getCurrentTime() || 0) : 0; }
       catch { return 0; }
+    },
+
+    pause() {
+      try { if (this.player) this.player.pauseVideo(); } catch { /* aún no listo */ }
+    },
+
+    toggleLoopFlags() {
+      this.loopFlags = !this.loopFlags;
+      this.loopPair = null;
+      const btn = document.getElementById("rp-loop-flags");
+      if (btn) {
+        btn.classList.toggle("btn-primary", this.loopFlags);
+        btn.classList.toggle("btn-secondary", !this.loopFlags);
+      }
+    },
+
+    findLoopPair(c) {
+      const marks = this.getMarks().slice().sort((a, b) => a.t - b.t);
+      let a = null, b = null;
+      for (const m of marks) {
+        if (m.t <= c) a = m;
+        else { b = m; break; }
+      }
+      return a && b ? { a: a.t, b: b.t } : null;
     },
 
     marksKey() { return "rp-marks-" + (this.videoId || "none"); },
@@ -275,17 +313,20 @@
       while (marks.some(m => m.label === "Sección " + n)) n++;
       marks.push({ t: Math.round(this.now()), label: "Sección " + n });
       marks.sort((a, b) => a.t - b.t);
+      this.loopPair = null;
       try { localStorage.setItem(this.marksKey(), JSON.stringify(marks)); } catch { /* sin storage */ }
       this.renderMarks();
     },
 
     clearMarks() {
+      this.loopPair = null;
       try { localStorage.removeItem(this.marksKey()); } catch { /* sin storage */ }
       this.renderMarks();
     },
 
     saveMarks(marks) {
       marks.sort((a, b) => a.t - b.t);
+      this.loopPair = null;
       try { localStorage.setItem(this.marksKey(), JSON.stringify(marks)); } catch { /* sin storage */ }
       this.renderMarks();
     },
@@ -300,11 +341,14 @@
         bar.innerHTML = "";
         marks.forEach(m => {
           if (!dur) return;
-          const pin = document.createElement("span");
-          pin.className = "rp-mark-pin";
+          const pin = document.createElement("i");
+          pin.className = "fa-solid fa-flag rp-mark-pin";
           pin.style.left = Math.min(100, Math.max(0, (m.t / dur) * 100)) + "%";
           pin.dataset.label = m.label + " · " + fmt(m.t);
-          pin.onclick = () => { try { this.player.seekTo(m.t, true); this.player.playVideo(); } catch { /* aún no listo */ } };
+          pin.onclick = () => {
+            this.loopPair = null;
+            try { this.player.seekTo(m.t, true); this.player.playVideo(); } catch { /* aún no listo */ }
+          };
           bar.appendChild(pin);
         });
       }
@@ -334,7 +378,10 @@
           this.saveMarks(rest);
         };
         const btns = li.querySelectorAll("button");
-        btns[0].onclick = () => { try { this.player.seekTo(m.t, true); this.player.playVideo(); } catch { /* aún no listo */ } };
+        btns[0].onclick = () => {
+          this.loopPair = null;
+          try { this.player.seekTo(m.t, true); this.player.playVideo(); } catch { /* aún no listo */ }
+        };
         btns[1].onclick = () => this.saveMarks(this.getMarks().filter((_, j) => j !== i));
         box.appendChild(li);
       });

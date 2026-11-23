@@ -17,57 +17,54 @@
     <div id="rp-embed"></div>
   </div>
   <div class="input-row" style="margin-top:10px">
-    <button id="rp-prev" class="btn btn-secondary btn-sm" title="Anterior"><i class="fa-solid fa-backward-step"></i></button>
-    <button id="rp-play" class="btn btn-primary btn-sm" title="Play/Pause"><i class="fa-solid fa-play"></i> / <i class="fa-solid fa-pause"></i></button>
-    <button id="rp-next" class="btn btn-secondary btn-sm" title="Siguiente"><i class="fa-solid fa-forward-step"></i></button>
+    <button id="rp-prev" class="btn btn-secondary btn-sm" title="Anterior (B)"><i class="fa-solid fa-backward-step"></i></button>
+    <button id="rp-play" class="btn btn-primary btn-sm" title="Play/Pause (K)"><i class="fa-solid fa-play"></i> / <i class="fa-solid fa-pause"></i></button>
+    <button id="rp-next" class="btn btn-secondary btn-sm" title="Siguiente (N)"><i class="fa-solid fa-forward-step"></i></button>
     <div class="rp-seek-wrap">
       <input id="rp-seek" type="range" min="0" max="1" step="0.001" value="0" title="Posición" />
       <div id="rp-marks-bar" class="rp-marks-bar"></div>
     </div>
     <span id="rp-time" class="mono">— / —</span>
-    <input id="rp-vol" type="range" min="0" max="1" step="0.05" value="1" style="flex:1" title="Volumen" />
-    <button id="rp-video-toggle" class="btn btn-secondary btn-sm"><i class="fa-solid fa-eye-slash"></i> Solo audio</button>
+    <input id="rp-vol" type="range" min="0" max="1" step="0.05" value="1" style="flex:0 1 90px" title="Volumen" />
+    <button id="rp-video-toggle" class="btn btn-secondary btn-sm">Mostrar video</button>
   </div>
+
+  <div class="rp-toolbar">
+    <button id="rp-back10" class="btn btn-secondary btn-sm" title="Atrás 10s">−10s <kbd>J</kbd></button>
+    <button id="rp-fwd10" class="btn btn-secondary btn-sm" title="Adelante 10s">+10s <kbd>L</kbd></button>
+    <button id="rp-mark-add" class="btn btn-primary btn-sm" title="Bandera en el tiempo actual">🚩 Bandera <kbd>F</kbd></button>
+    <button id="rp-loop-flags" class="btn btn-secondary btn-sm" title="Repetir entre banderas">🔁 Loop <kbd>R</kbd></button>
+    <button id="rp-loop-track" class="btn btn-secondary btn-sm" title="Repetir tema">🔁 Tema</button>
+    <label class="mono" for="rp-speed">Vel.</label>
+    <select id="rp-speed" class="form-control" style="max-width:90px">
+      <option value="0.5">0.5×</option>
+      <option value="0.75">0.75×</option>
+      <option value="1" selected>1×</option>
+      <option value="1.25">1.25×</option>
+      <option value="1.5">1.5×</option>
+      <option value="2">2×</option>
+    </select>
+    <label class="mono" for="rp-quality">Calidad</label>
+    <select id="rp-quality" class="form-control" style="max-width:90px" title="Menor calidad = menos datos">
+      <option value="tiny" selected>144p</option>
+      <option value="small">240p</option>
+      <option value="medium">360p</option>
+      <option value="large">480p</option>
+      <option value="hd720">720p</option>
+      <option value="auto">Auto</option>
+    </select>
+    <button id="rp-clear-marks" class="btn btn-secondary btn-sm" title="Borrar todas las banderas">Borrar banderas</button>
+  </div>
+
+  <ul id="rp-marks" class="rp-marks-list"></ul>
   <p id="rp-status" class="mono" style="margin-top:8px">Cargando…</p>
+  <p class="form-hint">Atajos: Espacio/K pausa · J/L ±10s · ←/→ ±5s · F bandera · R loop · N siguiente · B anterior. Video oculto por defecto.</p>
 </div>
 
 <div class="grid2" style="margin-top:14px">
   <div class="card">
     <h3>Temas del setlist</h3>
     <ol id="rp-list" style="padding-left:20px"></ol>
-  </div>
-  <div class="card">
-    <h3>Herramientas de ensayo</h3>
-    <div class="input-row">
-      <label class="mono" for="rp-speed">Velocidad</label>
-      <select id="rp-speed" class="form-control" style="max-width:110px">
-        <option value="0.5">0.5×</option>
-        <option value="0.75">0.75×</option>
-        <option value="1" selected>1×</option>
-        <option value="1.25">1.25×</option>
-        <option value="1.5">1.5×</option>
-        <option value="2">2×</option>
-      </select>
-      <button id="rp-back10" class="btn btn-secondary btn-sm" title="Atrás 10s">−10s</button>
-      <button id="rp-fwd10" class="btn btn-secondary btn-sm" title="Adelante 10s">+10s</button>
-      <button id="rp-loop-track" class="btn btn-secondary btn-sm" title="Repetir tema">🔁 Tema</button>
-      <label class="mono" for="rp-quality">Calidad</label>
-      <select id="rp-quality" class="form-control" style="max-width:110px" title="Menor calidad = menos datos">
-        <option value="auto" selected>Auto</option>
-        <option value="tiny">144p</option>
-        <option value="small">240p</option>
-        <option value="medium">360p</option>
-        <option value="large">480p</option>
-        <option value="hd720">720p</option>
-      </select>
-    </div>
-    <div class="input-row" style="margin-top:8px">
-      <button id="rp-mark-add" class="btn btn-primary btn-sm"><i class="fa-solid fa-flag"></i> ＋ Bandera aquí</button>
-      <button id="rp-loop-flags" class="btn btn-secondary btn-sm" title="Repetir entre las banderas que rodean la reproducción">🔁 Repetir entre banderas</button>
-      <button id="rp-clear-marks" class="btn btn-secondary btn-sm" title="Borrar todas las banderas">Borrar todas</button>
-    </div>
-    <ul id="rp-marks" style="list-style:none;padding:0;margin-top:8px"></ul>
-    <p class="form-hint">La bandera toma el minuto y segundo actuales. Se pintan en la barra; clic en una marca para saltar. Doble clic en el nombre para renombrar.</p>
   </div>
   <div class="card">
     <h3>Buscar tema suelto</h3>
@@ -92,11 +89,16 @@
 .rp-seek-wrap { position:relative; flex:2; min-width:160px; display:flex; align-items:center; }
 .rp-seek-wrap input[type=range] { width:100%; }
 .rp-marks-bar { position:absolute; left:8px; right:8px; top:0; bottom:0; pointer-events:none; }
-.rp-mark-pin { position:absolute; top:50%; width:9px; height:9px; margin:-4.5px 0 0 -4.5px; border-radius:50%; background:var(--accent, #f97316); border:1px solid #000; pointer-events:auto; cursor:pointer; }
-.rp-mark-pin:hover::after { content:attr(data-label); position:absolute; bottom:14px; left:50%; transform:translateX(-50%); white-space:nowrap; background:#111; color:#fff; padding:2px 6px; border-radius:4px; font-size:11px; z-index:5; }
-.rp-mark-pin.loop { box-shadow:0 0 0 3px rgba(249,115,22,.35); }
+/* Bandera sobre la barra. */
+.rp-mark-pin { position:absolute; top:50%; transform:translate(-50%,-50%); color:var(--accent, #f97316); font-size:13px; line-height:1; pointer-events:auto; cursor:pointer; text-shadow:0 0 2px #000, 0 0 2px #000; }
+.rp-mark-pin:hover::after { content:attr(data-label); position:absolute; bottom:16px; left:50%; transform:translateX(-50%); white-space:nowrap; background:#111; color:#fff; padding:2px 6px; border-radius:4px; font-size:11px; z-index:5; }
+/* Herramientas bajo la barra, ancho completo. */
+.rp-toolbar { display:flex; flex-wrap:wrap; align-items:center; gap:8px; width:100%; margin-top:10px; }
+.rp-toolbar .btn { display:inline-flex; align-items:center; gap:4px; }
+.rp-toolbar kbd { background:#1f1f1f; color:#ddd; border:1px solid #444; border-radius:4px; padding:0 4px; font-size:10px; font-family:monospace; }
+.rp-marks-list { list-style:none; padding:0; margin:10px 0 0; }
 </style>
-<script src="/js/rehearsal-player.js?v=12"></script>
+<script src="/js/rehearsal-player.js?v=13"></script>
 <script>
 window.__SETLIST_ID__ = "@Model.Id";
 RehearsalPlayer.init(window.__SETLIST_ID__).catch(e => {
