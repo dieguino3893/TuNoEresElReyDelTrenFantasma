@@ -277,7 +277,10 @@
 
     togglePlay() {
       try {
-        if (!this.player) return;
+        if (!this.player) {
+          this.playAt(this.idx >= 0 ? this.idx : 0).catch(e => this.setStatus("Error: " + e.message));
+          return;
+        }
         this.player.getPlayerState() === 1 ? this.player.pauseVideo() : this.player.playVideo();
       } catch { /* aún no listo */ }
     },
