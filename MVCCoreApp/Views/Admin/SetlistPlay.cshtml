@@ -3,6 +3,9 @@
   var esPublico = ViewData["Public"] as bool? == true;
   Layout = esPublico ? "_EnsayoLayout" : "_AdminLayout";
   ViewData["Title"] = "Ensayar: " + Model.Name;
+  var shareKey = ViewBag.ShareKey as string;
+  var shareHost = ViewBag.ShareHost as string;
+  var shareLink = !string.IsNullOrWhiteSpace(shareKey) ? $"{shareHost}/ensayo/play/{Model.Id}?key={shareKey}" : null;
 }
 <div class="welcome">
   <div>
@@ -11,6 +14,10 @@
   </div>
   @if (!esPublico)
   {
+    if (shareLink != null)
+    {
+      <button type="button" id="rp-share" class="btn btn-primary btn-sm" data-link="@shareLink"><i class="fa-solid fa-link"></i> Copiar link para compartir</button>
+    }
     <a href="/admin/setlists" class="btn btn-secondary btn-sm">← Volver a setlists</a>
   }
 </div>
@@ -104,6 +111,15 @@
 </style>
 <script src="/js/rehearsal-player.js?v=14"></script>
 <script>
+const rpShare = document.getElementById("rp-share");
+if (rpShare) rpShare.onclick = async () => {
+  const link = rpShare.dataset.link;
+  try { await navigator.clipboard.writeText(link); }
+  catch { const t=document.createElement("textarea"); t.value=link; document.body.appendChild(t); t.select(); document.execCommand("copy"); t.remove(); }
+  const old = rpShare.innerHTML;
+  rpShare.innerHTML = '<i class="fa-solid fa-check"></i> Link copiado';
+  setTimeout(() => rpShare.innerHTML = old, 1800);
+};
 window.__SETLIST_ID__ = "@Model.Id";
 RehearsalPlayer.init(window.__SETLIST_ID__).catch(e => {
   document.getElementById("rp-status").textContent = "Error: " + e.message;

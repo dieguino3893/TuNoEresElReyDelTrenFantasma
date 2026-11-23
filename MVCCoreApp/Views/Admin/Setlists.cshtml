@@ -1,6 +1,8 @@
 @model List<MVCCoreApp.Models.Setlist>
 @{
   Layout="_AdminLayout"; ViewData["Title"]="Setlists";
+  var shareKey = ViewBag.ShareKey as string;
+  var shareHost = ViewBag.ShareHost as string;
 }
 <div class="welcome">
   <div><h2>Setlists</h2><p>Las listas de canciones que repasas en ensayo o tocas en un show. Puedes reutilizarlas todas las veces que quieras.</p></div>
@@ -16,9 +18,20 @@
   <td data-label="Descripción"><small style="color:var(--muted)">@s.Description</small></td>
   <td data-label="Canciones"><span class="pill">@s.Items.Count</span> <small style="color:var(--muted)">@(s.Items.Count>0 ? string.Join(" · ", s.Items.Select(i=>i.Title)) : "sin canciones")</small></td>
   <td data-label="Editado"><small style="color:var(--muted)">por @s.UpdatedBy</small></td>
-  <td data-label="Acciones" style="display:flex;gap:6px;flex-wrap:wrap"><a href="/admin/setlists/play/@s.Id" class="btn btn-primary btn-sm"><i class="fa-solid fa-play"></i> Ensayar</a><a href="/admin/setlists/edit/@s.Id" class="btn btn-secondary btn-sm">Editar</a><form method="post" action="/admin/setlists/delete/@s.Id" onsubmit="return confirm('¿Eliminar el setlist @s.Name?')">@Html.AntiForgeryToken()<button type="submit" class="btn btn-danger btn-sm">Eliminar</button></form></td>
+  <td data-label="Acciones" style="display:flex;gap:6px;flex-wrap:wrap"><a href="/admin/setlists/play/@s.Id" class="btn btn-primary btn-sm"><i class="fa-solid fa-play"></i> Ensayar</a>@if (!string.IsNullOrWhiteSpace(shareKey)) { <button type="button" class="btn btn-secondary btn-sm share-btn" data-link="@($"{shareHost}/ensayo/play/{s.Id}?key={shareKey}")"><i class="fa-solid fa-link"></i> Compartir</button> }<a href="/admin/setlists/edit/@s.Id" class="btn btn-secondary btn-sm">Editar</a><form method="post" action="/admin/setlists/delete/@s.Id" onsubmit="return confirm('¿Eliminar el setlist @s.Name?')">@Html.AntiForgeryToken()<button type="submit" class="btn btn-danger btn-sm">Eliminar</button></form></td>
 </tr>
 }
 </tbody></table></div>
 @if(!Model.Any()){<p class="mono" style="margin-top:10px">Aún no hay setlists. Crea el primero y asígnalo a un ensayo.</p>}
-<script>function filterTable(){ const q=document.getElementById("q").value.toLowerCase(); document.querySelectorAll("#tbl tbody tr").forEach(tr=> tr.style.display = tr.textContent.toLowerCase().includes(q) ? "" : "none"); }</script>
+<script>
+function filterTable(){ const q=document.getElementById("q").value.toLowerCase(); document.querySelectorAll("#tbl tbody tr").forEach(tr=> tr.style.display = tr.textContent.toLowerCase().includes(q) ? "" : "none"); }
+async function copyShare(btn){
+  const link = btn.dataset.link;
+  try { await navigator.clipboard.writeText(link); }
+  catch { const t=document.createElement("textarea"); t.value=link; document.body.appendChild(t); t.select(); document.execCommand("copy"); t.remove(); }
+  const old = btn.innerHTML;
+  btn.innerHTML = '<i class="fa-solid fa-check"></i> Copiado';
+  setTimeout(() => btn.innerHTML = old, 1600);
+}
+document.querySelectorAll(".share-btn").forEach(b => b.onclick = () => copyShare(b));
+</script>

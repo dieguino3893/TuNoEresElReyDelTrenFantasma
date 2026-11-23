@@ -168,7 +168,13 @@ public class AdminController : Controller
     [HttpGet("setlists")]
     public async Task<IActionResult> Setlists()
     {
-        try { var list = await _mongo.GetCollection<Setlist>("setlists").Find(x => !x.IsDeleted).SortBy(x => x.Name).ToListAsync(); return View(list); }
+        try
+        {
+            ViewBag.ShareKey = _config["Playback:ShareKey"];
+            ViewBag.ShareHost = $"{Request.Scheme}://{Request.Host}";
+            var list = await _mongo.GetCollection<Setlist>("setlists").Find(x => !x.IsDeleted).SortBy(x => x.Name).ToListAsync();
+            return View(list);
+        }
         catch (Exception ex) { _log.LogWarning(ex, "Admin: operación falló"); return View(new List<Setlist>()); }
     }
     [HttpGet("setlists/create")]
@@ -230,6 +236,8 @@ public class AdminController : Controller
     {
         var m = await LoadByIdAsync<Setlist>("setlists", id);
         if (m == null) return NotFound();
+        ViewBag.ShareKey = _config["Playback:ShareKey"];
+        ViewBag.ShareHost = $"{Request.Scheme}://{Request.Host}";
         return View("SetlistPlay", m);
     }
 
