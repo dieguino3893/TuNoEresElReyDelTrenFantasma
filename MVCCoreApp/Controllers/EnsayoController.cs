@@ -29,6 +29,7 @@ public class EnsayoController : Controller
         var m = await _mongo.GetCollection<Setlist>("setlists")
             .Find(x => x.Id == id && !x.IsDeleted).FirstOrDefaultAsync();
         if (m == null) return NotFound();
+        ViewData["Public"] = true;
         return View("~/Views/Admin/SetlistPlay.cshtml", m);
     }
 }

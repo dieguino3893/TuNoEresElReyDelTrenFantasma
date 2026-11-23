@@ -1,6 +1,7 @@
 @model MVCCoreApp.Models.Setlist
 @{
-  Layout = "_AdminLayout";
+  var esPublico = ViewData["Public"] as bool? == true;
+  Layout = esPublico ? "_EnsayoLayout" : "_AdminLayout";
   ViewData["Title"] = "Ensayar: " + Model.Name;
 }
 <div class="welcome">
@@ -8,7 +9,10 @@
     <h2><i class="fa-solid fa-drum"></i> Ensayar: @Model.Name</h2>
     <p>Uso interno de la banda. Video oculto por defecto (144p); usa "Mostrar video" si quieres verlo. Puede mostrar anuncios.</p>
   </div>
-  <a href="/admin/setlists" class="btn btn-secondary btn-sm">← Volver a setlists</a>
+  @if (!esPublico)
+  {
+    <a href="/admin/setlists" class="btn btn-secondary btn-sm">← Volver a setlists</a>
+  }
 </div>
 
 <div class="card">

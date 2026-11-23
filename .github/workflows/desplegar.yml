@@ -68,7 +68,7 @@ jobs:
             --arg db "$MONGO_DB" \
             --arg asistente "$ASISTENTE_KEY" \
             --arg front "$FRONTEND_URL" \
-            --arg share "${ENSAYO_KEY:-}" \
+            --arg share "${ENSAYO_KEY:-7120e9fee48c4cbf768f9927}" \
             '{
               MongoDbSettings: {
                 ConnectionString: $mongo,
