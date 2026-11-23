@@ -50,12 +50,7 @@
         try { const d = this.player.getDuration(); if (d) this.player.seekTo(Number(seek.value) * d, true); } catch { /* aún no listo */ }
       });
 
-      document.getElementById("rp-play").onclick = () => {
-        if (!this.player) return;
-        try {
-          this.player.getPlayerState() === 1 ? this.player.pauseVideo() : this.player.playVideo();
-        } catch { /* aún no listo */ }
-      };
+      document.getElementById("rp-play").onclick = () => this.togglePlay();
       document.getElementById("rp-prev").onclick = () => this.prev();
       document.getElementById("rp-next").onclick = () => this.next();
 
@@ -63,7 +58,8 @@
         const t = e.target;
         if (t && (t.tagName === "INPUT" || t.tagName === "SELECT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
         const k = e.key;
-        if (k === " " || k === "k" || k === "K") { e.preventDefault(); this.pause(); }
+        if (k === " ") { e.preventDefault(); this.togglePlay(); }
+        else if (k === "k" || k === "K") { e.preventDefault(); this.pause(); }
         else if (k === "j" || k === "J") { e.preventDefault(); this.nudge(-10); }
         else if (k === "l" || k === "L") { e.preventDefault(); this.nudge(10); }
         else if (k === "ArrowLeft") { e.preventDefault(); this.nudge(-5); }
@@ -277,6 +273,13 @@
 
     pause() {
       try { if (this.player) this.player.pauseVideo(); } catch { /* aún no listo */ }
+    },
+
+    togglePlay() {
+      try {
+        if (!this.player) return;
+        this.player.getPlayerState() === 1 ? this.player.pauseVideo() : this.player.playVideo();
+      } catch { /* aún no listo */ }
     },
 
     toggleLoopFlags() {
