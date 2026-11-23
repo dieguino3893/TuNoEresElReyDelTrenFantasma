@@ -30,7 +30,7 @@
   window.RehearsalPlayer = {
     items: [], idx: -1, statusEl: null, titleEl: null,
     embedWrap: null, player: null, ytLoading: false, tickTimer: null, audioOnly: false,
-    loopA: null, loopB: null, loopTrack: false, videoId: null,
+    loopFlags: false, loopTrack: false, videoId: null, lastDuration: 0,
 
     async init(setlistId) {
       this.statusEl = document.getElementById("rp-status");
@@ -84,14 +84,17 @@
         loopTrack.classList.toggle("btn-primary", this.loopTrack);
         loopTrack.classList.toggle("btn-secondary", !this.loopTrack);
       };
-      const setA = document.getElementById("rp-set-a");
-      if (setA) setA.onclick = () => this.setLoopPoint("A");
-      const setB = document.getElementById("rp-set-b");
-      if (setB) setB.onclick = () => this.setLoopPoint("B");
-      const clearAb = document.getElementById("rp-clear-ab");
-      if (clearAb) clearAb.onclick = () => { this.loopA = this.loopB = null; this.renderAb(); };
       const markAdd = document.getElementById("rp-mark-add");
       if (markAdd) markAdd.onclick = () => this.addMark();
+      const clearMarks = document.getElementById("rp-clear-marks");
+      if (clearMarks) clearMarks.onclick = () => this.clearMarks();
+      const loopFlags = document.getElementById("rp-loop-flags");
+      if (loopFlags) loopFlags.onclick = () => {
+        this.loopFlags = !this.loopFlags;
+        loopFlags.classList.toggle("btn-primary", this.loopFlags);
+        loopFlags.classList.toggle("btn-secondary", !this.loopFlags);
+        this.renderMarks();
+      };
 
       this.setStatus("Cargando setlist…");
       const data = await api("/api/v1/playback/setlist/" + encodeURIComponent(setlistId));
@@ -135,8 +138,7 @@
 
     playEmbed(videoId) {
       this.videoId = videoId;
-      this.loopA = this.loopB = null;
-      this.renderAb();
+      this.lastDuration = 0;
       this.renderMarks();
       const boot = () => {
         if (this.player) {
@@ -199,13 +201,28 @@
         try {
           const d = this.player.getDuration() || 0;
           const c = this.player.getCurrentTime() || 0;
-          // Loop A–B de la sección.
-          if (this.loopA != null && this.loopB != null && this.loopB > this.loopA && c >= this.loopB)
-            this.player.seekTo(this.loopA, true);
+
+          // Loop entre las dos banderas que rodean la reproducción actual.
+          if (this.loopFlags && d > 0) {
+            const marks = this.getMarks();
+            if (marks.length >= 2) {
+              let prev = null, next = null;
+              for (const m of marks) {
+                if (m.t <= c + 0.3) prev = m;
+                else { next = m; break; }
+              }
+              if (prev && next && c >= next.t - 0.25) this.player.seekTo(prev.t, true);
+            }
+          }
+
           const seek = document.getElementById("rp-seek");
           const t = document.getElementById("rp-time");
           if (seek && d) seek.value = c / d;
           if (t) t.textContent = fmt(c) + " / " + fmt(d);
+          if (d && Math.abs(d - this.lastDuration) > 0.5) {
+            this.lastDuration = d;
+            this.renderMarks();
+          }
           this.setPlayIcon(this.player.getPlayerState() === 1);
         } catch { /* aún no listo */ }
       }, 500);
@@ -244,23 +261,6 @@
       catch { return 0; }
     },
 
-    setLoopPoint(which) {
-      const c = this.now();
-      if (which === "A") this.loopA = c;
-      else this.loopB = c;
-      if (this.loopA != null && this.loopB != null && this.loopB <= this.loopA) {
-        if (which === "A") this.loopB = null; else this.loopA = null;
-        this.setStatus("B debe ser mayor que A; ajusta el otro punto.");
-      }
-      this.renderAb();
-    },
-
-    renderAb() {
-      const el = document.getElementById("rp-ab-label");
-      if (el) el.textContent = "A–B: " + (this.loopA != null ? fmt(this.loopA) : "—") +
-        " → " + (this.loopB != null ? fmt(this.loopB) : "—");
-    },
-
     marksKey() { return "rp-marks-" + (this.videoId || "none"); },
 
     getMarks() {
@@ -269,33 +269,73 @@
     },
 
     addMark() {
-      const input = document.getElementById("rp-mark-label");
-      const label = (input ? input.value : "").trim() || ("Sección " + (this.getMarks().length + 1));
       const marks = this.getMarks();
-      marks.push({ t: Math.round(this.now()), label });
+      // Siguiente número libre para evitar duplicados tras borrar.
+      let n = 1;
+      while (marks.some(m => m.label === "Sección " + n)) n++;
+      marks.push({ t: Math.round(this.now()), label: "Sección " + n });
       marks.sort((a, b) => a.t - b.t);
       try { localStorage.setItem(this.marksKey(), JSON.stringify(marks)); } catch { /* sin storage */ }
-      if (input) input.value = "";
+      this.renderMarks();
+    },
+
+    clearMarks() {
+      try { localStorage.removeItem(this.marksKey()); } catch { /* sin storage */ }
+      this.renderMarks();
+    },
+
+    saveMarks(marks) {
+      marks.sort((a, b) => a.t - b.t);
+      try { localStorage.setItem(this.marksKey(), JSON.stringify(marks)); } catch { /* sin storage */ }
       this.renderMarks();
     },
 
     renderMarks() {
+      const marks = this.getMarks().slice().sort((a, b) => a.t - b.t);
+      const dur = this.lastDuration || 0;
+
+      // Marcas pintadas en la barra de progreso.
+      const bar = document.getElementById("rp-marks-bar");
+      if (bar) {
+        bar.innerHTML = "";
+        marks.forEach(m => {
+          if (!dur) return;
+          const pin = document.createElement("span");
+          pin.className = "rp-mark-pin";
+          pin.style.left = Math.min(100, Math.max(0, (m.t / dur) * 100)) + "%";
+          pin.dataset.label = m.label + " · " + fmt(m.t);
+          pin.onclick = () => { try { this.player.seekTo(m.t, true); this.player.playVideo(); } catch { /* aún no listo */ } };
+          bar.appendChild(pin);
+        });
+      }
+
       const box = document.getElementById("rp-marks");
       if (!box) return;
-      const marks = this.getMarks();
       box.innerHTML = "";
+      if (!marks.length) {
+        const li = document.createElement("li");
+        li.className = "form-hint";
+        li.textContent = "Sin banderas. Reproduce hasta la sección y pulsa “＋ Bandera aquí”.";
+        box.appendChild(li);
+        return;
+      }
       marks.forEach((m, i) => {
         const li = document.createElement("li");
         li.className = "rp-item";
-        li.innerHTML = "<button class='btn btn-secondary btn-sm'>🚩 " + fmt(m.t) + "</button> <strong></strong> <button class='btn btn-secondary btn-sm' title='Quitar'>✕</button>";
-        li.querySelector("strong").textContent = m.label;
+        li.innerHTML = "<button class='btn btn-secondary btn-sm'>🚩 " + fmt(m.t) + "</button> <strong title='Doble clic para renombrar'></strong> <button class='btn btn-secondary btn-sm' title='Quitar'>✕</button>";
+        const strong = li.querySelector("strong");
+        strong.textContent = m.label;
+        strong.ondblclick = () => {
+          const nuevo = prompt("Nombre de la sección", m.label);
+          if (nuevo == null) return;
+          const rest = this.getMarks();
+          const actual = rest.find(x => x.t === m.t && x.label === m.label);
+          if (actual) actual.label = nuevo.trim() || actual.label;
+          this.saveMarks(rest);
+        };
         const btns = li.querySelectorAll("button");
         btns[0].onclick = () => { try { this.player.seekTo(m.t, true); this.player.playVideo(); } catch { /* aún no listo */ } };
-        btns[1].onclick = () => {
-          const rest = this.getMarks().filter((_, j) => j !== i);
-          try { localStorage.setItem(this.marksKey(), JSON.stringify(rest)); } catch { /* sin storage */ }
-          this.renderMarks();
-        };
+        btns[1].onclick = () => this.saveMarks(this.getMarks().filter((_, j) => j !== i));
         box.appendChild(li);
       });
     },

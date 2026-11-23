@@ -20,7 +20,10 @@
     <button id="rp-prev" class="btn btn-secondary btn-sm" title="Anterior"><i class="fa-solid fa-backward-step"></i></button>
     <button id="rp-play" class="btn btn-primary btn-sm" title="Play/Pause"><i class="fa-solid fa-play"></i> / <i class="fa-solid fa-pause"></i></button>
     <button id="rp-next" class="btn btn-secondary btn-sm" title="Siguiente"><i class="fa-solid fa-forward-step"></i></button>
-    <input id="rp-seek" type="range" min="0" max="1" step="0.001" value="0" style="flex:2" title="Posición" />
+    <div class="rp-seek-wrap">
+      <input id="rp-seek" type="range" min="0" max="1" step="0.001" value="0" title="Posición" />
+      <div id="rp-marks-bar" class="rp-marks-bar"></div>
+    </div>
     <span id="rp-time" class="mono">— / —</span>
     <input id="rp-vol" type="range" min="0" max="1" step="0.05" value="1" style="flex:1" title="Volumen" />
     <button id="rp-video-toggle" class="btn btn-secondary btn-sm"><i class="fa-solid fa-eye-slash"></i> Solo audio</button>
@@ -59,17 +62,12 @@
       </select>
     </div>
     <div class="input-row" style="margin-top:8px">
-      <button id="rp-set-a" class="btn btn-secondary btn-sm" title="Inicio del loop">Poner A</button>
-      <button id="rp-set-b" class="btn btn-secondary btn-sm" title="Fin del loop">Poner B</button>
-      <button id="rp-clear-ab" class="btn btn-secondary btn-sm" title="Quitar loop">Quitar A–B</button>
-      <span id="rp-ab-label" class="mono">A–B: —</span>
-    </div>
-    <div class="input-row" style="margin-top:8px">
-      <input id="rp-mark-label" class="form-control" placeholder="Nombre de la sección (verso, coro…)" />
-      <button id="rp-mark-add" class="btn btn-secondary btn-sm"><i class="fa-solid fa-flag"></i> Bandera</button>
+      <button id="rp-mark-add" class="btn btn-primary btn-sm"><i class="fa-solid fa-flag"></i> ＋ Bandera aquí</button>
+      <button id="rp-loop-flags" class="btn btn-secondary btn-sm" title="Repetir entre las banderas que rodean la reproducción">🔁 Repetir entre banderas</button>
+      <button id="rp-clear-marks" class="btn btn-secondary btn-sm" title="Borrar todas las banderas">Borrar todas</button>
     </div>
     <ul id="rp-marks" style="list-style:none;padding:0;margin-top:8px"></ul>
-    <p class="form-hint">YouTube conserva el tono al cambiar velocidad. Las banderas se guardan en este navegador por video.</p>
+    <p class="form-hint">La bandera toma el minuto y segundo actuales. Se pintan en la barra; clic en una marca para saltar. Doble clic en el nombre para renombrar.</p>
   </div>
   <div class="card">
     <h3>Buscar tema suelto</h3>
@@ -90,8 +88,15 @@
 .rp-embed-wrap iframe { position:absolute; inset:0; width:100% !important; height:100% !important; pointer-events:none; }
 /* Modo solo audio: el iframe sigue reproduciendo, pero fuera de pantalla. */
 .rp-embed-wrap.audio-only { position:fixed; left:-10000px; top:0; width:1px; height:1px; aspect-ratio:auto; margin:0; border:0; }
+/* Barra con banderas pintadas encima. */
+.rp-seek-wrap { position:relative; flex:2; min-width:160px; display:flex; align-items:center; }
+.rp-seek-wrap input[type=range] { width:100%; }
+.rp-marks-bar { position:absolute; left:8px; right:8px; top:0; bottom:0; pointer-events:none; }
+.rp-mark-pin { position:absolute; top:50%; width:9px; height:9px; margin:-4.5px 0 0 -4.5px; border-radius:50%; background:var(--accent, #f97316); border:1px solid #000; pointer-events:auto; cursor:pointer; }
+.rp-mark-pin:hover::after { content:attr(data-label); position:absolute; bottom:14px; left:50%; transform:translateX(-50%); white-space:nowrap; background:#111; color:#fff; padding:2px 6px; border-radius:4px; font-size:11px; z-index:5; }
+.rp-mark-pin.loop { box-shadow:0 0 0 3px rgba(249,115,22,.35); }
 </style>
-<script src="/js/rehearsal-player.js?v=4"></script>
+<script src="/js/rehearsal-player.js?v=12"></script>
 <script>
 window.__SETLIST_ID__ = "@Model.Id";
 RehearsalPlayer.init(window.__SETLIST_ID__).catch(e => {
