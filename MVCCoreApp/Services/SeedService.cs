@@ -5,6 +5,8 @@ namespace MVCCoreApp.Services;
 
 public class SeedService
 {
+    private const string HeroImageUrlDefault = "https://res.cloudinary.com/fp2xhdc0/image/upload/f_auto,q_auto:good,w_2000,c_limit/v1795887410/elrey/hero_portada_tren_fantasma.webp";
+
     private readonly MongoDbService _mongo;
     private readonly ILogger<SeedService> _logger;
 
@@ -19,7 +21,20 @@ public class SeedService
         await EnsureIndexesAsync();
         await EnsureSiteTextsAsync();
         await EnsureHeroChipsAsync();
-        _logger.LogInformation("Estructura verificada: índices, textos del sitio y chips de portada.");
+        await EnsureHeroImageAsync();
+        _logger.LogInformation("Estructura verificada: índices, textos del sitio, chips e imagen de portada.");
+    }
+
+    private async Task EnsureHeroImageAsync()
+    {
+        var col = _mongo.GetCollection<SiteSettings>("siteSettings");
+        var settings = await col.Find(x => x.Id == "main").FirstOrDefaultAsync();
+        if (settings == null) return;
+        var legacy = settings.HeroImageUrl.Contains("IMG_1782.webp", StringComparison.OrdinalIgnoreCase);
+        if (!string.IsNullOrWhiteSpace(settings.HeroImageUrl) && !legacy) return;
+        await col.UpdateOneAsync(x => x.Id == "main",
+            Builders<SiteSettings>.Update.Set(x => x.HeroImageUrl, HeroImageUrlDefault));
+        _logger.LogInformation("Imagen de portada apuntada a Cloudinary.");
     }
 
     private async Task EnsureSiteTextsAsync()
